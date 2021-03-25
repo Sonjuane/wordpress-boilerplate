@@ -3,8 +3,8 @@ Contributors: cyberlord92
 Donate link: https://miniorange.com
 Tags: firebase, authentication, login, sso, jwt, social login, OTP verification, firebase otp, woocommerce, woocommerce integration
 Requires at least: 3.0.1
-Tested up to: 5.6
-Stable tag: 1.4.3
+Tested up to: 5.7
+Stable tag: 1.4.4
 License: MIT/Expat
 License URI: https://docs.miniorange.com/mit-license
 
@@ -12,12 +12,12 @@ This plugin allows login into WordPress using Firebase user credentials and maps
 
 == Description ==
 
-This plugin allows you to login or Single Sign-On into WordPress site using your Firebase user credentials or via Social Login.
-Firebase authentication works using both default WordPress login page and also we support custom login pages.
+This plugin allows you to login or Single Sign-On (SSO) into WordPress site using your Firebase user login credentials or via Social Login.
+Firebase authentication works using default WordPress login page. Also, we support <a href="https://plugins.miniorange.com/firebase-woocommerce-integration/" target="_blank">Firebase WooCommerce Integration</a> and other third-party login pages along with custom login forms.
 
 = Features =
-*	**Firebase Authentication** : WordPress login / SSO using Firebase user credentials
-*	**Auto Create Users** : After login using Firebase credentials, new user automatically gets created in WordPress 
+*	**Firebase Authentication** : WordPress login / SSO using Firebase user login credentials
+*	**Auto Create Users** : After login using Firebase login credentials, new user automatically gets created in WordPress
 *	**Configurable login options** :
 	Provide option to login with,
 	a) Only Firebase credentials
@@ -25,7 +25,8 @@ Firebase authentication works using both default WordPress login page and also w
 	c) Both Firebase and WordPress credentials
 *	**Auto Sync Users** : New users will be created in Firebase when they register on a WordPress site using any registration form.
 *	**Login/Registration Form Integration** : Integration with any Third Party and Custom Login/Registration Form to allow Firebase Login/Registration via different hooks provided in the plugin 
-*	**Support for Firebase Phone Authentication method** : Users will be asked to enter OTP provided via Firebase to login into WordPress
+*	**Support for Firebase Phone Authentication method** : Users will be asked to enter OTP provided via Firebase to login into WordPress (Passwordless login).
+*	**Support for Sign In via Email Link (Passwordless login)** : Users will be asked to enter email address and verfication link will be sent on their email by Firebase to login into the WordPress site.
 *	**Support for Firebase Social Login** : Users will be provided an option to login in to WordPress using selected social login providers
 	Providers supported are
 	1. Google
@@ -36,10 +37,11 @@ Firebase authentication works using both default WordPress login page and also w
 	6. Yahoo
 	7. Microsoft
 *	**Support for Social Login buttons Shortcode** : Use a shortcode to place Firebase social login buttons anywhere in your Theme or Plugin
-*	**Attribute Mapping** : User attributes received from Firebase are mapped to WordPress user profile
+*	**Attribute Mapping** : User attributes received from Firebase login are mapped to WordPress user profile
 *	**Custom Redirect Login and Logout URL** : Automatically Redirect users after successful login/logout.
 *	**Support for Firebase Login and Registartion form Shortcode** : Use shortcodes to place Firebase Login and Registration form anywhere in your Theme
 *	**WP Hooks for Different Events** : Provides support for different hooks for user defined functions
+*	**Firebase WooCommerce Integration** : Integrate WooCommerce with the WordPress Firebase Authentication plugin and allow users to log in to your WooCommerce site using firebase login credentials on WooCommerce Checkout and My account page.
 
 == Installation ==
 
@@ -64,6 +66,9 @@ Please email us at info@xecurify.com or <a href="https://miniorange.com/contact"
 3. The result after successful Test Authentication
 
 == Changelog ==
+
+= 1.4.4 =
+* Added compatibility with WP 5.7
 
 = 1.4.3 =
 * UI changes

@@ -234,6 +234,11 @@ class Ai1wmme_Import_Done {
 			}
 		}
 
+		// Clear auth cookie (WP Cerber)
+		if ( ai1wm_validate_plugin_basename( 'wp-cerber/wp-cerber.php' ) ) {
+			wp_clear_auth_cookie();
+		}
+
 		// Set progress
 		if ( ai1wm_validate_plugin_basename( 'fusion-builder/fusion-builder.php' ) ) {
 			Ai1wm_Status::done( __( 'Your site has been imported successfully!', AI1WMME_PLUGIN_NAME ), Ai1wm_Template::get_content( 'import/avada', array(), AI1WMME_TEMPLATES_PATH ) );

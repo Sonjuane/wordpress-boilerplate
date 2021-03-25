@@ -5,7 +5,7 @@
  * Description: Extension for All-in-One WP Migration that enables multisite exports and imports
  * Author: ServMask
  * Author URI: https://servmask.com/
- * Version: 4.6
+ * Version: 4.8
  * Text Domain: all-in-one-wp-migration-multisite-extension
  * Domain Path: /languages
  * Network: True

@@ -11,7 +11,7 @@
  * Plugin Name:       Firebase Authentication
  * Plugin URI:        firebase-authentication
  * Description:       This plugin allows login into Wordpress using Firebase as Identity provider.
- * Version:           1.4.3
+ * Version:           1.4.4
  * Author:            miniOrange
  * Author URI:        https://miniorange.com
  * License:           MIT/Expat
@@ -28,7 +28,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MO_FIREBASE_AUTHENTICATION_VERSION', '1.4.3' );
+define( 'MO_FIREBASE_AUTHENTICATION_VERSION', '1.4.4' );
 
 /**
  * The code that runs during plugin activation.

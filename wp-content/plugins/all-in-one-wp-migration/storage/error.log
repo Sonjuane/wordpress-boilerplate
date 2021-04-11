@@ -1,0 +1,6 @@
+Apr 11 2021 09:18:08
+{"type":2,"message":"Use of undefined constant status - assumed 'status' (this will throw an Error in a future version of PHP)","file":"\/home\/arclab6\/wp.arclabs.ca\/wp-content\/plugins\/arc-wp-plugin\/arc-wp-plugin.php","line":135}
+
+Apr 11 2021 09:18:15
+{"type":2,"message":"Use of undefined constant status - assumed 'status' (this will throw an Error in a future version of PHP)","file":"\/home\/arclab6\/wp.arclabs.ca\/wp-content\/plugins\/arc-wp-plugin\/arc-wp-plugin.php","line":135}
+

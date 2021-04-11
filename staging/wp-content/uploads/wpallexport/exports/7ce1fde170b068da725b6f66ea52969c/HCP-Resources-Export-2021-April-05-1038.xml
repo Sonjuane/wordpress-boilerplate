@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+	<node>
+		<id><![CDATA[106]]></id>
+		<title><![CDATA[Primary Care Guidelines]]></title>
+		<content><![CDATA[]]></content>
+		<excerpt><![CDATA[]]></excerpt>
+		<date><![CDATA[2021-04-04]]></date>
+		<posttype><![CDATA[hcp-resource]]></posttype>
+		<permalink><![CDATA[https://wp.arclabs.ca/staging/hcp-resource/primary-care-guidelines/]]></permalink>
+		<wpmltranslationid><![CDATA[106]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+		<imageurl><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/resources/Guidelines-for-Managing-Eczema-2020.png]]></imageurl>
+		<imagetitle><![CDATA[Guidelines-for-Managing-Eczema-2020]]></imagetitle>
+		<imagecaption><![CDATA[]]></imagecaption>
+		<imagedescription><![CDATA[]]></imagedescription>
+		<imagealttext><![CDATA[]]></imagealttext>
+		<imagefeatured><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/resources/Guidelines-for-Managing-Eczema-2020.png]]></imagefeatured>
+		<attachmenturl><![CDATA[]]></attachmenturl>
+		<resourcetypes><![CDATA[]]></resourcetypes>
+		<status><![CDATA[publish]]></status>
+		<authorid><![CDATA[1]]></authorid>
+		<authorusername><![CDATA[arclabs]]></authorusername>
+		<authoremail><![CDATA[admin@arclabs.ca]]></authoremail>
+		<authorfirstname><![CDATA[]]></authorfirstname>
+		<authorlastname><![CDATA[]]></authorlastname>
+		<slug><![CDATA[primary-care-guidelines]]></slug>
+		<format><![CDATA[]]></format>
+		<template><![CDATA[]]></template>
+		<parent><![CDATA[0]]></parent>
+		<parentslug><![CDATA[0]]></parentslug>
+		<order><![CDATA[0]]></order>
+		<commentstatus><![CDATA[closed]]></commentstatus>
+		<pingstatus><![CDATA[closed]]></pingstatus>
+		<postmodifieddate><![CDATA[2021-04-05]]></postmodifieddate>
+		<resourcetype><![CDATA[HP Resource]]></resourcetype>
+		<sortorder><![CDATA[2]]></sortorder>
+		<showorderbutton><![CDATA[1]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/2021/04/ESC_I-have-Eczema-Colouring-Book_2016.pdf]]></downloadfile>
+	</node>
+	<node>
+		<id><![CDATA[257]]></id>
+		<title><![CDATA[Lignes directrices en soins primaires]]></title>
+		<content><![CDATA[]]></content>
+		<excerpt><![CDATA[]]></excerpt>
+		<date><![CDATA[2021-04-05]]></date>
+		<posttype><![CDATA[hcp-resource]]></posttype>
+		<permalink><![CDATA[https://wp.arclabs.ca/staging/fr/hcp-resource/lignes-directrices-en-soins-primaires/]]></permalink>
+		<wpmltranslationid><![CDATA[106]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+		<imageurl><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/resources/Lingnes-directrics-en-soins-primaires-2020.png|https://wp.arclabs.ca/staging/wp-content/uploads/resources/Guidelines-for-Managing-Eczema-2020.png]]></imageurl>
+		<imagetitle><![CDATA[Lingnes-directrics-en-soins-primaires-2020|Guidelines-for-Managing-Eczema-2020]]></imagetitle>
+		<imagecaption><![CDATA[|]]></imagecaption>
+		<imagedescription><![CDATA[|]]></imagedescription>
+		<imagealttext><![CDATA[|]]></imagealttext>
+		<imagefeatured><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/resources/Lingnes-directrics-en-soins-primaires-2020.png]]></imagefeatured>
+		<attachmenturl><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/2021/04/SCE_Guide-pratique-sur-la-prise-en-charge-de-la-dermatite-atopique-HCP-Guideline-2020-PUBLISHED.pdf]]></attachmenturl>
+		<resourcetypes><![CDATA[]]></resourcetypes>
+		<status><![CDATA[publish]]></status>
+		<authorid><![CDATA[1]]></authorid>
+		<authorusername><![CDATA[arclabs]]></authorusername>
+		<authoremail><![CDATA[admin@arclabs.ca]]></authoremail>
+		<authorfirstname><![CDATA[]]></authorfirstname>
+		<authorlastname><![CDATA[]]></authorlastname>
+		<slug><![CDATA[lignes-directrices-en-soins-primaires]]></slug>
+		<format><![CDATA[]]></format>
+		<template><![CDATA[]]></template>
+		<parent><![CDATA[0]]></parent>
+		<parentslug><![CDATA[0]]></parentslug>
+		<order><![CDATA[0]]></order>
+		<commentstatus><![CDATA[closed]]></commentstatus>
+		<pingstatus><![CDATA[closed]]></pingstatus>
+		<postmodifieddate><![CDATA[2021-04-05]]></postmodifieddate>
+		<resourcetype><![CDATA[HP Resource]]></resourcetype>
+		<sortorder><![CDATA[2]]></sortorder>
+		<showorderbutton><![CDATA[1]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://wp.arclabs.ca/staging/wp-content/uploads/2021/04/SCE_Guide-pratique-sur-la-prise-en-charge-de-la-dermatite-atopique-HCP-Guideline-2020-PUBLISHED.pdf]]></downloadfile>
+	</node>
+</data>

@@ -4,14 +4,14 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.7
 Requires PHP: 5.4
-Stable tag: 5.154
+Stable tag: 5.155.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
 
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, Avada Theme Form Builder, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
+**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, Forminator, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, Avada Theme Form Builder, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
@@ -39,7 +39,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
-> <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" rarget="_blank">NewsWatch Review</a>.
+> <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
 > Using CleanTalk on WPLift was a great test as we receive huge amounts of spam.
 > *Oliver Dale, <a href="http://wplift.com/wordpress-anti-spam-plugin" target="_blank">WPLift.com</a>.*
@@ -60,7 +60,7 @@ Native spam protection for WordPress, JetPack comments and any other comment plu
 Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Spam filter for contact forms =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing Page Builder, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Contact Us Form, WCP Contact Form, WPForms Lite, Custom Contact, Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Usernoise contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm, Form Maker by 10Web, WP User Frontend, NEX-Forms, Avada Theme Form Builder.
+The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing Page Builder, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Contact Us Form, WCP Contact Form, WPForms Lite, Custom Contact, Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Usernoise contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm, Form Maker by 10Web, WP User Frontend, NEX-Forms.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
@@ -579,6 +579,51 @@ If your website has forms that send data to external sources, you can enable opt
 10. Website's options.
 
 == Changelog ==
+
+= 5.155.2 Apr 6 2021 =
+ * Fix: Renaming setting to their original names in old update scripts.
+ * Fix: Ajax forms protection response fixed.
+ * Fix: No alert message when AJAX error happens.
+
+= 5.155.1 Apr 2 2021 =
+ * Fix: Using WP Rest API.
+ * Rollback: Show response for all AJAX forms.
+
+= 5.155 Mar 31 2021 =
+ * New: Debug. Check connection to API servers.
+ * New: Integration. Avada Form Builder.
+ * New: Integration. Forminator integration implemented.
+ * New: Users checker. Non-checked users tab added.
+ * New: SFW. Admin IP will be whitelisted automatically.
+ * Mod: Replace "bad" users/comments to "non-checkable".
+ * Mod: DisableComments. Disable all comments means disable all comments for any post type.
+ * Udp: Setting templates. Product ID support implemented.
+ * Udp: Settings. Reorder links actions buttons.
+ * Upd: Common. Getting check_js updated.
+ * Upd: SFW. Description updated.
+ * Fix: Reversed URL exclusions.
+ * Fix: Settings. Sync button success ico fixed.
+ * Fix: Show response for all AJAX forms #3.
+ * Fix: GDPR. Warning text output.
+ * Fix: Integration class consider settings.
+ * Fix: Exclusions. URL exclusions fixed.
+ * Fix: Services Templates. Getting templates optimized.
+ * Fix: Services Templates. Possible XSS fixed.
+ * Fix: Services Templates. Design layout fixed.
+ * Fix: Family of settings comments__disable_comments__* dependencies.
+ * Fix: DisableComments class. Media post type includes 'attachment' type.
+ * Fix: Exclusion for Thrive Ultimatum.
+ * Fix: Common/Helper::http__get_headers() ignores empty header name parts.
+ * Fix: Exclusion for GiveWP plugin in apbct-public.js.
+ * Fix: Do not consider 501 as correct HTTP response code when getting FW data files.
+ * Fix: AntiCrawler::update(). Correct error codes.
+ * Fix: ApbctWP\Firewall\SFW::update(). Correct URLs for FILE with protocol.
+ * Fix: PHP 8 deprecated notices.
+ * Fix: Settings. Reversed dependencies. Applies to WooCommerce and Disable Comments settings.
+ * Fix: DisableComments::template__check() returns the correct number of comments for enabled types of posts.
+ * Fix: DisableComments class. Visibility of some methods.
+ * Exception: Paid Memberships Pro - Login Form.
+ * Fix: Exception the SFW check for queries with '/favicon.ico' string.
 
 = 5.154 Mar 17 2021 =
  * New: Settings Templates functionality implemented.

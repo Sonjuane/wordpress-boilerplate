@@ -42,7 +42,7 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
         $users = array("arclabs", "atomic", "Atomic"); // Usernames to check
     
     
-        
+        // ALL PRIVATE FUNCTIONS
         if (!in_array($username, $users)) { // CONDITIONAL IF CURRENT USERNAME EXISTS IN USERS ARRAY
             
             // HIDE ALL UPDATE NOTIFICATIONS
@@ -55,10 +55,8 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
             add_filter( 'site_transient_update_themes', 'remove_core_updates' );
         
     
-                
             remove_action('load-update-core.php','wp_update_plugins');
             add_filter('pre_site_transient_update_plugins','__return_null');
-
 
             // HIDE PLUGINS 
             add_filter( 'all_plugins', 'hide_plugins');
@@ -68,7 +66,8 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                     'cleantalk-spam-protect/cleantalk.php',
                     'all-in-one-wp-migration/all-in-one-wp-migration.php',
                     'all-in-one-wp-migration-s3-extension/all-in-one-wp-migration-s3-extension.php',
-                    'all-in-one-wp-migration-multisite-extension/all-in-one-wp-migration-multisite-extension.php');
+                    'all-in-one-wp-migration-multisite-extension/all-in-one-wp-migration-multisite-extension.php',
+					'wp-staging/wp-staging.php');
                     
                 foreach( $pluginsArray as $plugin_ ) {
                     // Hide Plugin from Plugin page
@@ -79,11 +78,12 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                 return $plugins;
             }
              
-            // HIDE FROM MENU
+            // HIDE FROM MENU (SIDE)
             $menuItems = array(// hides menu items
                 'ai1wm_export',
                 'cleantalk',
-                'wpstg_clone'
+                'wpstg_clone',
+                'Wordfence'
                 );
             foreach($menuItems as $menuItem){
                 remove_menu_page('admin.php?page='.$menuItem); // removes from menu
@@ -94,8 +94,30 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                 remove_submenu_page( 'options-general.php',$menuItem );
             }
             
-        } 
-        
+            //ADD ADMIN JS FOR NON-AUTH USERS
+            wp_enqueue_script('arc-wp-script',plugins_url().'/arc-wp-plugin/js/arc-wp-plugin.js');
+            
+            // REMOVE DASHBOARD WIDGETS 
+            add_action('wp_dashboard_setup', 'remove_dashboard_widgets' );
+            function remove_dashboard_widgets() {
+                global $wp_meta_boxes;
+                unset($wp_meta_boxes['dashboard']['normal']['core']['ct_dashboard_statistics_widget']); // CLEANTALK DASHBOARD
+                unset($wp_meta_boxes['dashboard']['normal']['core']['wordfence_activity_report_widget']); // WORDFENCE WIDGET
+                
+                // CORE WIDGETS AVAILABLE FOR REMOVAL
+                // unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_quick_press']);
+                // unset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_incoming_links']);
+                // unset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_right_now']);
+                // unset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_plugins']);
+                // unset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_recent_drafts']);
+                // unset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_recent_comments']);
+                // unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_primary']);
+                // unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_secondary']);
+ 
+}
+                
+            }
+         
         // GET ALL WORDPRESS PAGES (with children) AND CREATE JS VARIABLE
         function pages(){
         
@@ -129,7 +151,7 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                 }
                 array_push($pageArray, $page_);
             }
-            wp_enqueue_script('arc-wp-script',plugins_url().'/arc-wp-plugin/js/arc-wp-plugin.js');
+            wp_enqueue_script('arc-wp-script',plugins_url().'/arc-wp-plugin/js/arc-wp-pages-plugin.js');
             wp_localize_script( 'arc-wp-script', 'pages', $pageArray ); // where pages is the variable name
         }
         pages();

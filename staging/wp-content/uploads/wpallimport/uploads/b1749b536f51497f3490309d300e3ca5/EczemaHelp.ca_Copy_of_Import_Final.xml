@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Lignes directrices en soins primaires]]></title>
+		<resourcetype><![CDATA[HP Resource]]></resourcetype>
+		<sortorder><![CDATA[2]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/09/SCE_Guide-pratique-sur-la-prise-en-charge-de-la-dermatite-atopique-HCP-Guideline-2020-PUBLISHED.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/07/Lingnes-directrics-en-soins-primaires-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[289]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Written Eczema Care Plan - Printable and Fillable Form]]></title>
+		<resourcetype><![CDATA[HP Resource]]></resourcetype>
+		<sortorder><![CDATA[2]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/09/ESC-Written-Eczema-Care-Plan_Printable-and-Fillable-Form_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/12/ESC-Written-Eczema-Care-Plan-Printable-and-Fillable-Form.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[289]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Plan écrit de traitement de l’eczéma - À remplir]]></title>
+		<resourcetype><![CDATA[HP Resource]]></resourcetype>
+		<sortorder><![CDATA[3]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/09/SCE_Plan-écrit-de-traitement-de-l’eczéma-À-remplir_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/12/Plan-écrit-de-traitement-de-l’eczéma-–-À-remplir-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[290]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Written Eczema Care Plan - Label]]></title>
+		<resourcetype><![CDATA[HP Resource]]></resourcetype>
+		<sortorder><![CDATA[3]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/09/ESC-Written-Eczema-Care-Plan_Label_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/12/ESC-Written-Care-Plan-Label.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[290]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Managing Eczema Guide]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[1]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Managing-Eczema-Guide_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC-Managing-Eczema-Guide-Cover.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[251]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Guide « Maîtriser l’eczéma »]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[1]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Guide-Maitriser-leczema_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC-Maitriser-leczema-brochure-2017-Cover.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[251]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Ask the Doctor About... Biologic Drugs for Atopic Dermatitis]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Ask-the-Doctor_Biologics_2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-Biologics-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[261]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Ask the Doctor About... Hand Eczema]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Ask-the-Doctor_Hand_2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-Hand-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[262]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Eczema Skin Care Made Simple]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/ESC_Eczema-Skin-Care-Made-Simple_May-2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/eczema-skin-care-made-simple@2x.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[264]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Un médecin vous parle… des médicaments biologiques]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Un-medecin-vous-parle-des-medicaments-biologiques_2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-Biologics-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[261]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Un médecin vous parle… de l’eczéma des mains]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Un-medecin-vous-parle-l-eczema-des-mains_2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-Hand-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[262]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Soins de l’eczéma simplifiés]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/SCE_Soin-de-lecz%C3%A9ma-simplifi%C3%A9s_May-2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/09/fr-eczema-skin-care-made-simple.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[264]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Ask the Doctor About... Phototherapy]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Ask-the-Doctor_Phototherapy_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-Phototherapy-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Ask the Doctor About... Topical Calcineurin Inhibitors]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Ask-the-Doctor_Topical-Calcineurin-Inhibitor_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-TCI-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Ask the Doctor About... Topical Corticosteroids]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Ask-the-Doctor_Topical-Corticosteroids_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-TCS-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Ask the Doctor About... Topical PDE4 Inhibitors]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Ask-the-Doctor_Topical-PDE4-Inhibitors_2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-PDE4-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Caring for the Eczema Caregiver]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Caring-for-the-Eczema-Caregiver_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/Caring-for-Eczema-Caregiver-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[When the Road Gets Bumpy]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_When-the-Roads-Gets-Bumpy_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/When-the-Road-Gets-Bumpy-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Quality of Life Report - Moderate to Severe Atopic Dermatitis]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/02/ESC_Quality-of-Life-Report_Nov-2017-1.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/quality-of-life-report@2x.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Patient Insights Report - Mild to Moderate Atopic Dermatitis]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/02/ESC_Insights-Report_Nov-2017-1.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/patient-insights-report@2x.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Un médecin vous parle… des corticostéroides topiques]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Un-medecin-vous-parle-des-corticosteroides-topiques-_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-TCS-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Un médecin vous parle… des inhibiteurs topiques de la calcineurine]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Un-medecin-vous-parle-des-inhibiteurs-topiques-de-la-calcineurine_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-TCI-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Un médecin vous parle… des inhibiteurs topiques de la PDE4]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Un-medecin-vous-parle-inhibiteurs-topiques-de-la-PDE4_2018.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-PDE4-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Un médecin vous parle… de photothérapies]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Un-medecin-vous-de-phototherapies_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/Ask-Phototherapy-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Se soucier des aidants de personnes atteintes d'eczéma]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_se-soucier-des-aidants-de-personnes-atteintes-d-eczema_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/Caring-for-Eczema-Caregiver-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Quand le Chemin est Rocailleux]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Quand-le-chemin-est-rocailleux_2020.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/When-the-Road-Gets-Bumpy-FR-Cover-2020.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Rapport sur la Qualité de vie - Dermatite Atopique Modérée ou Grave]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Rapport-sur-la-Qualite-de-vie-Associee-a-la-Dermitite-Atopique_2017.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/Qol-Survey-Report-2016-2017-French-Cover-scaled.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Rapport sur le vécu des patients - dermatite atopique légère ou modérée]]></title>
+		<resourcetype><![CDATA[Patient Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Dermatite-atopique_-rapport-sur-le-vecu-des-patients_2017.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/Insight-FR.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[I Have Eczema Card]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/ESC_I-Have-Eczema-Card_Nov-2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/i-have-eczema-card@2x.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[250]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Cartes « J’ai de l’eczéma »]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/SCE_Cartes-Jai-de-lecze%CC%81ma_Nov-2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/09/fr-i-have-eczema-card.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[250]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Rub It In! Skin Care Chart]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/07/rub-it-in-eng.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/07/rub-it-in-eng-scaled.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[268]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Sometimes I Am Itchy - Children's Book]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/ESC_Sometimes_I_am_Itchy_Chidlrens_Book_Nov_2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/sometimes-iam-itchy@2x.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[269]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Eczema School and Daycare Guide]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/ESC_Eczema_School_and_Daycare_Guide_Nov_2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/08/eczema-school-and-daycare-guide@2x.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[270]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Guide sur l’eczéma à l’intention des écoles et des garderies]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/SCE_Guide-sur-lecze%CC%81ma-a%CC%80-lintention-des-e%CC%81coles-et-des-garderies_Nov-2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/09/fr-eczema-school-and-daycare-guide.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[270]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Tableau sur le soin de la peau « Aux petits soins! »]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/07/rub-it-in-fr.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/07/rub-it-in-fr.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[268]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[« Des fois, ça me démange » (Livre pour enfants)]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://eczemahelp.ca/wp-content/uploads/2019/02/SCE_Livre-Des-fois-c%CC%A7a-me-de%CC%81mange_Nov-2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2019/09/fr-sometimes-i-am-itchy.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[269]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[I Have Eczema Coloring Book]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_I-have-Eczema-Colouring-Book_2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC-Colouring-Book-and-Skin-Care-Guide-2016-Cover-scaled.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Eczema Word Search]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC_Word-Search_2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC-Word-Search-Cover.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[en]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Livre à colorier « J’ai de l’eczéma »]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Livre-de-Coloriage_2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/ESC-Guide-de-soins-de-la-peau-a-colorier-2016-Cover-1-scaled.jpg]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+	<node>
+		<id><![CDATA[]]></id>
+		<title><![CDATA[Mots cachés sur l’eczéma]]></title>
+		<resourcetype><![CDATA[Kids Resource]]></resourcetype>
+		<sortorder><![CDATA[]]></sortorder>
+		<showorderbutton><![CDATA[0]]></showorderbutton>
+		<showdownloadbutton><![CDATA[1]]></showdownloadbutton>
+		<downloadfile><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE_Mots-Caches_2016.pdf]]></downloadfile>
+		<imagefeatured><![CDATA[https://guidelines.eczemahelp.ca/wp-content/uploads/2020/12/SCE-Word-Search-FR-Cover.png]]></imagefeatured>
+		<wpmltranslationid><![CDATA[]]></wpmltranslationid>
+		<wpmllanguagecode><![CDATA[fr]]></wpmllanguagecode>
+	</node>
+</data>

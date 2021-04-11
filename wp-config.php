@@ -64,7 +64,8 @@ define( 'WP_CACHE_KEY_SALT', 'jD{?AoNkWmBEnGeH9dD7p37?j9U-!E^}Xxx;#u[ZvYbIIH-,&J
  */
 $table_prefix = 'wparclabs_';
 
-
+define(‘WP_POST_REVISIONS’, true);
+//define( 'WP_DEBUG', true );
 
 
 /* That's all, stop editing! Happy blogging. */

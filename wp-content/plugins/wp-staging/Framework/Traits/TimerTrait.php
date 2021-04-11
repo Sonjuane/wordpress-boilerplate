@@ -2,15 +2,22 @@
 
 namespace WPStaging\Framework\Traits;
 
-use WPStaging\Core\WPStaging;
-
 trait TimerTrait
 {
+    /** @var float */
+    protected $startTime;
+
+    protected function initiateStartTime()
+    {
+        $time = explode(' ', microtime());
+        $this->startTime = (float) $time[1] + (float) $time[0];
+    }
+
     /**
      * @return float
      */
     protected function getRunningTime()
     {
-        return microtime(true) - WPStaging::getInstance()->getStartTime();
+        return time() - $this->startTime;
     }
 }

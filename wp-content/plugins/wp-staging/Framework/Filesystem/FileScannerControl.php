@@ -7,14 +7,12 @@
 namespace WPStaging\Framework\Filesystem;
 
 use RuntimeException;
-use WPStaging\Framework\Interfaces\ShutdownableInterface;
 use WPStaging\Framework\Queue\FinishedQueueException;
 use WPStaging\Framework\Queue\Queue;
 use WPStaging\Framework\Queue\Storage\BufferedCacheStorage;
 use WPStaging\Framework\Utils\Cache\BufferedCache;
-use WPStaging\Vendor\Psr\Log\LoggerInterface;
 
-class FileScannerControl implements ShutdownableInterface
+class FileScannerControl
 {
     const DATA_CACHE_FILE  = 'filesystem_scanner_file_data';
     const QUEUE_CACHE_FILE = 'file_scanner';
@@ -42,7 +40,7 @@ class FileScannerControl implements ShutdownableInterface
         $this->scanner       = $scanner;
     }
 
-    public function onWpShutdown()
+    public function __destruct()
     {
         if ($this->newQueueItems && $this->queue) {
             $this->queue->pushAsArray($this->newQueueItems);
@@ -54,18 +52,17 @@ class FileScannerControl implements ShutdownableInterface
      */
     public function setQueueByName($name = self::QUEUE_CACHE_FILE)
     {
-        $this->queue = new Queue();
+        $this->queue = new Queue;
         $this->queue->setName($name);
         $this->queue->setStorage($this->storage);
     }
 
     /**
-     * @param bool  $includeOtherFilesInWpContent
-     * @param array $excludedDirectories
+     * @param bool $includeOtherFilesInWpContent
      *
      * @return array
      */
-    public function scanCurrentPath($includeOtherFilesInWpContent, $excludedDirectories = [])
+    public function scanCurrentPath($includeOtherFilesInWpContent)
     {
         $path = $this->getPathFromQueue();
         if ($path === null) {
@@ -74,7 +71,7 @@ class FileScannerControl implements ShutdownableInterface
 
         $path = ABSPATH . $path;
 
-        return $this->scanner->scan($path, $includeOtherFilesInWpContent, $excludedDirectories);
+        return $this->scanner->scan($path, $includeOtherFilesInWpContent);
     }
 
     /**

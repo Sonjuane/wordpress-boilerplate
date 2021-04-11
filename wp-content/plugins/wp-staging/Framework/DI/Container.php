@@ -2,8 +2,6 @@
 
 namespace WPStaging\Framework\DI;
 
-use WPStaging\Framework\Interfaces\ShutdownableInterface;
-
 class Container extends \WPStaging\Vendor\tad_DI52_Container
 {
     /**
@@ -31,40 +29,6 @@ class Container extends \WPStaging\Vendor\tad_DI52_Container
 
             return null;
         }
-    }
-
-    /**
-     * Allows to enqueue the ShutdownableInterface hook
-     * on classes resolved by the DI container, such as
-     * dependencies injected in the __construct.
-     */
-    protected function resolve($classOrInterface)
-    {
-        $instance = parent::resolve($classOrInterface);
-        if (is_object($instance) && $instance instanceof ShutdownableInterface) {
-            if (!has_action('shutdown', [$instance, 'onWpShutdown'])) {
-                add_action('shutdown', [$instance, 'onWpShutdown']);
-            }
-        }
-
-        return $instance;
-    }
-
-    /**
-     * Allows to enqueue the ShutdownableInterface hook
-     * on classes requested directly by the application
-     * to the container.
-     */
-    public function make($classOrInterface)
-    {
-        $instance = parent::make($classOrInterface);
-        if (is_object($instance) && $instance instanceof ShutdownableInterface) {
-            if (!has_action('shutdown', [$instance, 'onWpShutdown'])) {
-                add_action('shutdown', [$instance, 'onWpShutdown']);
-            }
-        }
-
-        return $instance;
     }
 
     /**

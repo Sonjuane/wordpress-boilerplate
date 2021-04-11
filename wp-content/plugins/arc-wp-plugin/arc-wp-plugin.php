@@ -43,7 +43,7 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
     
     
         // ALL PRIVATE FUNCTIONS
-        if (!in_array($username, $users)) { // CONDITIONAL IF CURRENT USERNAME EXISTS IN USERS ARRAY
+        if (!in_array($username, $users)) { // CONDITIONAL IF CURRENT USERNAME DOES NOT EXISTS IN USERS ARRAY
             
             // HIDE ALL UPDATE NOTIFICATIONS
             function remove_core_updates(){
@@ -94,9 +94,13 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                 remove_submenu_page( 'options-general.php',$menuItem );
             }
             
-            //ADD ADMIN JS FOR NON-AUTH USERS
-            wp_enqueue_script('arc-wp-script',plugins_url().'/arc-wp-plugin/js/arc-wp-plugin.js');
-            
+            //ADD ADMIN JS/CSS FOR NON-AUTH USER
+            add_action('admin_enqueue_scripts', 'admin_scripts_arc');            
+            function admin_scripts_arc() {
+                wp_enqueue_style('arc-wp-styles', plugins_url().'/arc-wp-plugin/css/arc-wp-hide.css');
+                wp_enqueue_script('arc-wp-scripts',plugins_url().'/arc-wp-plugin/js/arc-wp-hide.js');
+            }
+
             // REMOVE DASHBOARD WIDGETS 
             add_action('wp_dashboard_setup', 'remove_dashboard_widgets' );
             function remove_dashboard_widgets() {
@@ -115,6 +119,8 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                 // unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_secondary']);
  
 }
+                
+            } else{
                 
             }
          

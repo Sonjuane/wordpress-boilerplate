@@ -157,8 +157,33 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
                 }
                 array_push($pageArray, $page_);
             }
+			
+			
+			
             wp_enqueue_script('arc-wp-script',plugins_url().'/arc-wp-plugin/js/arc-wp-pages-plugin.js');
             wp_localize_script( 'arc-wp-script', 'pages', $pageArray ); // where pages is the variable name
+			
+// MORE EFFECTIVE WAY TO GET ALL PAGES WITH ID			
+			 $args = array(
+    'sort_order' => 'asc',
+    'sort_column' => 'post_title',
+    'hierarchical' => 1,
+    'exclude' => '',
+    'include' => '',
+    'meta_key' => '',
+    'meta_value' => '',
+    'authors' => '',
+    'child_of' => 0,
+    'parent' => -1,
+    'exclude_tree' => '',
+    'number' => '',
+    'offset' => 0,
+    'post_type' => 'page',
+    'post_status' => 'publish'
+); 
+$pages2 = get_pages($args); 	
+			
+			wp_localize_script( 'arc-wp-script', 'pages2', $pages2 ); // where pages is the variable name
         }
         pages();
     }

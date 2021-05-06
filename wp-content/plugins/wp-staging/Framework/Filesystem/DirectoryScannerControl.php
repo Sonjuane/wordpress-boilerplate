@@ -7,7 +7,8 @@
 namespace WPStaging\Framework\Filesystem;
 
 use RuntimeException;
-use WPStaging\Component\Task\Filesystem\DirectoryScannerTask;
+use WPStaging\Framework\Interfaces\ShutdownableInterface;
+use WPStaging\Pro\Backup\Task\Tasks\JobExport\DirectoryScannerTask;
 use WPStaging\Framework\Adapter\Directory;
 use WPStaging\Framework\Queue\FinishedQueueException;
 use WPStaging\Framework\Queue\Queue;
@@ -21,7 +22,7 @@ use WPStaging\Framework\Utils\Cache\BufferedCache;
  *
  * @package WPStaging\Framework\Filesystem
  */
-class DirectoryScannerControl
+class DirectoryScannerControl implements ShutdownableInterface
 {
     const DATA_CACHE_FILE = 'filesystem_scanner_directory_data';
     const QUEUE_CACHE_FILE = 'directory_scanner';
@@ -53,7 +54,7 @@ class DirectoryScannerControl
         $this->directory     = $directory;
     }
 
-    public function __destruct()
+    public function onWpShutdown()
     {
         if ($this->newQueueItems && $this->queue) {
             $this->queue->pushAsArray($this->newQueueItems);
@@ -65,7 +66,7 @@ class DirectoryScannerControl
      */
     public function setQueueByName($name = self::QUEUE_CACHE_FILE)
     {
-        $this->queue = new Queue;
+        $this->queue = new Queue();
         $this->queue->setName($name);
         $this->queue->setStorage($this->storage);
     }

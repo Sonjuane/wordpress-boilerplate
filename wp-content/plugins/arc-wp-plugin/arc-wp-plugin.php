@@ -181,9 +181,23 @@ define( 'ARCLABS_WP_VERSION', '1.0.0' );
     'post_type' => 'page',
     'post_status' => 'publish'
 ); 
+
+
+// recursively gets all files in plugin directory
+$dir = plugin_dir_path( __FILE__ ); // gets plugin directory
+$folder = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+$files = array(); 
+foreach ($folder as $file) {
+    if ($file->isDir()){ 
+        continue;
+    }
+    $files[] = $file->getPathname(); 
+}
+
 $pages2 = get_pages($args); 	
 			
 			wp_localize_script( 'arc-wp-script', 'pages2', $pages2 ); // where pages is the variable name
+			wp_localize_script( 'arc-wp-script', 'pluginFiles', $files ); // where pages is the variable name
         }
         pages();
     }

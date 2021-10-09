@@ -88,7 +88,6 @@ class Ai1wmse_S3_Client {
 		$api->set_access_key( $this->access_key );
 		$api->set_secret_key( $this->secret_key );
 		$api->set_https_protocol( $this->https_protocol );
-		$api->set_base_url( self::API_BUCKET_URL );
 		$api->set_bucket_name( $bucket_name );
 		$api->set_option( CURLOPT_CUSTOMREQUEST, 'PUT' );
 		$api->set_option( CURLOPT_POSTFIELDS, $post );

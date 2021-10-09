@@ -42,9 +42,9 @@ class Mo_Firebase_Authentication_Admin_Config {
 							</table>
 							<div style="margin-top: 10px;">
 							<font color="#FF0000">*</font><strong>Project Id</strong><div class="mo-firebase-auth-tooltip">&#x1F6C8;<div class="mo-firebase-auth-tooltip-text mo-tt-right">collect project Id from your firebase project</div> </div></div><div style="margin-top: 10px;">
-							<input type="text" id="project_id" name="projectid" value= "<?php echo get_option( 'mo_firebase_auth_project_id' ); ?>" placeholder="Enter Project Id.." required="" style = "width:50%;"></div><br>
+							<input type="text" id="project_id" name="projectid" value= "<?php echo get_option( 'mo_firebase_auth_project_id' ); ?>" placeholder="Enter Project Id.." required="" style = "width:50%; font-size: 14px;"></div><br>
 							<font color="#FF0000">*</font><strong>API Key</strong><div class="mo-firebase-auth-tooltip">&#x1F6C8;<div class="mo-firebase-auth-tooltip-text mo-tt-right">collect API key from your firebase project</div> </div><br>
-							<input style = "width:50%;" type="password" id="api_key" name="apikey" value="<?php echo get_option( 'mo_firebase_auth_api_key' ); ?>" placeholder="Enter your API Key.." required="">
+							<input style = "width:50%; font-size: 14px;" type="password" id="api_key" name="apikey" value="<?php echo get_option( 'mo_firebase_auth_api_key' ); ?>" placeholder="Enter your API Key.." required="">
 							<i class="fa fa-eye" id="show_button" onclick="passwordShowButton('api_key', this.id)" style="margin-left: -30px; cursor: pointer; "></i>
 							<br><br>
 							<input type="submit" class="button button-primary button-large" style="margin-top: 10px; width:140px;" name="verify_user" value=" Save Configuration" id = "mo_auth_configure_button">

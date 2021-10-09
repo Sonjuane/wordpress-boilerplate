@@ -191,7 +191,7 @@ if ( defined( 'WP_CLI' ) && ! class_exists( 'Ai1wm_Backup_WP_CLI_Command' ) ) {
 							exit;
 
 						case 'l':
-							WP_CLI::run_command( array( 'site', 'list' ), array( 'fields' => 'blog_id,url' ) );
+							WP_CLI::runcommand( 'site list --fields=blog_id,url' );
 							break;
 
 						default:
@@ -326,12 +326,6 @@ if ( defined( 'WP_CLI' ) && ! class_exists( 'Ai1wm_Backup_WP_CLI_Command' ) ) {
 
 			if ( ! isset( $params['ai1wm_manual_restore'] ) ) {
 				$params['ai1wm_manual_restore'] = 1;
-			}
-
-			if ( is_multisite() ) {
-				if ( ! isset( $params['options']['network'] ) ) {
-					$params['options']['network'] = 1;
-				}
 			}
 
 			WP_CLI::log( __( 'Restore in progress...', AI1WM_PLUGIN_NAME ) );

@@ -3,10 +3,10 @@
   Plugin Name: WP Reset
   Plugin URI: https://wpreset.com/
   Description: Reset the entire site or just selected parts while reserving the option to undo by using snapshots.
-  Version: 1.86
+  Version: 1.93
   Requires at least: 4.0
   Requires PHP: 5.2
-  Tested up to: 5.6
+  Tested up to: 5.8
   Author: WebFactory Ltd
   Author URI: https://www.webfactoryltd.com/
   Text Domain: wp-reset
@@ -93,6 +93,7 @@ class WP_Reset
       'licensing_servers' => $this->licensing_servers,
       'version' => $this->version,
       'plugin_file' => __FILE__,
+      'plugin_page' => 'tools_page_wp-reset',
       'skip_hooks' => false,
       'debug' => false,
       'js_folder' => plugin_dir_url(__FILE__) . '/js/'
@@ -104,7 +105,6 @@ class WP_Reset
     add_action('admin_action_wpr_dismiss_notice', array($this, 'action_dismiss_notice'));
     add_action('wp_ajax_wp_reset_dismiss_notice', array($this, 'ajax_dismiss_notice'));
     add_action('wp_ajax_wp_reset_run_tool', array($this, 'ajax_run_tool'));
-    add_action('wp_ajax_wp_reset_submit_survey', array($this, 'ajax_submit_survey'));
     add_action('admin_print_scripts', array($this, 'remove_admin_notices'));
 
     add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'plugin_action_links'));
@@ -260,7 +260,7 @@ class WP_Reset
       wp_send_json_error(__('You are not allowed to run this action.', 'wp-reset'));
     }
 
-    $notice_name = trim(@$_GET['notice_name']);
+    $notice_name = trim(sanitize_text_field(@$_GET['notice_name']));
     if (!$this->dismiss_notice($notice_name)) {
       wp_send_json_error(__('Notice is already dismissed.', 'wp-reset'));
     } else {
@@ -285,7 +285,7 @@ class WP_Reset
       exit;
     }
 
-    $notice_name = trim(@$_GET['notice']);
+    $notice_name = trim(sanitize_text_field(@$_GET['notice']));
     $this->dismiss_notice($notice_name);
 
     if (!empty($_GET['redirect'])) {
@@ -327,7 +327,7 @@ class WP_Reset
   {
     $pointers = array();
 
-    $pointers['welcome'] = array('target' => '#menu-tools', 'edge' => 'left', 'align' => 'right', 'content' => 'Thank you for installing the <b style="font-weight: 800;">WP Reset</b> plugin!<br>Open <a href="' . admin_url('tools.php?page=wp-reset') . '">Tools - WP Reset</a> to access resetting tools and start developing &amp; debugging faster.');
+    $pointers['welcome'] = array('target' => '#menu-tools', 'edge' => 'left', 'align' => 'right', 'content' => 'Thank you for installing the <b style="font-weight: 800;">WP Reset</b> plugin!<br>Open <a href="' . esc_url(admin_url('tools.php?page=wp-reset')) . '">Tools - WP Reset</a> to access resetting tools and start developing &amp; debugging faster.');
 
     return $pointers;
   } // get_pointers
@@ -343,7 +343,6 @@ class WP_Reset
     // welcome pointer is shown on all pages except WPR to admins, until dismissed
     $pointers = $this->get_pointers();
     $dismissed_notices = $this->get_dismissed_notices();
-    $meta = $this->get_meta();
 
     foreach ($dismissed_notices as $notice_name => $tmp) {
       if ($tmp) {
@@ -366,12 +365,6 @@ class WP_Reset
       return;
     }
 
-    // features survey is shown 5min after install or after first reset
-    $survey = false;
-    if ($this->is_survey_active('features')) {
-      $survey = true;
-    }
-
     $js_localize = array(
       'undocumented_error' => __('An undocumented error has occurred. Please refresh the page and try again.', 'wp-reset'),
       'documented_error' => __('An error has occurred.', 'wp-reset'),
@@ -381,7 +374,6 @@ class WP_Reset
       'invalid_confirmation' => __('Please type "reset" in the confirmation field.', 'wp-reset'),
       'invalid_confirmation_title' => __('Invalid confirmation', 'wp-reset'),
       'cancel_button' => __('Cancel', 'wp-reset'),
-      'open_survey' => $survey,
       'ok_button' => __('OK', 'wp-reset'),
       'confirm_button' => __('Reset WordPress', 'wp-reset'),
       'confirm_title' => __('Are you sure you want to proceed?', 'wp-reset'),
@@ -408,10 +400,6 @@ class WP_Reset
       'nonce_run_tool' => wp_create_nonce('wp-reset_run_tool'),
       'nonce_do_reset' => wp_create_nonce('wp-reset_do_reset'),
     );
-
-    if ($survey) {
-      $js_localize['nonce_submit_survey'] = wp_create_nonce('wp-reset_submit_survey');
-    }
 
     wp_enqueue_style('plugin-install');
     wp_enqueue_style('wp-reset', $this->plugin_url . 'css/wp-reset.css', array(), $this->version);
@@ -457,79 +445,6 @@ class WP_Reset
     unset($wp_filter['user_admin_notices'], $wp_filter['admin_notices']);
   } // remove_admin_notices
 
-
-  /**
-   * Submit user selected survey answers to WPR servers
-   *
-   * @return null
-   */
-  function ajax_submit_survey()
-  {
-    check_ajax_referer('wp-reset_submit_survey');
-
-    $meta = $this->get_meta();
-
-    $vars = wp_parse_args($_POST, array('survey' => '', 'answers' => '', 'custom_answer' => '', 'emailme' => ''));
-    $vars['answers'] = trim($vars['answers'], ',');
-    $vars['custom_answer'] = substr(trim(strip_tags($vars['custom_answer'])), 0, 256);
-
-    if (empty($vars['survey']) || empty($vars['answers'])) {
-      wp_send_json_error();
-    }
-
-    $request_params = array('sslverify' => false, 'timeout' => 15, 'redirection' => 2);
-    $request_args = array(
-      'action' => 'submit_survey',
-      'survey' => $vars['survey'],
-      'email' => $vars['emailme'],
-      'answers' => $vars['answers'],
-      'custom_answer' => $vars['custom_answer'],
-      'first_version' => $meta['first_version'],
-      'version' => $this->version,
-      'codebase' => 'free',
-      'site' => get_home_url()
-    );
-
-    $url = add_query_arg($request_args, $this->licensing_servers[0]);
-    $response = wp_remote_get(esc_url_raw($url), $request_params);
-
-    if (is_wp_error($response) || !wp_remote_retrieve_body($response)) {
-      $url = add_query_arg($request_args, $this->licensing_servers[1]);
-      $response = wp_remote_get(esc_url_raw($url), $request_params);
-    }
-
-    $this->dismiss_notice('survey-' . $vars['survey']);
-
-    wp_send_json_success();
-  } // ajax_submit_survey
-
-
-  /**
-   * Check if named survey should be shown or not
-   *
-   * @param [string] $survey_name Name of the survey to check
-   * @return boolean
-   */
-  function is_survey_active($survey_name)
-  {
-    if (empty($survey_name)) {
-      return false;
-    }
-
-    // all surveys are curently disabled
-    return false;
-
-    if ($this->get_dismissed_notices('survey-' . $survey_name)) {
-      return false;
-    }
-
-    $meta = $this->get_meta();
-    if (current_time('timestamp', true) - $meta['first_install'] > 300 || $meta['reset_count'] > 0) {
-      return true;
-    }
-
-    return false;
-  } // is_survey_active
 
   /**
    * Check if WP-CLI is available and running
@@ -648,7 +563,8 @@ class WP_Reset
   {
     global $wpdb;
 
-    $count = $wpdb->query("DELETE FROM $wpdb->options WHERE option_name LIKE 'theme_mods\_%' OR option_name LIKE 'mods\_%'");
+    $query = $wpdb->prepare("DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s", array('mods\_%', 'theme_mods\_%'));
+    $count = $wpdb->query($query);
 
     do_action('wp_reset_reset_theme_options', $count);
 
@@ -797,7 +713,7 @@ class WP_Reset
     if (version_compare($wp_version, '5.0', '<') === true) {
       $default_theme = 'twentyseventeen';
     } else {
-      $default_theme = 'twentynineteen';
+      $default_theme = 'twentytwentyone';
     }
 
     $all_themes = wp_get_themes(array('errors' => null));
@@ -834,7 +750,7 @@ class WP_Reset
 
     foreach ($custom_tables as $tbl) {
       $wpdb->query('SET foreign_key_checks = 0');
-      $wpdb->query('TRUNCATE TABLE ' . $tbl['name']);
+      $wpdb->query("TRUNCATE TABLE {$tbl['name']}");
     } // foreach
 
     do_action('wp_reset_truncate_custom_tables', $custom_tables);
@@ -855,7 +771,7 @@ class WP_Reset
 
     foreach ($custom_tables as $tbl) {
       $wpdb->query('SET foreign_key_checks = 0');
-      $wpdb->query('DROP TABLE IF EXISTS ' . $tbl['name']);
+      $wpdb->query("DROP TABLE IF EXISTS {$tbl['name']}");
     } // foreach
 
     do_action('wp_reset_drop_custom_tables', $custom_tables);
@@ -933,8 +849,8 @@ class WP_Reset
       wp_send_json_error(__('You are not allowed to run this action.', 'wp-reset'));
     }
 
-    $tool = trim(@$_GET['tool']);
-    $extra_data = trim(@$_GET['extra_data']);
+    $tool = trim(sanitize_text_field(@$_GET['tool']));
+    $extra_data = trim(sanitize_text_field(@$_GET['extra_data']));
 
     if ($tool == 'delete_transients') {
       $cnt = $this->do_delete_transients();
@@ -1018,10 +934,10 @@ class WP_Reset
       $tool == 'check_install_plugin' ||
       $tool == 'check_activate_plugin'
     ) {
-      $path = $this->get_plugin_path($_GET['slug']);
+      $path = $this->get_plugin_path(sanitize_text_field($_GET['slug']));
 
-      if (false !== ($error = get_transient('wf_install_error_' . $_GET['slug']))) {
-        delete_transient('wf_install_error_' . $_GET['slug']);
+      if (false !== ($error = get_transient('wf_install_error_' . sanitize_text_field($_GET['slug'])))) {
+        delete_transient('wf_install_error_' . sanitize_text_field($_GET['slug']));
         wp_send_json_success($error);
       }
 
@@ -1036,7 +952,7 @@ class WP_Reset
         wp_send_json_success('deleted');
       }
     } elseif ($tool == 'install_plugin') {
-      $slug = $_GET['slug'];
+      $slug = sanitize_text_field($_GET['slug']);
 
       @include_once ABSPATH . 'wp-admin/includes/plugin.php';
       @include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
@@ -1059,8 +975,14 @@ class WP_Reset
         wp_send_json_success();
       }
     } elseif ($tool == 'activate_plugin') {
-      $path = $this->get_plugin_path($_GET['slug']);
+      $path = $this->get_plugin_path(sanitize_text_field($_GET['slug']));
       activate_plugin($path);
+      wp_send_json_success();
+    } elseif ($tool == 'before_reset') {
+      $active_plugins = get_option('active_plugins');
+      set_transient('wpr_active_plugins', $active_plugins, 100);
+      remove_all_actions('update_option_active_plugins');
+      update_option('active_plugins', array(plugin_basename(__FILE__)));
       wp_send_json_success();
     } else {
       wp_send_json_error(__('Unknown tool.', 'wp-reset'));
@@ -1116,7 +1038,7 @@ class WP_Reset
     $home = get_option('home');
     $snapshots = $this->get_snapshots();
 
-    $active_plugins = get_option('active_plugins');
+    $active_plugins = get_transient('wpr_active_plugins');
     $active_theme = wp_get_theme();
 
     // for WP-CLI
@@ -1135,13 +1057,16 @@ class WP_Reset
       $wpdb->query("DROP TABLE $table");
     }
 
-    // supress errors for WP_CLI
+    $old_user_pass = $current_user->user_pass;
+
+    // suppress errors for WP_CLI
     $result = @wp_install($blogname, $current_user->user_login, $current_user->user_email, $blog_public, '', md5(rand()), $wplang);
     $user_id = $result['user_id'];
 
     // restore user pass
-    $query = $wpdb->prepare("UPDATE {$wpdb->users} SET user_pass = %s, user_activation_key = '' WHERE ID = %d LIMIT 1", array($current_user->user_pass, $user_id));
+    $query = $wpdb->prepare("UPDATE {$wpdb->users} SET user_pass = %s, user_activation_key = %s WHERE ID = %d LIMIT 1", array($old_user_pass, '', $user_id));
     $wpdb->query($query);
+    $current_user->user_pass = $old_user_pass;
 
     // restore rest of the settings including WP Reset's
     update_option('siteurl', $siteurl);
@@ -1202,7 +1127,7 @@ class WP_Reset
       return;
     }
 
-    if (!empty($_GET['wp-reset']) && $_GET['wp-reset'] == 'success') {
+    if (!empty($_GET['wp-reset']) && sanitize_text_field($_GET['wp-reset']) == 'success') {
       add_action('admin_notices', array($this, 'notice_successful_reset'));
     }
 
@@ -1213,19 +1138,27 @@ class WP_Reset
     }
 
     // check confirmation code
-    if (true === isset($_POST['wp_reset_confirm']) && 'reset' !== $_POST['wp_reset_confirm']) {
+    if (true === isset($_POST['wp_reset_confirm']) && 'reset' !== sanitize_text_field($_POST['wp_reset_confirm'])) {
       add_settings_error('wp-reset', 'bad-confirm', __('<b>Invalid confirmation code.</b> Please type "reset" in the confirmation field.', 'wp-reset'), 'error');
       return false;
     }
 
     // only one action at the moment
-    if (true === isset($_POST['wp_reset_confirm']) && 'reset' === $_POST['wp_reset_confirm']) {
-      $defaults = array(
+    if (true === isset($_POST['wp_reset_confirm']) && 'reset' === sanitize_text_field($_POST['wp_reset_confirm'])) {
+      $params = array(
         'reactivate_theme' => '0',
         'reactivate_plugins' => '0',
         'reactivate_wpreset' => '0',
       );
-      $params = shortcode_atts($defaults, (array) @$_POST['wpr-post-reset']);
+      if (isset($_POST['wpr-post-reset']['reactivate_theme'])) {
+        $params['reactivate_theme'] = true;
+      }
+      if (isset($_POST['wpr-post-reset']['reactivate_plugins'])) {
+        $params['reactivate_plugins'] = true;
+      }
+      if (isset($_POST['wpr-post-reset']['reactivate_wpreset'])) {
+        $params['reactivate_wpreset'] = true;
+      }
 
       $this->do_reinstall($params);
     }
@@ -1241,7 +1174,7 @@ class WP_Reset
    */
   function plugin_action_links($links)
   {
-    $settings_link = '<a href="' . admin_url('tools.php?page=wp-reset') . '" title="' . __('Open WP Reset Tools', 'wp-reset') . '">' . __('Open WP Reset Tools', 'wp-reset') . '</a>';
+    $settings_link = '<a href="' . esc_url(admin_url('tools.php?page=wp-reset')) . '" title="' . esc_attr(__('Open WP Reset Tools', 'wp-reset')) . '">' . esc_html(__('Open WP Reset Tools', 'wp-reset')) . '</a>';
 
     array_unshift($links, $settings_link);
 
@@ -1264,7 +1197,7 @@ class WP_Reset
     }
 
     $support_link = '<a target="_blank" href="https://wordpress.org/support/plugin/wp-reset" title="' . __('Get help', 'wp-reset') . '">' . __('Support', 'wp-reset') . '</a>';
-    $home_link = '<a target="_blank" href="' . $this->generate_web_link('plugins-table-right') . '" title="' . __('Plugin Homepage', 'wp-reset') . '">' . __('Plugin Homepage', 'wp-reset') . '</a>';
+    $home_link = '<a target="_blank" href="' . esc_url($this->generate_web_link('plugins-table-right')) . '" title="' . __('Plugin Homepage', 'wp-reset') . '">' . __('Plugin Homepage', 'wp-reset') . '</a>';
     $rate_link = '<a target="_blank" href="https://wordpress.org/support/plugin/wp-reset/reviews/#new-post" title="' . __('Rate the plugin', 'wp-reset') . '">' . __('Rate the plugin ★★★★★', 'wp-reset') . '</a>';
 
     $links[] = $support_link;
@@ -1305,7 +1238,7 @@ class WP_Reset
       return $text;
     }
 
-    $text = '<i><a href="' . $this->generate_web_link('admin_footer') . '" title="' . __('Visit WP Reset page for more info', 'wp-reset') . '" target="_blank">WP Reset</a> v' . $this->version . '. Please <a target="_blank" href="https://wordpress.org/support/plugin/wp-reset/reviews/#new-post" title="Rate the plugin">rate the plugin <span>★★★★★</span></a> to help us spread the word. Thank you from the WP Reset team!</i>';
+    $text = '<i><a href="' . esc_url($this->generate_web_link('admin_footer')) . '" title="' . esc_attr(__('Visit WP Reset page for more info', 'wp-reset')) . '" target="_blank">WP Reset</a> v' . $this->version . '. Please <a target="_blank" href="https://wordpress.org/support/plugin/wp-reset/reviews/#new-post" title="Rate the plugin">rate the plugin <span>★★★★★</span></a> to help us spread the word. Thank you from the WP Reset team!</i>';
 
     return $text;
   } // admin_footer_text
@@ -1331,7 +1264,7 @@ class WP_Reset
   {
     global $current_user;
 
-    echo '<div style="padding: 15px; display: inline-block; font-size: 14px;" id="message" class="updated"><p style="font-size: 14px;">' . sprintf(__('<b>Site has been successfully reset to default settings.</b><br>User "%s" was restored with the password unchanged. Open <a href="%s">WP Reset</a> to do another reset.', 'wp-reset'), $current_user->user_login, admin_url('tools.php?page=wp-reset')) . '</p>';
+    echo '<div style="padding: 15px; display: inline-block; font-size: 14px;" id="message" class="updated"><p style="font-size: 14px;">' . sprintf(__('<b>Site has been successfully reset to default settings.</b><br>User "%s" was restored with the password unchanged. Open <a href="%s">WP Reset</a> to do another reset.', 'wp-reset'), esc_html($current_user->user_login), esc_url(admin_url('tools.php?page=wp-reset'))) . '</p>';
 
     if (false == $this->get_dismissed_notices('rate')) {
       $dismiss_url = add_query_arg(array('action' => 'wpr_dismiss_notice', 'notice' => 'rate', 'redirect' => urlencode($_SERVER['REQUEST_URI'])), admin_url('admin.php'));
@@ -1339,7 +1272,7 @@ class WP_Reset
 
       echo '<p style="font-size: 14px;">';
       echo 'If WP Reset helped you please rate it so we can continue supporting it and helping others. Thank you!<br>';
-      echo '<a style="margin-top: 5px;" class="button button-secondary" href="https://wordpress.org/support/plugin/wp-reset/reviews/?filter=5#new-post" target="_blank">You deserve it, I\'ll rate it!</a> &nbsp; &nbsp; <a href="' . $dismiss_url . '">I already rated it</a>';
+      echo '<a style="margin-top: 5px;" class="button button-secondary" href="https://wordpress.org/support/plugin/wp-reset/reviews/#new-post" target="_blank">You deserve it, I\'ll rate it!</a> &nbsp; &nbsp; <a href="' . esc_url($dismiss_url) . '">I already rated it</a>';
       echo '</p>';
     }
 
@@ -1358,7 +1291,7 @@ class WP_Reset
   function get_snapshot_button($tool_id = '', $description = '')
   {
     $out = '';
-    $out .= '<a data-tool-id="' . $tool_id . '" data-description="' . esc_attr($description) . '" class="button create-new-snapshot" href="#">Create snapshot</a>';
+    $out .= '<a data-tool-id="' . esc_attr($tool_id) . '" data-description="' . esc_attr($description) . '" class="button create-new-snapshot" href="#">Create snapshot</a>';
 
     return $out;
   } // get_snapshot_button
@@ -1388,14 +1321,14 @@ class WP_Reset
     }
 
     $out = '';
-    $out .= '<h4 id="' . $card_id . '"><span class="card-name">' . htmlspecialchars($title);
+    $out .= '<h4 id="' . esc_attr($card_id) . '"><span class="card-name">' . esc_html($title);
     if ($params['pro']) {
-      $out .= ' - <a data-feature="' . $card_id . '" class="pro-feature tooltip" title="WP Reset PRO tool" href="#"><span class="pro">PRO</span> tool</a>';
+      $out .= ' - <a data-feature="' . esc_attr($card_id) . '" class="pro-feature tooltip" title="WP Reset PRO tool" href="#"><span class="pro">PRO</span> tool</a>';
     }
     $out .= '</span>';
     $out .= '<div class="card-header-right">';
     if ($params['documentation_link']) {
-      $out .= '<a class="documentation-link tooltip" href="' . $this->generate_web_link('documentation_link', '/documentation/') . '" title="' . __('Open documentation for this tool', 'wp-reset') . '" target="blank"><span class="dashicons dashicons-editor-help"></span></a>';
+      $out .= '<a class="documentation-link tooltip" href="' . esc_url($this->generate_web_link('documentation_link', '/documentation/')) . '" title="' . __('Open documentation for this tool', 'wp-reset') . '" target="blank"><span class="dashicons dashicons-editor-help"></span></a>';
     }
     if ($params['iot_button']) {
       $out .= '<a class="scrollto tooltip" href="#iot" title="Jump to Index of Tools"><span class="dashicons dashicons-screenoptions"></span></a>';
@@ -1424,6 +1357,9 @@ class WP_Reset
   function get_tool_icons($modify_files = false, $modify_db = false, $plural = false)
   {
     $out = '';
+    $modify_files = (bool) $modify_files;
+    $modify_db = (bool) $modify_db;
+    $plural = (bool) $plural;
 
     $out .= '<p class="tool-icons">';
     $out .= '<i class="icon-doc-text-inv' . ($modify_files ? ' red' : '') . '"></i> ';
@@ -1444,6 +1380,8 @@ class WP_Reset
         $out .= 'this tool <b>modifies the database</b> but it doesn\'t modify any files</b>';
       } elseif ($modify_files && !$modify_db) {
         $out .= 'this tool <b>modifies files</b> but it doesn\'t modify the database</b>';
+      } else {
+        $out .= 'this tool doesn\'t modify files or the database';
       }
     }
     $out .= '</p>';
@@ -1465,27 +1403,27 @@ class WP_Reset
     }
 
     echo '<div class="wrap">';
-    echo '<form id="wp_reset_form" action="' . admin_url('tools.php?page=wp-reset') . '" method="post" autocomplete="off">';
+    echo '<form id="wp_reset_form" action="' . esc_url(admin_url('tools.php?page=wp-reset')) . '" method="post" autocomplete="off">';
 
     echo '<header>';
     echo '<div class="wpr-container">';
-    echo '<img id="logo-icon" src="' . $this->plugin_url . 'img/wp-reset-logo.png" title="' . __('WP Reset', 'wp-reset') . '" alt="' . __('WP Reset', 'wp-reset') . '">';
+    echo '<img id="logo-icon" src="' . esc_url($this->plugin_url) . 'img/wp-reset-logo.png" title="' . __('WP Reset', 'wp-reset') . '" alt="' . __('WP Reset', 'wp-reset') . '">';
     echo '</div>';
     echo '</header>';
 
-    echo '<div id="loading-tabs"><img class="rotating" src="' . $this->plugin_url . 'img/wp-reset-icon.png' . '" alt="Loading. Please wait." title="Loading. Please wait."></div>';
+    echo '<div id="loading-tabs"><img class="rotating" src="' . esc_url($this->plugin_url) . 'img/wp-reset-icon.png' . '" alt="Loading. Please wait." title="Loading. Please wait."></div>';
 
     echo '<div id="wp-reset-tabs" class="ui-tabs" style="display: none;">';
 
     echo '<nav>';
     echo '<div class="wpr-container">';
     echo '<ul class="wpr-main-tab">';
-    echo '<li><a href="#tab-reset">' . __('Reset', 'wp-reset') . '</a></li>';
-    echo '<li><a href="#tab-tools">' . __('Tools', 'wp-reset') . '</a></li>';
-    echo '<li><a href="#tab-snapshots">' . __('Snapshots', 'wp-reset') . '</a></li>';
-    echo '<li><a href="#tab-collections">' . __('Collections', 'wp-reset') . '</a></li>';
-    echo '<li><a href="#tab-support">' . __('Support', 'wp-reset') . '</a></li>';
-    echo '<li><a href="#tab-pro">' . __('PRO', 'wp-reset') . '</a></li>';
+    echo '<li><a href="#tab-reset">' . esc_html(__('Reset', 'wp-reset')) . '</a></li>';
+    echo '<li><a href="#tab-tools">' . esc_html(__('Tools', 'wp-reset')) . '</a></li>';
+    echo '<li><a href="#tab-snapshots">' . esc_html(__('Snapshots', 'wp-reset')) . '</a></li>';
+    echo '<li><a href="#tab-collections">' . esc_html(__('Collections', 'wp-reset')) . '</a></li>';
+    echo '<li><a href="#tab-support">' . esc_html(__('Support', 'wp-reset')) . '</a></li>';
+    echo '<li><a href="#tab-pro">' . esc_html(__('PRO', 'wp-reset')) . '</a></li>';
     echo '</ul>';
     echo '</div>'; // container
     echo '</nav>';
@@ -1547,11 +1485,11 @@ class WP_Reset
     // update to PRO after activating the license
     if ($this->license->is_active()) {
       echo '<div class="card notice-wrapper notice-info">';
-      echo '<h2>' . __('Thank you for purchasing WP Reset PRO!', 'wp-reset') . '</h2>';
+      echo '<h2>' . esc_html(__('Thank you for purchasing WP Reset PRO!', 'wp-reset')) . '</h2>';
       echo '<p>Your license has been verified &amp; activated.</b><br>To start using the PRO version, please follow these steps:';
       echo '<ol>';
       echo '<li><a href="https://dashboard.wpreset.com/pro-download/" target="_blank">Download</a> the latest version of the PRO plugin.</li>';
-      echo '<li>Go to <a href="' . admin_url('plugin-install.php') . '">Plugins - Add New - Upload Plugin</a> and upload the ZIP you just downloaded.</li>';
+      echo '<li>Go to <a href="' . esc_url(admin_url('plugin-install.php')) . '">Plugins - Add New - Upload Plugin</a> and upload the ZIP you just downloaded.</li>';
       echo '<li>If asked to replace (overwrite) the free version - confirm it.</li>';
       echo '<li>Activate the plugin.</li>';
       echo '<li>That\'s it, no more steps.</li>';
@@ -1577,7 +1515,7 @@ class WP_Reset
       echo '<div class="card notice-wrapper notice-info">';
       echo '<h2>' . __('Please help us spread the word &amp; keep the plugin up-to-date', 'wp-reset') . '</h2>';
       echo '<p>' . __('If you use &amp; enjoy WP Reset, <b>please rate it on WordPress.org</b>. It only takes a second and helps us keep the plugin maintained. Thank you!', 'wp-reset') . '</p>';
-      echo '<p><a class="button-primary button" title="' . __('Rate WP Reset', 'wp-reset') . '" target="_blank" href="https://wordpress.org/support/plugin/wp-reset/reviews/?filter=5#new-post">' . __('Rate the plugin ★★★★★', 'wp-reset') . '</a>  <a href="#" class="wpr-dismiss-notice dismiss-notice-rate" data-notice="rate">' . __('I\'ve already rated it', 'wp-reset') . '</a></p>';
+      echo '<p><a class="button-primary button" title="' . __('Rate WP Reset', 'wp-reset') . '" target="_blank" href="https://wordpress.org/support/plugin/wp-reset/reviews/#new-post">' . __('Rate the plugin ★★★★★', 'wp-reset') . '</a>  <a href="#" class="wpr-dismiss-notice dismiss-notice-rate" data-notice="rate">' . __('I\'ve already rated it', 'wp-reset') . '</a></p>';
       echo '</div>';
       $notice_shown = true;
     }
@@ -1605,12 +1543,13 @@ class WP_Reset
     echo '<table id="reset-details" class="">';
     echo '<tr>';
     echo '<th>&nbsp;</th>';
-    echo '<th>Options Reset<a data-feature="tool-options-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
+    echo '<th>Options Reset<br><a data-feature="tool-options-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
     echo '<th nowrap>Site Reset</th>';
-    echo '<th>Nuclear Reset<a data-feature="tool-nuclear-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
+    echo '<th>Nuclear Reset<br><a data-feature="tool-nuclear-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
     echo '</tr>';
+
     $rows = array();
-    $rows['Posts, pages &amp; custom post types'] = array(0, 1, 1);
+    $rows['Posts, pages & custom post types'] = array(0, 1, 1);
     $rows['Comments'] = array(0, 1, 1);
     $rows['Media'] = array(0, 1, 1);
     $rows['Media files'] = array(0, 0, 1);
@@ -1619,8 +1558,8 @@ class WP_Reset
     $rows['Current user - ' . $current_user->user_login] = array(0, 0, 0);
     $rows['Widgets'] = array(1, 1, 1);
     $rows['Transients'] = array(1, 1, 1);
-    $rows['Settings &amp; options (from WP, plugins &amp; themes)'] = array(1, 1, 1);
-    $rows['Site title, WP address, site address,<br>search engine visibility, timezone'] = array(0, 0, 0);
+    $rows['Settings &amp; options (from WP, plugins & themes)'] = array(1, 1, 1);
+    $rows['Site title, WP address, site address,' . PHP_EOL . 'search engine visibility, timezone'] = array(0, 0, 0);
     $rows['Site language'] = array(0, 0, 1);
     $rows['Data in all default WP tables'] = array(0, 1, 1);
     $rows['Custom database tables with prefix ' . $wpdb->prefix] = array(0, 1, 1);
@@ -1634,7 +1573,7 @@ class WP_Reset
 
     foreach ($rows as $tool => $opt) {
       echo '<tr>';
-      echo '<td>' . $tool . '</td>';
+      echo '<td>' . nl2br(esc_html($tool)) . '</td>';
       if (empty($opt[0])) {
         echo '<td><i class="dashicons dashicons-yes tooltip" title="Data will NOT be deleted, reset or modified"></i></td>';
       } else {
@@ -1655,9 +1594,9 @@ class WP_Reset
     echo '<tfoot>';
     echo '<tr>';
     echo '<th>&nbsp;</th>';
-    echo '<th>Options Reset<a data-feature="tool-options-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
+    echo '<th>Options Reset<br><a data-feature="tool-options-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
     echo '<th nowrap>Site Reset</th>';
-    echo '<th>Nuclear Reset<a data-feature="tool-nuclear-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
+    echo '<th>Nuclear Reset<br><a data-feature="tool-nuclear-reset" class="pro-feature" href="#"><span class="pro">PRO</span> tool</a></th>';
     echo '</tr>';
     echo '</tfoot>';
     echo '</table>';
@@ -1686,14 +1625,14 @@ class WP_Reset
     $active_plugins = get_option('active_plugins');
 
     // options reset
-    echo '<div class="card default-collapsed">';
+    echo '<div class="card">';
     echo $this->get_card_header(__('Options Reset', 'wp-reset'), 'tool-options-reset', array('collapse_button' => true, 'pro' => true));
     echo '<div class="card-body">';
     echo '<p>Options table will be reset to default values meaning all WP core settings, widgets, theme settings and customizations, and plugin settings will be gone. Other content and files will not be touched including posts, pages, custom post types, comments and other data stored in separate tables. Site URL and name will be kept as well. Please see the <a href="#reset-details" class="scrollto">table above</a> for details.</p>';
 
     echo $this->get_tool_icons(false, true);
 
-    echo '<p><br><label for="reset-options-reactivate-theme"><input type="checkbox" id="reset-options-reactivate-theme" value="1"> ' . __('Reactivate current theme', 'wp-reset') . ' - ' . $theme_name . '</label></p>';
+    echo '<p><br><label for="reset-options-reactivate-theme"><input type="checkbox" id="reset-options-reactivate-theme" value="1"> ' . __('Reactivate current theme', 'wp-reset') . ' - ' . esc_html($theme_name) . '</label></p>';
     echo '<p><label for="reset-options-reactivate-plugins"><input type="checkbox" id="reset-options-reactivate-plugins" value="1"> Reactivate ' . sizeof($active_plugins) . ' currently active plugin' . (sizeof($active_plugins) != 1 ? 's' : '') . ' (WP Reset will reactivate by default)</label></p>';
 
     echo '<p class="mb0"><a class="button button-delete button-pro-feature" href="#">Reset all options - <span data-feature="tool-options-reset" class="pro-feature"><span class="pro">PRO</span> tool</span></a></p>';
@@ -1703,7 +1642,7 @@ class WP_Reset
     echo '<div class="card">';
     echo $this->get_card_header(__('Site Reset', 'wp-reset'), 'tool-site-reset', array('collapse_button' => true));
     echo '<div class="card-body">';
-    echo '<p><label for="reactivate-theme"><input name="wpr-post-reset[reactivate_theme]" type="checkbox" id="reactivate-theme" value="1"> ' . __('Reactivate current theme', 'wp-reset') . ' - ' . $theme->get('Name') . '</label></p>';
+    echo '<p><label for="reactivate-theme"><input name="wpr-post-reset[reactivate_theme]" type="checkbox" id="reactivate-theme" value="1"> ' . __('Reactivate current theme', 'wp-reset') . ' - ' . esc_html($theme->get('Name')) . '</label></p>';
     echo '<p><label for="reactivate-wpreset"><input name="wpr-post-reset[reactivate_wpreset]" type="checkbox" id="reactivate-wpreset" value="1" checked> ' . __('Reactivate WP Reset plugin', 'wp-reset') . '</label></p>';
 
     echo '<p><label for="reactivate-plugins"><input name="wpr-post-reset[reactivate_plugins]" type="checkbox" id="reactivate-plugins" value="1"> ' . __('Reactivate all currently active plugins', 'wp-reset') . '</label></p>';
@@ -1716,10 +1655,10 @@ class WP_Reset
     echo '</div>'; // card reset
 
     // nuclear reset
-    echo '<div class="card default-collapsed">';
+    echo '<div class="card">';
     echo $this->get_card_header(__('Nuclear Site Reset', 'wp-reset'), 'tool-nuclear-reset', array('collapse_button' => true, 'pro' => true));
     echo '<div class="card-body">';
-    echo '<p>All data will be deleted or reset (see the <a href="#reset-details" class="scrollto">explanation table</a> for details). All data stored in the database including custom tables with <code>' . $wpdb->prefix . '</code> prefix, as well as all files in wp-content, themes and plugins folders. The only thing restored after reset will be your user account so you can log in again, and the basic WP settings like site URL. Please see the <a href="#reset-details" class="scrollto">table above</a> for details.</p>';
+    echo '<p>All data will be deleted or reset (see the <a href="#reset-details" class="scrollto">explanation table</a> for details). All data stored in the database including custom tables with <code>' . esc_html($wpdb->prefix) . '</code> prefix, as well as all files in wp-content, themes and plugins folders. The only thing restored after reset will be your user account so you can log in again, and the basic WP settings like site URL. Please see the <a href="#reset-details" class="scrollto">table above</a> for details.</p>';
 
     echo $this->get_tool_icons(true, true);
 
@@ -1757,7 +1696,7 @@ class WP_Reset
       '_tool-delete-widgets' => 'Delete Widgets',
       'tool-delete-themes' => 'Delete Themes',
       'tool-delete-plugins' => 'Delete Plugins',
-      '_tool-delete-mu-plugins-dropins' => 'Delete MU Plugins &amp; Drop-ins',
+      '_tool-delete-mu-plugins-dropins' => 'Delete MU Plugins & Drop-ins',
       'tool-delete-uploads' => 'Clean uploads Folder',
       '_tool-delete-wp-content' => 'Clean wp-content Folder',
       'tool-empty-delete-custom-tables' => 'Empty or Delete Custom Tables',
@@ -1783,9 +1722,9 @@ class WP_Reset
 
       if ($tool_id[0] == '_') {
         $tool_id = ltrim($tool_id, '_');
-        echo '<li><a title="Jump to ' . $tool_name . ' tool" class="scrollto" href="#' . $tool_id . '">' . $tool_name . '</a> <a class="pro-feature" href="#" data-feature="' . $tool_id . '"><span class="pro">PRO</span> tool</a></li>';
+        echo '<li><a title="Jump to ' . esc_attr($tool_name) . ' tool" class="scrollto" href="#' . esc_attr($tool_id) . '">' . esc_html($tool_name) . '</a> <a class="pro-feature" href="#" data-feature="' . esc_attr($tool_id) . '"><span class="pro">PRO</span> tool</a></li>';
       } else {
-        echo '<li><a title="Jump to ' . $tool_name . ' tool" class="scrollto" href="#' . $tool_id . '">' . $tool_name . '</a></li>';
+        echo '<li><a title="Jump to ' . esc_attr($tool_name) . ' tool" class="scrollto" href="#' . esc_attr($tool_id) . '">' . esc_html($tool_name) . '</a></li>';
       }
 
       if ($i == $tools_nb - 1) {
@@ -1863,10 +1802,10 @@ class WP_Reset
       foreach ($count as $cnt) {
         $tmp += (int) $cnt;
       }
-      echo '<option value="' . $type->name . '">Post type - ' . $type->label . ' (' . $tmp . ')</option>';
+      echo '<option value="' . esc_attr($type->name) . '">Post type - ' . esc_html($type->label . ' (' . $tmp) . ')</option>';
     } // foreach post types
     foreach ($taxonomies as $tax) {
-      echo '<option value="_tax_' . $tax->name . '">Taxonomy - ' . $tax->label . ' (' . wp_count_terms($tax->name) . ')</option>';
+      echo '<option value="_tax_' . esc_attr($tax->name) . '">Taxonomy - ' . esc_html($tax->label . ' (' . wp_count_terms($tax->name)) . ')</option>';
     } // foreach post types
 
     echo '</select><br>';
@@ -1892,7 +1831,7 @@ class WP_Reset
     echo '<div class="card">';
     echo $this->get_card_header(__('Delete Themes', 'wp-reset'), 'tool-delete-themes', array('iot_button' => true, 'collapse_button' => true));
     echo '<div class="card-body">';
-    echo '<p>' . __('All themes will be deleted. Including the currently active theme - ' . $theme->get('Name') . '.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
+    echo '<p>' . __('All themes will be deleted. Including the currently active theme - ' . esc_html($theme->get('Name')) . '.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
     echo $this->get_tool_icons(true, true);
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete all themes?" data-btn-confirm="Delete all themes" data-text-wait="Deleting all themes. Please wait." data-text-confirm="All themes will be deleted. There is NO UNDO. WP Reset does not make any file backups." data-text-done="%n themes have been deleted." data-text-done-singular="One theme has been deleted." class="button button-delete" href="#" id="delete-themes">Delete all themes</a></p>';
     echo '</div>';
@@ -1910,8 +1849,8 @@ class WP_Reset
     echo '<div class="card default-collapsed">';
     echo $this->get_card_header(__('Delete MU Plugins & Drop-ins', 'wp-reset'), 'tool-delete-mu-plugins-dropins', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
     echo '<div class="card-body">';
-    echo '<p>MU Plugins are located in <code>/wp-content/mu-plugins/</code> and are, as the name suggests, must-use plugins that are automatically activated by WP and can\'t be deactiavated via the <a href="' . admin_url('plugins.php?plugin_status=mustuse') . '" target="_blank">plugins interface</a>, although if any are used, they are listed in the "Must Use" tab.<br>';
-    echo 'Drop-ins are pieces of code found in <code>/wp-content/</code> that replace default, built-in WordPress functionality. Most often used are <code>db.php</code> and <code>advanced-cache.php</code> that implement custom DB and cache functionality. They can\'t be deactivated via the <a href="' . admin_url('plugins.php?plugin_status=dropins') . '" target="_blank">plugins interface</a> but if any are present are listed in the "Drop-in" tab.</p>';
+    echo '<p>MU Plugins are located in <code>/wp-content/mu-plugins/</code> and are, as the name suggests, must-use plugins that are automatically activated by WP and can\'t be deactiavated via the <a href="' . esc_url(admin_url('plugins.php?plugin_status=mustuse')) . '" target="_blank">plugins interface</a>, although if any are used, they are listed in the "Must Use" tab.<br>';
+    echo 'Drop-ins are pieces of code found in <code>/wp-content/</code> that replace default, built-in WordPress functionality. Most often used are <code>db.php</code> and <code>advanced-cache.php</code> that implement custom DB and cache functionality. They can\'t be deactivated via the <a href="' . esc_url(admin_url('plugins.php?plugin_status=dropins')) . '" target="_blank">plugins interface</a> but if any are present are listed in the "Drop-in" tab.</p>';
 
     if (is_multisite()) {
       echo '<p class="mb0 wpmu-error">This tool is <b>not compatible</b> with WP multisite (WPMU). Using it would delete plugins for all sites in the network since they all share the same plugin files.</p>';
@@ -1928,7 +1867,7 @@ class WP_Reset
     echo '<div class="card">';
     echo $this->get_card_header(__('Clean uploads Folder', 'wp-reset'), 'tool-delete-uploads', array('iot_button' => true, 'collapse_button' => true));
     echo '<div class="card-body">';
-    echo '<p>' . __('All files in <code>' . $upload_dir['basedir'] . '</code> folder will be deleted. Including folders and subfolders, and files in subfolders. Files associated with <a href="' . admin_url('upload.php') . '">media</a> entries will be deleted too.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
+    echo '<p>' . __('All files in <code>' . esc_html($upload_dir['basedir']) . '</code> folder will be deleted. Including folders and subfolders, and files in subfolders. Files associated with <a href="' . esc_url(admin_url('upload.php')) . '">media</a> entries will be deleted too.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
     echo $this->get_tool_icons(true, false);
     if (false != $upload_dir['error']) {
       echo '<p class="mb0"><span style="color:#dd3036;"><b>Tool is not available.</b></span> Folder is not writeable by WordPress. Please check file and folder access rights.</p>';
@@ -1956,11 +1895,11 @@ class WP_Reset
     echo '<div class="card">';
     echo $this->get_card_header(__('Empty or Delete Custom Tables', 'wp-reset'), 'tool-empty-delete-custom-tables', array('iot_button' => true, 'collapse_button' => true));
     echo '<div class="card-body">';
-    echo '<p>' . __('This action affects only custom tables with <code>' . $wpdb->prefix . '</code> prefix. Core WP tables and other tables in the database that do not have that prefix will not be deleted/emptied. Deleting (dropping) tables completely removes them from the database. Emptying (truncating) removes all content from them, but keeps the structure intact.<br>Always <a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> before using this tool if you want to be able to undo its actions.</p>', 'wp-reset');
+    echo '<p>' . __('This action affects only custom tables with <code>' . esc_html($wpdb->prefix) . '</code> prefix. Core WP tables and other tables in the database that do not have that prefix will not be deleted/emptied. Deleting (dropping) tables completely removes them from the database. Emptying (truncating) removes all content from them, but keeps the structure intact.<br>Always <a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> before using this tool if you want to be able to undo its actions.</p>', 'wp-reset');
     if ($custom_tables) {
-      echo '<p>' . __('The following ' . sizeof($custom_tables) . ' custom tables are affected by this tool: ');
+      echo '<p>' . __('The following ' . esc_html(sizeof($custom_tables)) . ' custom tables are affected by this tool: ');
       foreach ($custom_tables as $tbl) {
-        echo '<code>' . $tbl['name'] . '</code>';
+        echo '<code>' . esc_html($tbl['name']) . '</code>';
         if (next($custom_tables)) {
           echo ', ';
         }
@@ -1972,8 +1911,8 @@ class WP_Reset
       $custom_tables_btns = ' disabled';
     }
     echo $this->get_tool_icons(false, true, true);
-    echo '<p class="mb0"><a data-confirm-title="Are you sure you want to empty all custom tables?" data-btn-confirm="Empty custom tables" data-text-wait="Emptying custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . $wpdb->prefix . '</code> will be emptied. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before emptying custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been emptied." data-text-done-singular="One custom table has been emptied." class="button button-delete' . $custom_tables_btns . '" href="#" id="truncate-custom-tables">Empty (truncate) custom tables</a>';
-    echo '<a data-confirm-title="Are you sure you want to delete all custom tables?" data-btn-confirm="Delete custom tables" data-text-wait="Deleting custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . $wpdb->prefix . '</code> will be deleted. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been deleted." data-text-done-singular="One custom table has been deleted." class="button button-delete' . $custom_tables_btns . '" href="#" id="drop-custom-tables">Delete (drop) custom tables</a>' . $this->get_snapshot_button('drop-custom-tables', 'Before deleting custom tables') . '</p>';
+    echo '<p class="mb0"><a data-confirm-title="Are you sure you want to empty all custom tables?" data-btn-confirm="Empty custom tables" data-text-wait="Emptying custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . esc_attr($wpdb->prefix) . '</code> will be emptied. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before emptying custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been emptied." data-text-done-singular="One custom table has been emptied." class="button button-delete' . esc_attr($custom_tables_btns) . '" href="#" id="truncate-custom-tables">Empty (truncate) custom tables</a>';
+    echo '<a data-confirm-title="Are you sure you want to delete all custom tables?" data-btn-confirm="Delete custom tables" data-text-wait="Deleting custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . esc_attr($wpdb->prefix) . '</code> will be deleted. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been deleted." data-text-done-singular="One custom table has been deleted." class="button button-delete' . esc_attr($custom_tables_btns) . '" href="#" id="drop-custom-tables">Delete (drop) custom tables</a>' . $this->get_snapshot_button('drop-custom-tables', 'Before deleting custom tables') . '</p>';
     echo '</div>';
     echo '</div>'; // empty custom tables
 
@@ -1992,11 +1931,11 @@ class WP_Reset
       echo '<option value="">select WordPress version</option>';
       foreach ($wp_versions as $version => $release_date) {
         if ($release_date == 'bleeding') {
-          echo '<option value="bleeding">WordPress v' . $version . ' (Bleeding edge nightly)' . ($wp_version == $version ? ' - installed' : '') . '</option>';
-        } else if ($release_date == 'point') {
-          echo '<option value="point-' . substr($version, 0, 3) . '">WordPress v' . $version . ' (Point release nightly)' . ($wp_version == $version ? ' - installed' : '') . '</option>';
+          echo '<option value="bleeding">WordPress v' . esc_html($version) . ' (Bleeding edge nightly)' . ($wp_version == $version ? ' - installed' : '') . '</option>';
+        } elseif ($release_date == 'point') {
+          echo '<option value="point-' . esc_attr(substr($version, 0, 3)) . '">WordPress v' . esc_html($version) . ' (Point release nightly)' . ($wp_version == $version ? ' - installed' : '') . '</option>';
         } else {
-          echo '<option value="' . $version . '">WordPress v' . $version . ' (' . date('Y-m-d', $release_date) . ')' . ($wp_version == $version ? ' - installed' : '') . '</option>';
+          echo '<option value="' . esc_attr($version) . '">WordPress v' . esc_html($version) . ' (' . date('Y-m-d', $release_date) . ')' . ($wp_version == $version ? ' - installed' : '') . '</option>';
         }
       }
       echo '</select></p>';
@@ -2011,9 +1950,9 @@ class WP_Reset
     echo '<div class="card">';
     echo $this->get_card_header(__('Delete .htaccess File', 'wp-reset'), 'tool-delete-htaccess', array('iot_button' => true, 'collapse_button' => true));
     echo '<div class="card-body">';
-    echo '<p>' . __('This action deletes the .htaccess file located in <code>' . $this->get_htaccess_path() . '</code><br><b>There is NO UNDO. WP Reset does not make any file backups.</b></p>', 'wp-reset');
+    echo '<p>' . __('This action deletes the .htaccess file located in <code>' . esc_html($this->get_htaccess_path()) . '</code><br><b>There is NO UNDO. WP Reset does not make any file backups.</b></p>', 'wp-reset');
 
-    echo '<p>If you need to edit .htaccess, install our free <a href="' . admin_url('plugin-install.php?tab=plugin-information&plugin=wp-htaccess-editor&TB_iframe=true&width=600&height=550') . '" class="thickbox open-plugin-details-modal">WP Htaccess Editor</a> plugin. It automatically creates backups when you edit .htaccess as well as checks for syntax errors. To create the default .htaccess file open <a href="' . admin_url('options-permalink.php') . '">Settings - Permalinks</a> and re-save settings. WordPress will recreate the file.</p>';
+    echo '<p>If you need to edit .htaccess, install our free <a href="' . esc_url(admin_url('plugin-install.php?tab=plugin-information&plugin=wp-htaccess-editor&TB_iframe=true&width=600&height=550')) . '" class="thickbox open-plugin-details-modal">WP Htaccess Editor</a> plugin. It automatically creates backups when you edit .htaccess as well as checks for syntax errors. To create the default .htaccess file open <a href="' . esc_url(admin_url('options-permalink.php')) . '">Settings - Permalinks</a> and re-save settings. WordPress will recreate the file.</p>';
     echo $this->get_tool_icons(true, false);
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete the .htaccess file?" data-btn-confirm="Delete .htaccess file" data-text-wait="Deleting .htaccess file. Please wait." data-text-confirm="Htaccess file will be deleted. There is NO UNDO. WP Reset does not make any file backups." data-text-done="Htaccess file has been deleted." data-text-done-singular="Htaccess file has been deleted." class="button button-delete" href="#" id="delete-htaccess">Delete .htaccess file</a></p>';
 
@@ -2046,7 +1985,7 @@ class WP_Reset
     $plugins['wp-external-links'] = array('name' => 'WP External Links', 'desc' => 'Manage all external & internal links. Control icons, nofollow, noopener, UGC, sponsored and if links open in new window or new tab.');
 
     echo '<div class="card" data-collection-id="1">';
-    echo $this->get_card_header('Must-have WordPress Plugins', 'collection-id-1', array('collapse_button' => false));
+    echo $this->get_card_header('Must Have WordPress Plugins', 'collection-id-1', array('collapse_button' => false));
     echo '<div class="card-body"><div class="thirdx2"><p class="_mb0"></p><div class="dropdown  dropdown-right">
     <a class="button dropdown-toggle" href="#">Install collection</a>
     <div class="dropdown-menu">
@@ -2064,7 +2003,7 @@ class WP_Reset
     </div>
     </div><p></p></div><table class="collection-table"><tbody><tr><th>Type</th><th>Name &amp; Note</th><th class="actions">Actions</th></tr>';
     foreach ($plugins as $slug => $plugin) {
-      echo '<tr data-slug="' . $slug . '"><td><span class="dashicons dashicons-admin-plugins tooltip" title="Plugin"></span><span class="dashicons dashicons-wordpress tooltip" title="Comes from the WordPress repository"></span></td><td class="collection-item-details"><span>' . $plugin['name'] . '</span><i>' . $plugin['desc'] . '</i></td><td class="textcenter"><div class="dropdown">
+      echo '<tr data-slug="' . esc_attr($slug) . '"><td><span class="dashicons dashicons-admin-plugins tooltip" title="Plugin"></span><span class="dashicons dashicons-wordpress tooltip" title="Comes from the WordPress repository"></span></td><td class="collection-item-details"><span>' . esc_html($plugin['name']) . '</span><i>' . esc_html($plugin['desc']) . '</i></td><td class="textcenter"><div class="dropdown">
             <a class="button dropdown-toggle" href="#">Actions</a>
             <div class="dropdown-menu">
                 <a href="#" class="dropdown-item install-collection-item button-pro-feature">Install - <span class="pro-feature" data-feature="collections"><span class="pro">PRO</span> Feature</span></a>
@@ -2088,7 +2027,7 @@ class WP_Reset
     echo '<div class="card">';
     echo $this->get_card_header(__('Documentation', 'wp-reset'), 'support-documentation', array('collapse_button' => false));
     echo '<div class="card-body">';
-    echo '<p class="mb0">' . __('All tools and features are explained in detail in <a href="' . $this->generate_web_link('support-tab', '/documentation/') . '" target="_blank">the documentation</a>. We did our best to describe how things work on both the code level and an "average user" level.', 'wp-reset') . '</p>';
+    echo '<p class="mb0">' . __('All tools and features are explained in detail in <a href="' . esc_url($this->generate_web_link('support-tab', '/documentation/')) . '" target="_blank">the documentation</a>. We did our best to describe how things work on both the code level and an "average user" level.', 'wp-reset') . '</p>';
     echo '</div>';
     echo '</div>'; // documentation
 
@@ -2163,7 +2102,7 @@ class WP_Reset
     echo '</tr>';
 
     $rows = array();
-    $rows['Options &amp; Nuclear Reset'] = array(false, true, true, true);
+    $rows['Options & Nuclear Reset'] = array(false, true, true, true);
     $rows['Site Reset'] = array(true, true, true, true);
     $rows['9 Basic Reset Tools'] = array(true, true, true, true);
     $rows['17+ PRO Reset Tools'] = array(false, true, true, true);
@@ -2171,8 +2110,8 @@ class WP_Reset
     $rows['User Snapshots'] = array(true, true, true, true);
     $rows['Automatic Snapshots'] = array(false, true, true, true);
     $rows['Automatically Offload Snapshots to WP Reset Cloud, 2GB storage per site'] = array(false, true, true, true);
-    $rows['Automatically Offload Snapshots to Dropbox, Google Drive &amp; pCloud'] = array(false, true, true, true);
-    $rows['Plugins &amp; Themes Collections'] = array(false, true, true, true);
+    $rows['Automatically Offload Snapshots to Dropbox, Google Drive & pCloud'] = array(false, true, true, true);
+    $rows['Plugins & Themes Collections'] = array(false, true, true, true);
     $rows['Emergency Recovery Script'] = array(false, true, true, true);
     $rows['Email Support'] = array(false, true, true, true);
     $rows['WP Reset Dashboard'] = array(false, true, true, true);
@@ -2180,12 +2119,12 @@ class WP_Reset
     $rows['White-Label'] = array(false, false, false, true);
     $rows['Manage Snapshots for all sites in Dashboard'] = array(false, true, true, true);
     $rows['Manage Collections for all sites in Dashboard'] = array(false, true, true, true);
-    $rows['Number of sites included in the license (localhosts are not counted &amp; you can change sites)'] = array('&infin;', 1, 5, 100);
-    $rows['Number of WP Reset Cloud site licenses with 2GB storage per site (localhosts are not counted &amp; you can change sites)'] = array(0, 1, 5, 20);
+    $rows['Number of sites included in the license (localhosts are not counted & you can change sites)'] = array('&infin;', 1, 5, 100);
+    $rows['Number of WP Reset Cloud site licenses with 2GB storage per site (localhosts are not counted & you can change sites)'] = array(0, 1, 5, 20);
 
     foreach ($rows as $feature => $details) {
       echo '<tr>';
-      echo '<td>' . $feature . '</td>';
+      echo '<td>' . esc_html($feature) . '</td>';
       $details = array_reverse($details);
       foreach ($details as $tmp) {
         echo '<td>';
@@ -2206,14 +2145,14 @@ class WP_Reset
     $team_lifetime = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-team-lifetime-launch'));
     $personal = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-personal-launch'));
     echo '<tr class="pricing"><td>Yearly Price</td>';
-    echo '<td><del>&nbsp;$299/y&nbsp;</del><br><b>50% OFF</b><br>$149 <small>/y</small><br><a href="' . $agency . '" class="button" target="_blank">BUY NOW</a></td>';
-    echo '<td><del>&nbsp;$158/y&nbsp;</del><br><b>50% OFF</b><br>$79 <small>/y</small><br><a href="' . $team . '" class="button" target="_blank">BUY NOW</a></td>';
-    echo '<td><del>&nbsp;$79 <small>/y</small>&nbsp;</del><br><b>50% OFF</b><br>$39 <small>/y</small><br><a href="' . $personal . '" class="button" target="_blank">BUY NOW</a></td>';
+    echo '<td><del>&nbsp;$299/y&nbsp;</del><br><b>50% OFF</b><br>$149 <small>/y</small><br><a href="' . esc_url($agency) . '" class="button" target="_blank">BUY NOW</a></td>';
+    echo '<td><del>&nbsp;$158/y&nbsp;</del><br><b>50% OFF</b><br>$79 <small>/y</small><br><a href="' . esc_url($team) . '" class="button" target="_blank">BUY NOW</a></td>';
+    echo '<td><del>&nbsp;$79 <small>/y</small>&nbsp;</del><br><b>50% OFF</b><br>$39 <small>/y</small><br><a href="' . esc_url($personal) . '" class="button" target="_blank">BUY NOW</a></td>';
     echo '<td>free</td>';
     echo '</tr>';
     echo '<tr class="pricing"><td>Lifetime Price</td>';
     echo '<td><i>n/a</i></td>';
-    echo '<td><del>&nbsp;$319&nbsp;</del><br><b>one-time payment<br>50% OFF</b><br>$159<br><a href="' . $team_lifetime . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
+    echo '<td><del>&nbsp;$319&nbsp;</del><br><b>one-time payment<br>50% OFF</b><br>$159<br><a href="' . esc_url($team_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
     echo '<td><i>n/a</i></td>';
     echo '<td>free</td>';
     echo '</tr>';
@@ -2227,7 +2166,7 @@ class WP_Reset
     echo '<div class="card-body">';
 
     echo '<p>License key is visible on the confirmation screen, right after purchasing. You can also find it in the confirmation email sent to the email address provided on purchase. Or use keys created with the <a href="https://dashboard.wpreset.com/licenses/" target="_blank">license manager</a>.</p>
-    <p>If you don\'t have a license - <a class="scrollto" href="#pro-pricing">purchase one now</a>. In case of problems with the license please <a href="' . $this->generate_web_link('pro-tab-license', '/contact/') . '" target="_blank">contact support</a>.</p>';
+    <p>If you don\'t have a license - <a class="scrollto" href="#pro-pricing">purchase one now</a>. In case of problems with the license please <a href="' . esc_url($this->generate_web_link('pro-tab-license', '/contact/')) . '" target="_blank">contact support</a>.</p>';
 
     echo '<hr>';
     echo '<p><label for="wpr-license-key">License Key: </label><input class="regular-text" type="text" id="wpr-license-key" value="' . ($this->license->get_license('license_key') != 'keyless' ? esc_attr($this->license->get_license('license_key')) : '') . '" placeholder="12345678-12345678-12345678-12345678">';
@@ -2236,14 +2175,14 @@ class WP_Reset
     if ($this->license->is_active()) {
       $license_formatted = $this->license->get_license_formatted();
       echo '<b style="color: #66b317;">Active</b><br>
-      <label>Type: </label>' . $license_formatted['name_long'];
-      echo '<br><label>Valid: </label>' . $license_formatted['valid_until'];
+      <label>Type: </label>' . esc_html($license_formatted['name_long']);
+      echo '<br><label>Valid: </label>' . esc_html($license_formatted['valid_until']);
 
       echo '<p>Thank you for purchasing WP Reset PRO! <b>Your license has been verified and activated.</b>';
       echo '<br>To start using the PRO version, please follow these steps:</p>';
       echo '<ol>';
       echo '<li><a href="https://dashboard.wpreset.com/pro-download/" target="_blank">Download</a> the latest version of the PRO plugin.</li>';
-      echo '<li>Go to <a href="' . admin_url('plugin-install.php') . '">Plugins - Add New - Upload Plugin</a> and upload the ZIP you just downloaded.</li>';
+      echo '<li>Go to <a href="' . esc_url(admin_url('plugin-install.php')) . '">Plugins - Add New - Upload Plugin</a> and upload the ZIP you just downloaded.</li>';
       echo '<li>If asked to replace (overwrite) the free version - confirm it.</li>';
       echo '<li>Activate the plugin.</li>';
       echo '<li>That\'s it, no more steps.</li>';
@@ -2251,7 +2190,7 @@ class WP_Reset
     } else { // not active
       echo '<strong style="color: #ea1919;">Inactive</strong>';
       if (!empty($this->license->get_license('error'))) {
-        echo '<br><label>Error: </label>' . $this->license->get_license('error');
+        echo '<br><label>Error: </label>' . esc_html($this->license->get_license('error'));
       }
     }
     echo '</p>';
@@ -2303,7 +2242,7 @@ class WP_Reset
     echo '<div class="card-body">';
     echo '<p>A snapshot is a copy of all WP database tables, standard and custom ones, saved in the site\'s database. <a href="https://www.youtube.com/watch?v=xBfMmS12vMY" target="_blank">Watch a short video</a> overview and tutorial about Snapshots.</p>';
 
-    echo '<p>Snapshots are primarily a development tool. When using various reset tools we advise using our 1-click snapshot tool available in every tool\'s confirmation dialog. If a full backup that includes files is needed, use one of the <a href="' . admin_url('plugin-install.php?s=backup&tab=search&type=term') . '" target="_blank">backup plugins</a> from the repo.</p>';
+    echo '<p>Snapshots are primarily a development tool. When using various reset tools we advise using our 1-click snapshot tool available in every tool\'s confirmation dialog. If a full backup that includes files is needed, use one of the <a href="' . esc_url(admin_url('plugin-install.php?s=backup&tab=search&type=term')) . '" target="_blank">backup plugins</a> from the repo.</p>';
 
     echo '<p>Use snapshots to find out what changes a plugin made to your database or to quickly restore the dev environment after testing database related changes. Restoring a snapshot does not affect other snapshots, or WP Reset settings.</p>';
 
@@ -2323,7 +2262,7 @@ class WP_Reset
         }
       } // foreach
 
-      echo '<p class="mb0"><b>Currently used WordPress tables</b>, prefixed with <i>' . $wpdb->prefix . '</i>, consist of ' . $tbl_core . ' standard and ';
+      echo '<p class="mb0"><b>Currently used WordPress tables</b>, prefixed with <i>' . esc_html($wpdb->prefix) . '</i>, consist of ' . esc_html($tbl_core) . ' standard and ';
       if ($tbl_custom) {
         echo $tbl_custom . ' custom table' . ($tbl_custom == 1 ? '' : 's');
       } else {
@@ -2345,7 +2284,7 @@ class WP_Reset
       echo '<table id="wpr-snapshots">';
       echo '<tr><th>Date</th><th>Description</th><th class="ss-size">Size</th><th class="ss-actions">&nbsp;</th></tr>';
       foreach ($snapshots as $ss) {
-        echo '<tr id="wpr-ss-' . $ss['uid'] . '">';
+        echo '<tr id="wpr-ss-' . esc_attr($ss['uid']) . '">';
         if (!empty($ss['name'])) {
           $name = $ss['name'];
         } else {
@@ -2362,7 +2301,7 @@ class WP_Reset
 
         echo '<td>';
         if (!empty($ss['name'])) {
-          echo '<b>' . $ss['name'] . '</b><br>';
+          echo '<b>' . esc_html($ss['name']) . '</b><br>';
         }
         echo $ss['tbl_core'] . ' standard &amp; ';
         if ($ss['tbl_custom']) {
@@ -2376,10 +2315,10 @@ class WP_Reset
         echo '<div class="dropdown">
         <a class="button dropdown-toggle" href="#">Actions</a>
         <div class="dropdown-menu">';
-        echo '<a data-title="Current DB tables compared to snapshot %s" data-wait-msg="Comparing. Please wait." data-name="' . $name . '" title="Compare snapshot to current database tables" href="#" class="ss-action compare-snapshot dropdown-item tooltip" data-ss-uid="' . $ss['uid'] . '">Compare snapshot to current data</a>';
-        echo '<a data-btn-confirm="Restore snapshot" data-text-wait="Restoring snapshot. Please wait." data-text-confirm="Are you sure you want to restore the selected snapshot? There is NO UNDO.<br>Restoring the snapshot will delete all current standard and custom tables and replace them with tables from the snapshot." data-text-done="Snapshot has been restored. Click OK to reload the page with new data." title="Restore snapshot by overwriting current database tables" href="#" class="ss-action restore-snapshot dropdown-item tooltip" data-ss-uid="' . $ss['uid'] . '">Restore snapshot</a>';
-        echo '<a data-success-msg="Snapshot export created!<br><a href=\'%s\'>Download it</a>" data-wait-msg="Exporting snapshot. Please wait." title="Download snapshot as gzipped SQL dump" href="#" class="ss-action download-snapshot dropdown-item tooltip" data-ss-uid="' . $ss['uid'] . '">Download snapshot</a>';
-        echo '<a data-btn-confirm="Delete snapshot" data-text-wait="Deleting snapshot. Please wait." data-text-confirm="Are you sure you want to delete the selected snapshot and all its data? There is NO UNDO.<br>Deleting the snapshot will not affect the active database tables in any way." data-text-done="Snapshot has been deleted." title="Permanently delete snapshot" href="#" class="ss-action delete-snapshot dropdown-item tooltip" data-ss-uid="' . $ss['uid'] . '">Delete snapshot</a>';
+        echo '<a data-title="Current DB tables compared to snapshot %s" data-wait-msg="Comparing. Please wait." data-name="' . esc_attr($name) . '" title="Compare snapshot to current database tables" href="#" class="ss-action compare-snapshot dropdown-item tooltip" data-ss-uid="' . esc_attr($ss['uid']) . '">Compare snapshot to current data</a>';
+        echo '<a data-btn-confirm="Restore snapshot" data-text-wait="Restoring snapshot. Please wait." data-text-confirm="Are you sure you want to restore the selected snapshot? There is NO UNDO.<br>Restoring the snapshot will delete all current standard and custom tables and replace them with tables from the snapshot." data-text-done="Snapshot has been restored. Click OK to reload the page with new data." title="Restore snapshot by overwriting current database tables" href="#" class="ss-action restore-snapshot dropdown-item tooltip" data-ss-uid="' . esc_attr($ss['uid']) . '">Restore snapshot</a>';
+        echo '<a data-success-msg="Snapshot export created!<br><a href=\'%s\'>Download it</a>" data-wait-msg="Exporting snapshot. Please wait." title="Download snapshot as gzipped SQL dump" href="#" class="ss-action download-snapshot dropdown-item tooltip" data-ss-uid="' . esc_attr($ss['uid']) . '">Download snapshot</a>';
+        echo '<a data-btn-confirm="Delete snapshot" data-text-wait="Deleting snapshot. Please wait." data-text-confirm="Are you sure you want to delete the selected snapshot and all its data? There is NO UNDO.<br>Deleting the snapshot will not affect the active database tables in any way." data-text-done="Snapshot has been deleted." title="Permanently delete snapshot" href="#" class="ss-action delete-snapshot dropdown-item tooltip" data-ss-uid="' . esc_attr($ss['uid']) . '">Delete snapshot</a>';
         echo '<a href="#" title="WP Reset PRO feature" data-feature="cloud-wpr" class="ss-action dropdown-item button-pro-feature tooltip">Upload to WP Reset Cloud - <span class="pro-feature" data-feature="cloud-wpr"><span class="pro">PRO</span> Feature</span></a>';
         echo '<a href="#" title="WP Reset PRO feature" class="ss-action dropdown-item button-pro-feature tooltip" data-feature="cloud-general">Upload to Dropbox, Google Drive, or pCloud - <span class="pro-feature" data-feature="cloud-general"><span class="pro">PRO</span> Feature</span></a>';
         echo '</div></div></td>';
@@ -2529,9 +2468,9 @@ class WP_Reset
           $tbl_custom++;
         }
 
-        $wpdb->query('OPTIMIZE TABLE ' . $table->Name);
-        $wpdb->query('CREATE TABLE ' . $uid . '_' . $table->Name . ' LIKE ' . $table->Name);
-        $wpdb->query('INSERT ' . $uid . '_' . $table->Name . ' SELECT * FROM ' . $table->Name);
+        $wpdb->query("OPTIMIZE TABLE {$table->Name}");
+        $wpdb->query("CREATE TABLE {$uid}_{$table->Name} LIKE {$table->Name}");
+        $wpdb->query("INSERT {$uid}_{$table->Name} SELECT * FROM {$table->Name}");
       } // foreach
     } else {
       return new WP_Error(1, 'Can\'t get table status data.');
@@ -2688,8 +2627,8 @@ class WP_Reset
     foreach ($new_tables as $table) {
       $new_name = str_replace($uid . '_', '', $table);
 
-      $wpdb->query('CREATE TABLE ' . $new_name . ' LIKE ' . $table);
-      $wpdb->query('INSERT ' . $new_name . ' SELECT * FROM ' . $table);
+      $wpdb->query("CREATE TABLE {$new_name} LIKE {$table}");
+      $wpdb->query("INSERT {$new_name} SELECT * FROM {$table}");
     }
 
     wp_cache_flush();
@@ -2809,7 +2748,7 @@ class WP_Reset
 
     $out .= '<br><br>';
     foreach ($in_current_only as $table) {
-      $out .= '<div class="wpr-table-container in-current-only" data-table="' . $table['basename'] . '">';
+      $out .= '<div class="wpr-table-container in-current-only" data-table="' . esc_attr($table['basename']) . '">';
       $out .= '<table>';
       $out .= '<tr title="Click to show/hide more info" class="wpr-table-missing header-row">';
       $out .= '<td><b>' . $table['fullname'] . '</b></td>';
@@ -2827,11 +2766,11 @@ class WP_Reset
     } // foreach in current only
 
     foreach ($in_snapshot_only as $table) {
-      $out .= '<div class="wpr-table-container in-snapshot-only" data-table="' . $table['basename'] . '">';
+      $out .= '<div class="wpr-table-container in-snapshot-only" data-table="' . esc_attr($table['basename']) . '">';
       $out .= '<table>';
       $out .= '<tr title="Click to show/hide more info" class="wpr-table-missing header-row">';
       $out .= '<td>table is not present in current tables</td>';
-      $out .= '<td><b>' . $table['fullname'] . '</b><span class="dashicons dashicons-arrow-down-alt2"></span></td>';
+      $out .= '<td><b>' . esc_html($table['fullname']) . '</b><span class="dashicons dashicons-arrow-down-alt2"></span></td>';
       $out .= '</tr>';
       $out .= '<tr class="hidden">';
       $out .= '<td>&nbsp;</td>';
@@ -2854,7 +2793,7 @@ class WP_Reset
       $schema2 = str_replace($tbl_snapshot['uid'] . '_' . $tablename, $tablename, $schema2);
 
       if ($tbl_current['rows'] == $tbl_snapshot['rows'] && $tbl_current['schema'] == $tbl_snapshot['tmp_schema']) {
-        $out3 .= '<div class="wpr-table-container identical" data-table="' . $tablename . '">';
+        $out3 .= '<div class="wpr-table-container identical" data-table="' . esc_attr($tablename) . '">';
         $out3 .= '<table>';
         $out3 .= '<tr title="Click to show/hide more info" class="wpr-table-match header-row">';
         $out3 .= '<td><b>' . $tbl_current['fullname'] . '</b></td>';

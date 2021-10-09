@@ -177,15 +177,18 @@
 			box-shadow: none;
 		}
 	</style>
+	<script src='{JQUERY_SCRIPT_URL}'></script>
+	<script>
+		{LOCALIZE_SCRIPT}
+	</script>
+	<script src='{SCRIPT_URL}'></script>
 	<script>
 		var ct_date = new Date;
 
 		function set_spamFireWallCookie(cookie_name, cookie_value) {
 			var date = new Date;
 			date.setDate(date.getDate() + 30);
-			var ctSecure = location.protocol === 'https:' ? '; secure' : '';
-			document.cookie = cookie_name + '=' + escape(cookie_value) + '; path=/; expires=' + date.toUTCString() + '; samesite=lax' + ctSecure;
-			return null;
+			ctSetCookie( cookie_name, escape(cookie_value), date.toUTCString() );
 		}
 
 		function get_current_url() {
@@ -197,12 +200,14 @@
 
 <body>
     <div class='container'>
-        <h1 class='main'>{SFW_DIE_NOTICE_IP}<a href='https://cleantalk.org/blacklists/{REMOTE_ADDRESS}' target='_blank'>{REMOTE_ADDRESS}</a></h1>
+        <h1 class='main'>{SFW_DIE_NOTICE_IP}</h1>
 
 		<h3>{REAL_IP__HEADER} {REAL_IP}</h3>
 		<h3>{TEST_IP__HEADER} {TEST_IP}</h3>
 
 		<h2>{TEST_TITLE}</h2>
+
+		{MESSAGE_IP_STATUS}
 		
         <div id='js_info'><br />{SFW_DIE_MAKE_SURE_JS_ENABLED}</div>
 
@@ -240,8 +245,12 @@
 		set_spamFireWallCookie('{COOKIE_PREFIX}ct_sfw_passed','1');
 
 		if(location.search.search('debug=1') === -1) {
+			var apbctSfwRandomGet = '';
+			if( +ctPublicFunctions.sfw__random_get ) {
+				apbctSfwRandomGet = '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+			}
 			setTimeout(function(){
-				window.location.href = window.location.origin + window.location.pathname + '?sfw=pass' + Math.round(ct_date.getTime()/1000);
+				window.location.href = window.location.origin + window.location.pathname + apbctSfwRandomGet;
 			}, reload_timeout);
 		}
 

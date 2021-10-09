@@ -305,17 +305,6 @@ class Ai1wmse_Main_Controller {
 
 		wp_localize_script(
 			'ai1wmse_settings',
-			'ai1wm_report',
-			array(
-				'ajax'       => array(
-					'url' => wp_make_link_relative( admin_url( 'admin-ajax.php?action=ai1wm_report' ) ),
-				),
-				'secret_key' => get_option( AI1WM_SECRET_KEY ),
-			)
-		);
-
-		wp_localize_script(
-			'ai1wmse_settings',
 			'ai1wmse_dependencies',
 			array( 'messages' => $this->get_missing_dependencies() )
 		);
@@ -612,6 +601,7 @@ class Ai1wmse_Main_Controller {
 	public function plugin_row_meta( $links, $file ) {
 		if ( $file === AI1WMSE_PLUGIN_BASENAME ) {
 			$links[] = __( '<a href="https://help.servmask.com/knowledgebase/amazon-s3-extension-user-guide/" target="_blank">User Guide</a>', AI1WMSE_PLUGIN_NAME );
+			$links[] = __( '<a href="https://servmask.com/contact-support" target="_blank">Contact Support</a>', AI1WMSE_PLUGIN_NAME );
 		}
 
 		return $links;

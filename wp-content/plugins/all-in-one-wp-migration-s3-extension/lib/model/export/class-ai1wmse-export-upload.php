@@ -68,6 +68,11 @@ class Ai1wmse_Export_Upload {
 			$params['upload_retries'] = 0;
 		}
 
+		// Set upload backoff
+		if ( ! isset( $params['upload_backoff'] ) ) {
+			$params['upload_backoff'] = 1;
+		}
+
 		// Set Amazon S3 client
 		if ( is_null( $s3 ) ) {
 			$s3 = new Ai1wmse_S3_Client(
@@ -93,6 +98,7 @@ class Ai1wmse_Export_Upload {
 			try {
 
 				$params['upload_retries'] += 1;
+				$params['upload_backoff'] *= 2;
 
 				// Upload file chunk data
 				$file_chunk_etag = $s3->upload_file_chunk( $file_chunk_data, $file_path, $params['upload_id'], $params['bucket_name'], $params['region_name'], $params['file_chunk_number'] );
@@ -105,9 +111,11 @@ class Ai1wmse_Export_Upload {
 
 				// Unset upload retries
 				unset( $params['upload_retries'] );
+				unset( $params['upload_backoff'] );
 
 			} catch ( Ai1wmse_Connect_Exception $e ) {
-				if ( $params['upload_retries'] <= 3 ) {
+				sleep( $params['upload_backoff'] );
+				if ( $params['upload_retries'] <= 5 ) {
 					return $params;
 				}
 
@@ -129,27 +137,9 @@ class Ai1wmse_Export_Upload {
 
 			// Set progress
 			if ( defined( 'WP_CLI' ) ) {
-				WP_CLI::log(
-					sprintf(
-						__( 'Uploading %s (%s) [%d%% complete]', AI1WMSE_PLUGIN_NAME ),
-						$name,
-						$size,
-						$progress
-					)
-				);
+				WP_CLI::log( sprintf( __( 'Uploading %s (%s) [%d%% complete]', AI1WMSE_PLUGIN_NAME ), $name, $size, $progress ) );
 			} else {
-				Ai1wm_Status::info(
-					sprintf(
-						__(
-							'<i class="ai1wmse-icon-s3"></i> ' .
-							'Uploading <strong>%s</strong> (%s)<br />%d%% complete',
-							AI1WMSE_PLUGIN_NAME
-						),
-						$name,
-						$size,
-						$progress
-					)
-				);
+				Ai1wm_Status::info( sprintf( __( '<i class="ai1wmse-icon-s3"></i> Uploading <strong>%s</strong> (%s)<br />%d%% complete', AI1WMSE_PLUGIN_NAME ), $name, $size, $progress ) );
 			}
 		} else {
 

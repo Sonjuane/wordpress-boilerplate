@@ -153,10 +153,10 @@ class Ai1wmse_Settings_Controller {
 			if ( isset( $params['ai1wmse_s3_bucket_name'] ) ) {
 				try {
 					// Create bucket
-					$model->create_bucket( trim( $params['ai1wmse_s3_bucket_name'] ) );
+					$model->create_bucket( strtolower( trim( $params['ai1wmse_s3_bucket_name'] ) ) );
 
 					// Set bucket name
-					$model->set_bucket_name( trim( $params['ai1wmse_s3_bucket_name'] ) );
+					$model->set_bucket_name( strtolower( trim( $params['ai1wmse_s3_bucket_name'] ) ) );
 
 					// Set message
 					Ai1wm_Message::flash( 'settings', __( 'Your changes have been saved.', AI1WMSE_PLUGIN_NAME ) );

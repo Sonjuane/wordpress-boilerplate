@@ -158,8 +158,6 @@ foreach( $pages as $page ) {
 // PUSH INTO ARRAY
 	wp_enqueue_script('my-script',plugins_url().'/elmp-rais/test-script.js');
     wp_localize_script( 'my-script', 'MyScriptParams', $pageArray );
-	wp_localize_script( 'my-script', 'PostContent', get_post_field('post_content', 2) );
-
 
 $pages = get_posts( array( 'post_type' => 'page', 'post_parent' => 0, 'post_status' => array( 'draft', 'publish' ) ) );
 echo '<select name="selected-food-type" id="selected-food-type">';
@@ -171,23 +169,11 @@ foreach( $pages as $page ) {
     }
 }
 echo '</select>';
-
 ?>
 </p>
 
     <div class="clear"></div>
 </div>
-
-
-<div id="my-content-id" style="display:none;">
-     <p>
-          This is my hidden content! It will appear in ThickBox when the link is clicked.
-     </p>
-</div>
-
-<!-- NATIVE WP LIGHTBOX -->
-<?php add_thickbox(); // enable lightbox ?>
-<a href="#TB_inline?&width=600&height=550&inlineId=my-content-id" class="thickbox">View my inline content!</a>	
 
     <?php }
 
@@ -219,47 +205,10 @@ echo '</select>';
     	echo "<link id='wolfgang' rel='preload' href='{$file}' as='script'/>\n";
     	echo '<script id="wolfgang">console.log("Wolfgang")'.$file.'</script>';
     }, 1);
-
-	
-//add_action( 'save_post', 'my_function' );
-function my_function( $post_id ){
-	if ( ! wp_is_post_revision( $post_id ) ){
-		// remove this hook so that it does not create an infinite loop
-		remove_action( 'save_post', __FUNCTION__ );
-
-		// update the post when the save_post hook is called again
-		$my_post = array(
-			  'ID'           => 2,
-			  'post_title'   => 'Wolfgang is king V2',
-			  'post_content' => 'This is the updated content.',
-			  'post_date_gmt' => get_gmt_from_date( $post_date ),
-
-		  );	
-		wp_update_post( $my_post );
-
-		// return hook back
-		add_action( 'save_post', __FUNCTION__ );
-	}
-}	
-
- 
-// Update the post into the database
-		// update the post when the save_post hook is called again
-		$my_post = array(
-			  'ID'           => 22,
-			  'post_title'   => 'Wolfgang is king 5.12',
-			  'post_content' => 'This is the updated content. 5.2',
-			  //'post_date_gmt' => get_gmt_from_date( $post_date ),
-
-		  );	
     
-// 		wp_update_post( $my_post );
-//     	wp_save_post_revision( 22 );
-	
-	    //wp_delete_post_revision( $revisions[ 22 ]->ID );
-		//wp_save_post_revision($my_post->ID);
-		//add_action( 'post_updated', 'action_post_updated', 10,22 ); 
-		
+
+
+
     
     
 }

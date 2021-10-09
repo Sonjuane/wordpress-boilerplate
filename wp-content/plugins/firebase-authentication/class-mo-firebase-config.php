@@ -5,75 +5,45 @@ class Mo_Firebase_Config {
     	add_action('init', array( $this, 'testconfig' ));
 	}
 	function testconfig() {
-		if ( isset($_POST['fb_jwt']) ) {
-			$user = $this->sample();
-		}
-
  		if( isset( $_REQUEST['mo_action'] ) && 'firebaselogin' === sanitize_text_field( wp_unslash( $_REQUEST['mo_action'] ) ) && isset( $_REQUEST['test'] ) && 'true' === wp_unslash( $_REQUEST['test'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_firebase_auth_test_config_field'] ) ), 'mo_firebase_auth_test_config_form' ) ) {
 
 		    $project_id = get_option('mo_firebase_auth_project_id');
 		    $api_key = get_option('mo_firebase_auth_api_key');
-	    	wp_register_script( 'mo_firebase_app_main_script', plugins_url( 'admin/js/firebase-auth-main-script.js', __FILE__), [ 'jquery' ], false, true );
-	    	wp_enqueue_script( 'mo_firebase_app_main_script' );
-	    	wp_register_script( 'mo_firebase_testconfig_script', plugins_url( 'js/firebase-test-config.js', __FILE__), [ 'jquery' ] );
-			$data = [];
-			$data['api_key'] = get_option( 'mo_firebase_auth_api_key' );
-			$data['project_id'] = get_option( 'mo_firebase_auth_project_id' );
-			$data['test_username'] = isset( $_POST['test_username'] ) ? sanitize_text_field( $_POST['test_username'] ) : '';
-			$data['test_password'] = isset( $_POST['test_password'] ) ? sanitize_text_field( $_POST['test_password'] ) : '';
-			$data['test_check_field'] = isset( $_POST['test_check_field'] ) ? sanitize_text_field( $_POST['test_check_field'] ) : '';
-			wp_localize_script( 'mo_firebase_testconfig_script', 'firebase_data_testconfig', $data );
-		    wp_enqueue_script( 'mo_firebase_testconfig_script', plugins_url( 'js/firebase-test-config.js', __FILE__), ['jquery'], false, true );
-		}
-    }
-	
-	function sample() {
-    	if ( isset( $_POST['fb_jwt'] ) && sanitize_text_field( wp_unslash( $_POST['fb_jwt'] ) ) == 'empty_string' ) {
-			if ( isset( $_POST['fb_is_test'] ) && sanitize_text_field( wp_unslash( $_POST['fb_is_test'] ) ) == 'test_check_true' ) {
-				
-				$error = sanitize_text_field( wp_unslash( $_POST['fb_error_msg'] ) );
-				if (strpos($error, 'API key not valid. Please pass a valid API key.') !== false) {
-				    $error = "API key not valid. Please pass a valid API key.";
-				}
+
+		    $test_username = isset( $_POST['test_username'] ) ? sanitize_text_field( $_POST['test_username'] ) : '';
+			$test_password = isset( $_POST['test_password'] ) ? sanitize_text_field( $_POST['test_password'] ) : '';
+
+			$response = $this->mo_firebase_authenticate_call($test_username, $test_password);
+			$response = json_decode($response, true);
+
+			if(isset($response['error'])){
+				$fb_error = $response['error']['message'];
+				if($fb_error == 'INVALID_PASSWORD'){
+	    			$fb_error = 'The password is invalid or the user does not have a password.';
+	    		}elseif ($fb_error == 'EMAIL_NOT_FOUND') {
+	    			$fb_error = 'There is no user record corresponding to this identifier. The user may have been deleted.';
+	    		}elseif ($fb_error == 'INVALID_EMAIL'){
+	    			$fb_error = 'The email address is badly formatted.';
+	    		}
 				echo '<div style="font-family:Calibri;padding: 0 30%;">';
 				echo '<h1 style="color:#d9534f;text-align:center;">test failed</h1>';
-				if ( isset( $_POST['fb_error_msg'] ) ) {
-					echo '<h4 style="text-align:center;"><b>ERROR :</b>'.$error.'</h4>';
-				}
+				echo '<h4 style="text-align:center;"><b>ERROR :</b>'.$fb_error.'</h4>';
 				echo '</div>';
 				echo '<div style="padding: 10px;"></div><div style="position:absolute;padding:0 46%;"><input style="padding:1%;width:100px;height:30px;background: #0091CD none repeat scroll 0% 0%;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"type="button" value="Close" onClick="self.close();"></div>';
 				exit();
-			}
-			$error = new WP_Error();
-	        $error->add( "error_fetching_user", __( "<strong>ERROR</strong>: user doesn't exist !!." ) );
-	        return $error;
-		}
-
-	    if ( isset( $_POST['fb_jwt'] ) && sanitize_text_field( wp_unslash( $_POST['fb_jwt'] ) ) != 'empty_string' ) {
-	    	$payload = $this->decode_jwt( sanitize_text_field( wp_unslash( $_POST['fb_jwt'] ) ) );
-
-	    	if ( isset( $_POST['fb_is_test'] ) && sanitize_text_field( wp_unslash( $_POST['fb_is_test'] ) ) == 'test_check_true' ) {
+			}else{
+				$idToken = $response['idToken'];
+				$payload = $this->decode_jwt( $idToken );
 				echo '<div style="font-family:Calibri;margin: auto;padding:5%;">';
-						echo '<h1 style="color:#00C851;text-align:center;">Test Successful !</h1>';
-						echo '<style>table{border-collapse:collapse;}th {background-color: #eee; text-align: center; padding: 8px; border-width:1px; border-style:solid; border-color:#212121;}tr:nth-child(odd) {background-color: #f2f2f2;} td{padding:8px;border-width:1px; border-style:solid; border-color:#212121;}</style>';
-						echo '<h3 style="text-align:center;">Test Configuration</h3><table style="margin: auto;"><tr><th>Attribute Name</th><th>Attribute Value</th></tr>';
-						$this->testattrmappingconfig( "", $payload );
-						echo '</table></div>';
-						echo '<div style="margin: auto;padding: 10px;></div><div style="margin: auto;position:absolute;padding:0 46%;"><input style="padding:8px;width:100px;background: #0091CD none repeat scroll 0% 0%;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"type="button" value="Done" onClick="self.close();"></div>';
-						exit();
+				echo '<h1 style="color:#00C851;text-align:center;">Test Successful !</h1>';
+				echo '<style>table{border-collapse:collapse;}th {background-color: #eee; text-align: center; padding: 8px; border-width:1px; border-style:solid; border-color:#212121;}tr:nth-child(odd) {background-color: #f2f2f2;} td{padding:8px;border-width:1px; border-style:solid; border-color:#212121;}</style>';
+				echo '<h3 style="text-align:center;">Test Configuration</h3><table style="margin: auto;"><tr><th>Attribute Name</th><th>Attribute Value</th></tr>';
+				$this->testattrmappingconfig( "", $payload );
+				echo '</table></div>';
+				echo '<div style="margin: auto;position:absolute;padding:0 40%;"><input style="margin: auto;position:absolute; padding:8px;width:12%;background: #0091CD none repeat scroll 0% 0%;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"type="button" value="Done" onClick="self.close();"></div>';
+				exit();
 			}
-	    	
-	    	$user = $this->getUser( $payload );
-	    	if ( $user ) {
-		    	$user_id = $user->ID;
-		    	wp_set_auth_cookie( $user_id, true );
-		    	wp_redirect( home_url() );
-				exit;
-			}
-	    	
-	    	//$user = get_user_by('email',$email);
-	    	
-	    }
+		}
     }
 	
 	function testattrmappingconfig( $nestedprefix, $payload ) {
@@ -191,6 +161,23 @@ class Mo_Firebase_Config {
 		}
 		return $flag;
 	}
+
+	function mo_fb_login_user($fb_idToken) {
+
+    	$payload = $this->decode_jwt( $fb_idToken );
+	    	
+    	$user = $this->getUser( $payload );
+    	if( is_wp_error($user) ){
+    		return $user;
+    	}
+    	else {
+	    	$user_id = $user->ID;
+	    	wp_set_auth_cookie( $user_id, true );	    	   
+	   		wp_redirect( home_url() );
+			exit;
+		}	    	
+	    
+    }
 	
 	function getUser( $jwt_payload )
 	{
@@ -227,6 +214,56 @@ class Mo_Firebase_Config {
 			}
 		}
 	}
+
+	public function mo_fb_post_api($url, $headers, $body){
+
+		$args = array(
+			'method' =>'POST',
+			'body' => $body,
+			'timeout' => '5',
+			'redirection' => '5',
+			'httpversion' => '1.0',
+			'blocking' => true,
+			'headers' => $headers,
+ 
+		);
+		
+		$response = wp_remote_post( $url, $args );
+
+		if ( is_wp_error( $response ) ) {
+			$error_message = $response->get_error_message();
+			echo "Something went wrong: $error_message";
+			exit();
+		}
+		
+		return wp_remote_retrieve_body($response);
+		return $response;
+	}
+
+	public function mo_firebase_authenticate_call($email, $password){
+		
+			$api_key = get_option('mo_firebase_auth_api_key');
+
+			$url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=".$api_key;
+
+			$params = array(
+				'email'		=> $email,
+				'password'	=> $password,
+				'returnSecureToken' => true
+			);
+
+			$body = json_encode($params);
+
+			$headers = array(
+				'Content-Type'		=> 'application/json',
+				'Content-Length'	=> strlen($body)		
+			);
+
+			$response = $this->mo_fb_post_api($url, $headers, $body);
+
+			return $response;
+	}
+
 }
 
 $mo_firebase_config_obj = new Mo_Firebase_Config();

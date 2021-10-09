@@ -231,7 +231,7 @@ if ( defined( 'WP_CLI' ) ) {
 							exit;
 
 						case 'l':
-							WP_CLI::run_command( array( 'site', 'list' ), array( 'fields' => 'blog_id,url' ) );
+							WP_CLI::runcommand( 'site list --fields=blog_id,url' );
 							break;
 
 						default:
@@ -398,12 +398,6 @@ if ( defined( 'WP_CLI' ) ) {
 				'cli_args'    => $assoc_args,
 				'secret_key'  => get_option( AI1WM_SECRET_KEY, false ),
 			);
-
-			if ( is_multisite() ) {
-				if ( ! isset( $params['options']['network'] ) ) {
-					$params['options']['network'] = 1;
-				}
-			}
 
 			WP_CLI::log( 'Restore in progress...' );
 

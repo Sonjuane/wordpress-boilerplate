@@ -16,6 +16,6 @@ $config['menu_items'] = array(
   array('href' => 'https://wp301redirects.com/?ref=wff-wp-reset&coupon=50off', 'label' => 'Get WP 301 Redirects PRO with 50% off', 'icon' => '301-logo.png', 'class' => 'wp301-icon'),
   array('href' => 'https://underconstructionpage.com/?ref=wff-wp-reset&coupon=welcome', 'target' => '_blank', 'label' => 'Create the perfect Under Construction Page', 'icon' => 'ucp.png', 'class' => 'ucp-icon'),
   array('href' => 'https://wpsticky.com/?ref=wff-wp-reset', 'target' => '_blank', 'label' => 'Make any element sticky with WP Sticky', 'icon' => 'dashicons-admin-post'),
-  array('href' => 'https://wordpress.org/support/plugin/wp-reset/reviews/?filter=5#new-post', 'target' => '_blank', 'label' => 'Rate the Plugin', 'icon' => 'dashicons-thumbs-up'),
+  array('href' => 'https://wordpress.org/support/plugin/wp-reset/reviews/#new-post', 'target' => '_blank', 'label' => 'Rate the Plugin', 'icon' => 'dashicons-thumbs-up'),
   array('href' => 'https://wordpress.org/support/plugin/wp-reset/#new-post', 'target' => '_blank', 'label' => 'Get Support', 'icon' => 'dashicons-sos'),
 );

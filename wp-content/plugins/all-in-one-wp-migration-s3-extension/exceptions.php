@@ -29,6 +29,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Ai1wmse_Error_Exception extends Exception {}
 class Ai1wmse_Connect_Exception extends Ai1wmse_Error_Exception {}
+class Ai1wmse_Rate_Limit_Exception extends Ai1wmse_Connect_Exception {}
+class Ai1wmse_Request_Timeout_Exception extends Ai1wmse_Connect_Exception {}
+class Ai1wmse_Internal_Server_Error_Exception extends Ai1wmse_Connect_Exception {}
 class Ai1wmse_Authorization_Header_Malformed_Exception extends Ai1wmse_Error_Exception {}
 class Ai1wmse_Invalid_Access_Key_Id_Exception extends Ai1wmse_Error_Exception {}
 class Ai1wmse_Invalid_Bucket_Name_Exception extends Ai1wmse_Error_Exception {}

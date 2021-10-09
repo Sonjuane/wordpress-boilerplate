@@ -1,25 +1,28 @@
 <?php
 
-
 namespace Cleantalk\Antispam\Integrations;
-
 
 class LandingPageBuilder extends IntegrationBase
 {
-
-    function getDataForChecking( $argument )
+    public function getDataForChecking($argument)
     {
-        if( isset( $_POST ) ) {
-            return ct_get_fields_any( $_POST );
+        if ( ! empty($_POST) ) {
+            /**
+             * Filter for POST
+             */
+            $input_array = apply_filters('apbct__filter_post', $_POST);
+
+            return ct_get_fields_any($input_array);
         }
+
         return null;
     }
 
-    function doBlock( $message )
+    public function doBlock($message)
     {
-        $return['Error'] = $message;
+        $return['Error']    = $message;
         $return['database'] = 'false';
-        echo json_encode( $return );
+        echo json_encode($return);
         exit;
     }
 }

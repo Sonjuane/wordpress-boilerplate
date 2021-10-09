@@ -2,16 +2,14 @@
 Contributors: safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
-Tested up to: 5.7
-Requires PHP: 5.4
-Stable tag: 5.157.2
+Tested up to: 5.8
+Requires PHP: 5.6
+Stable tag: 5.163
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
-
-**Supports: Contact Form 7, Contact Form by WPForms, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, Forminator, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, S2Member, MailPoet, wpDiscuz, ConvertKit, ActiveCampaign, Events Manager, Avada Theme Form Builder, any WordPress registrations & contact forms and themes. Just set up and forget the spam!**
 
 No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
@@ -36,6 +34,7 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 18. Disable comments.
 19. Spam FireWall: Anti-Flood
 20. Spam FireWall: Anti-Crawler
+21. Hide «Website» field for comments
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
@@ -57,16 +56,30 @@ CleanTalk is a free anti spam plugin which work with the premium Cloud AntiSpam 
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
 = Spam bots registrations filter =
-Filters spam bots on registration forms of WordPress, BuddyPress, bbPress, S2Member, WooCommerce, Profile builder, Login with AJAX and any other registration plugins.
 
 = Spam filter for contact forms =
-The plugin is tested and ready to protect from spam emails via Formidable forms, Contact form 7, JetPack Contact form, Fast Secure Contact form, Ninja forms, Landing Page Builder, Gravity forms, Contact Form by BestWebSoft, Simple Contact Form Plugin - PirateForms, Visual Form Builder, Contact Form by WebDorado, Contact Form Email, MW WP Form, Contact Form by Jeff Bulllins, Contact Us Form, WCP Contact Form, WPForms Lite, Custom Contact, Forms, Caldera Forms, Visual Form Builder, Contact Form Clean and Simple, Divi by Elegant Themes, The7 theme and any other themes or custom contact forms, amoForms, Ultimate Form Builder, Contact Bank - Contact Forms Builder, Forms easily built with Smart Forms, Usernoise contact form, Contact Form by Web-Settler, HubSpot Marketing Free, QuForm, Form Maker by 10Web, WP User Frontend, NEX-Forms.
+
+= Contact Form by WPForms spam filter =
+Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
+
+= Elementor Website Builder filter =
+Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
+
+= Gravity forms spam filter =
+Plugin extends spam protection for Gravity forms. It filters spam submisssions for any type of forms.
+
+= Formidable Form Builder spam filter =
+Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
+
+= Contact Form 7 spam filter =
+Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
+
+= Ninja forms contact form spam filter =
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
 
 = Newsletters antispam filter =
-Anti-spam by CleanTalk filters spam subscriptions for MailPoet, MailChimp, PopupAlly and many other newsletter plugins.
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
@@ -81,7 +94,6 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * Any submission to the site (checkbox 'Check all POST data')
 
 = Compatible with WordPress cache plugins =
-* W3 Total Cache, Quick Cache, WP Fastest Cache, Hyper Cache, WP Super cache, WP-Rocket and any other cache plugins.
 
 = Check existing comments for spam. Bulk spam comments removal. Spam comment Cleaner =
 With the help of anti-spam by CleanTalk you can inspect through existing comments to find and quickly delete spam comments at once. To use this function, go to WP Console -> Comments -> Find spam comments.
@@ -102,6 +114,10 @@ IP/email address list. This option helps to strengthen the spam protection from 
 = Private black list for Spam FireWall =
 It allows you to add individual IP addresses and subnets to Spam FireWall. It
 blocks the spam attacks from IP addresses which are not included in the SFW base yet. This option can help to block HTTP/HTTPS DDoS, SQL, brute force attacks and any others that made it through the HTTP/HTTPS. You can add not only the certain IP addresses, but also a separate subnet to your personal black list.
+
+= Hide «Website» field for comments =
+This option hides the «Website» field from standard WordPress comments forms. After that spammers won't be able to send spam links using «Website» field in the bottom of the comments form.
+This option is disabled by default and can be enabled in plugin Settings in your WordPress dashboard.
 
 = Low false/positive rate =
 This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible. Multiple anti-spam tests help to avoid false/positive blocks of the real website visitors even if one of the tests failed.
@@ -162,9 +178,6 @@ Spam FireWall can mitigate HTTP/HTTPS DDoS attacks. When an intruder makes GET r
 
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
-
-= XML-RPC brute force protection =
-Spam FireWall can mitigate XML-RPC brute force attacks. It blocks XML-RPC attacks from bad IP addresses. This helps to prevent bruteforce attacks by a Remote Procedure Call.
 
 = No spam comments, no spam registrations, no spam contact emails, no spam trackbacks. CAPTCHA-free anti-spam for WordPress =
 Spam is one of the most irritating things. Spam rates are increasing every year and conventional anti-spam can no longer handle all spam bots. CleanTalk prevents and automatically blocks spam. You'll be surprised how effective CleanTalk is in protecting from spam.
@@ -575,10 +588,379 @@ If your website has forms that send data to external sources, you can enable opt
 6. The Dashboard with a map of most spam active countries per your account.
 7. The plugin deletes/removes the existing spam comments and users accounts.
 8. CleanTalk's dashboard update link.
-9. Auto upadte confimation.
+9. Auto update confirmation.
 10. Website's options.
+11. CleanTalk's dashboard.
+12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.163 Oct 07 2021 =
+ * New: State. errorExists method implemented.
+ * New: SFW. Disabling SFW when the database was outdated.
+ * New: Settings templates. Saving template to the several blogs implemented.
+ * New: Settings. WPMS settings always show now.
+ * New: WPMS. No show any sub-sites errors on wpms mode 2.
+ * New: WPMS. Plugin settings are disabled on sub-sites on wpms mode 2.
+ * Mod: Remote Calls using POST instead of GET request type.
+ * Mod: Helper. No cache GET parameter renamed.
+ * Mod: Cron. Transactions implemented #2.
+ * Mod: Settings. "URL Exclusions" description updated.
+ * Upd: Getting JS. AJAX handler type selecting updated.
+ * Fix: Added lost info about total comments in CommentChecker::ctAjaxInfo
+ * Fix: add subscriber to skip list.
+ * Fix: Changed the plugin name in the list of plugins when enabling White Label
+ * Fix: Changed the plugin name in the admin bar when enabling White Label
+ * Fix: Feedback. Comments feedback description fixed.
+ * Fix: Hide information about Security in admin bar if it is not main site.
+ * Fix: SFW. Error toggle used instead of error add/delete.
+ * Fix: Alt cookies. Selecting type of alt cookies bug fixed.
+ * Fix: protect logged users in gravity.
+ * Fix: Updated the condition for showing a link to the security installation in the admin bar.
+ * Fix: reverse condition for WL security link.
+ * Fix: WPMS. Addition WL info link fixed.
+ * Changed plugin name in plugin settings multisite__white_label__plugin_name.
+ * Fix: rename plugin name after search plugins if WL is on.
+ * Fix: Renamed Antispam by Cleantalk to Anti-spam by Cleantalk
+ * Fix: add elementor-pro to skip save action.
+ * Fix: WPMS. Sanitize api key during getting key fixed.
+ * Fix: Cron. Cron results errors handling fixed.
+ * Fix: WPMS. Migrate old WPMS to the new wpms mode.
+ * Fix: WPMS. Using main site data on wpms_mode=2.
+ * Fix: Helper. Hard use https for the curl requests.
+ * Fix: WPMS. Sanitize network settings fixed.
+ * Fix: WPMS. Applying settings for selected blogs fixed.
+ * Fix: Getting key. Sync after getting key fixed.
+
+= 5.162 Sep 23 2021 =
+ * New. SFW. Fall back updating system implemented.
+ * New: Integration. Added honeypot wc.
+ * New: SFW. Added new status PASS_SFW__BY_STATUS for showing die_page.
+ * Upd: Cookies. Alternative cookies types was updated.
+ * Upd: Ajax. Finding the right WP directory implemented.
+ * Fix: Updater fixed.
+ * Fix: Firewall update. Not existing FW table.
+ * Fix: State. DB prefix fixed.
+ * Fix: WPForms. Excluding from the custom contact forms check.
+ * Fix. State. DB prefix definition fixed.
+ * Fix: SpamFirewall update. Increasing delay in queue transactions, adding time of the queue task start
+ * Fix: State. Show notices fixed.
+ * Fix: State. Some logic moved from a loop.
+ * Fix: Adding a error if Common/Helper::http_request() couldn't get HTTP code via get_headers().
+ * Fix: SFW. Do not AC checking, if cookies were disabled.
+ * Fix: http_request() with preset 'get_code' using GET HTTP method instead of HEAD now.
+ * Fix: SFW. Direct update DB errors handled.
+ * Fix: SFW. Direct update creating temp table errors handled.
+ * Fix: SpamFirewall update. SFW_IS_DISABLED is not a error. apbct_sfw_update__init() returns false in this case.
+ * Fix: Extended header. Cache-Control: max-age=0 in the /Common/Helper::httpRequest()
+ * Fix: Updater. Fixed data__use_static_js_key settings name.
+ * Fix: Updater. start ct_account_status_check() if main site in 5.127+ versions
+ * Fix: Adding error handling to DB::execute() in ApbctWP\SFW.
+ * Fix: Cron. Cron last start flag improved.
+ * Fix: Cron. Cron execution cooldown decreased to 2 min.
+ * Fix: Adding more info in 'Unknown' type error.
+ * Fix: Exclude Forminator double requests on multipage form.
+ * Fix: Settings. Alt cookies types validating fixed.
+ * Fix: Ajax. WP core dir parsing fixed.
+ * Fix: Settings. Ajax handler title fixed.
+
+= 5.161.1 Sep 14 2021 =
+ * Fix. State. Checking empty errors fixed.
+
+= 5.161 Sep 09 2021 =
+ * Fix: Cleantalk.php. dns_get_record() error handling.
+ * Fix: Search form integration. PHP Notice.
+ * Fix: Default value for "Alternative Cookie Type" setting.
+ * Fix: SpamFirewall. Updating percent output.
+ * Fix: SpamFirewall. Omit SFW_IS_DISABLED error.
+ * Mod: Admin-bar.
+ * Fix: SpamFirewall update.
+ * Fix: apbct_log(). Log time.
+ * Mod: Debug RC. Servers_connection item added.
+ * Mod: apbct_test_connection() moved to cleantalk.php.
+ * Fix: skip elementor save template.
+ * Fix: skip formidable base check.
+ * Fix: remove limit for request in delete all spam users.
+ * Mod: apbct_test_connection() improvements.
+ * Fix: Helper::http__request() timeout is 15 seconds.
+ * New: Helper::http__request() low speed time is 10 seconds.
+ * Fix: decbin int type in helper.
+ * Fix: add apbct_get_rest_url func.
+ * Fix: Error report form Cleantalk.php.
+ * Fix: skip sfw check if sfw not updated.
+ * Fix. Integration. Enfold theme saving options skip protection.
+ * Fix. Integration. Cartflows saving cart skip protection.
+ * Fix: getOption return variable.
+ * Fix: skip sfw if last_update_time is zero.
+ * Fix: skip last_update_time sfw check.
+ * Fix: add priority to comment_form_default_fields hook.
+ * New. Helper. IP detecting improved.
+ * Fix. Helper. Multi-curl timeout added.
+ * Upd. SFW. SFW block page updated.
+ * Upd. SFW. AC block page updated.
+ * Upd. Settings. SFW features settings moved to the separated block.
+ * Fix. SFW. Random get parameter for redirecting block page updated.
+ * Fix. Settings. SFW features settings description fixed.
+ * New: Queue. Transaction system.
+ * Fix: skip siteorigin pagebuilder save widget.
+ * New: Readme. Hide «Website» field for comments added.
+ * Fix. Helper. Async curl timeout increased.
+ * Fix. Integration. Blogvault requests skipped.
+ * Fix: skip classfields check_email action.
+ * Mod: Show real HTTP code in a error during downloading GZ file.
+ * Mod: Debug call extended.
+ * Mod: Admin notices. Added the ability to hide a banner with notifications for each individual administrator for two weeks.
+ * Fix. Settings. Long description output fixed.
+ * Fix. Settings. JS debug data removed.
+ * Fix. SFW. Deleting fw files folder.
+ * Fix: api error handle.
+ * Fix: SFW. Added update mode if sfw-updater works with tables.
+ * New. WPMS. New multisite logic implemented.
+ * Fix: Setting. Select field type fixed.
+ * Fix: Сhanged the function delete_all_options() of removing plugin options when fully uninstalled.
+ * Fix. WPMS. Hoster API key description fixed.
+ * Fix: Admin notices. get_option expression is checking more strictly.
+ * New: Helper. Added method for validate date format as 'Y-m-d'.
+ * Fix: SFW. Default FW folder fixed.
+ * Fix: SFW. FW folder on the first sync fixed.
+ * Fix: SFW. Remove wrong FW folders.
+ * Fix: SFW. Refactoring apbct_sfw_update__end_of_update().
+ * Mod: apbct_test_connection().
+ * Fix: /ApbctWP/API::send_request() with empty result.
+
+= 5.160.3 Aug 31 2021 =
+ * New: Queue. Transaction system.
+ * Fix. SFW. Updating for the new clients fixed.
+ * Fix. SFW. Deleting UA file fixed.
+ * Fix. SFW. Updating via cron fixed.
+ * Fix. SFW. Updating process for multisite fixed.
+
+= 5.160.2 Aug 26 2021 =
+ * Fix. Pixel. Auto mode fixed.
+
+= 5.160.1 Aug 6 2021 =
+ * Fix: SpamFirewall update.
+
+= 5.160 Jul 29 2021 =
+ * New: SFW. SFW alternative cookie implemented.
+ * New: SFW. AC alternative cookie implemented.
+ * New: SFW. AF alternative cookie implemented.
+ * New: Helper. Curl multi wrapper added.
+ * New: Queue class implemented.
+ * Mod: Changed the processing of the honeypot_field for standard comment.
+ * Mod: Added integration for Wishlist Members registration form.
+ * Mod: Store visited URLs amount reduces to 5 with 128 symbols by URL.
+ * Upd: Public js scripts separated.
+ * Upd: SFW. Updating process modified.
+ * Fix: Moderate rotating fixed.
+ * Fix: SFW. Process file errors handling fixed.
+ * Fix: Pluggable. Expression fixed.
+ * Fix: Ajax. User detection fixed..
+ * Fix: Ajax. Ajax handlers fixed.
+ * Fix: IP-detection for Cloudflare CDN.
+ * Fix: Skip test for ajax alt_session request.
+ * Fix: Set cookies on dashboard pages even if the setting is off.
+ * Fix: Ajax. Ajax class fixed.
+ * Fix: Users scanner. Remove redundant menu.
+ * Fix: Added an exception for the action edd_process_checkout Easy Didgital Downloads plugi
+ * Fix: SFW. Changed method for getting addr ip.
+ * Fix: Integration. WPForms names gathering fixed.
+ * Fix: SFW. Min update interval decreased to 14400 seconds.
+ * Fix: Integration. WPForms names gathering fixed.
+ * Fix: Cleantalk.php. dns_get_record() error handling.
+ * Fix: Search form integration. PHP Notice.
+ * Fix: Default value for "Alternative Cookie Type" setting.
+ * Fix: SpamFirewall. Omit SFW_IS_DISABLED error.
+ * Fix: SpamFirewall. Updating percent output.
+ * Fix. Settings templates. Sync after template loading.
+ * Fix. SFW. Updating process percents fixed.
+ * Fix. Antispam. All headers parameter fixed.
+
+= 5.159.9 Jul 15 2021 =
+ * Fix. SFW. Updating cooldown increased up to 15 min.
+ * Fix. Cron. Next call time set by task updating fixed.
+ * Fix. SFW. Reset blacklist array before processing.
+ * Fix. SFW. Some errors handling fixed.
+ * Fix. SFW. Getting update period from dns fixed.
+ * Fix. Ajax. Checking nonce for logged in users fixed.
+
+= 5.159.8 Jul 07 2021 =
+ * Fix: Fixed the connection error Ajax.php when the site files are in a subfolder.
+ * Fix. SFW. Anticrawler redirect detection fixed.
+ * Fix. Checking sql before the tables creating.
+ * Fix. Updater fixed.
+ * Fix: Set alt cookies if sg optimizer is enabled.
+ * Fix: Exclusion for GiveWP plugin in apbct-public.js. #2
+
+= 5.159.7 Jul 01 2021 =
+ * Fix. Updater fixed.
+
+= 5.159.6 Jun 30 2021 =
+ * New. Rest API request detecting implemented.
+ * Upd. SFW. AntiCrawler was disabled for the new installations.
+ * Upd. SFW. AntiCrawler option moved to the advanced settings section.
+ * Mod: email is taken only from visible fields
+ * Mod: remove error message about firewall updating
+ * Mod: excluded for test WC_Gateway_Tpay_Basic
+ * Fix: Added exclude for happyforms.php in apbct_is_skip_request.
+ * Fix: Added an error message in the form response
+ * Fix: Skip wpforms general requests because of direct integration.
+ * Fix. Integration. Autonami Marketing Automations service request kipped.
+ * Fix. Cron. Update task method fixed.
+ * Fix. SFW. Prevent updating while SFW is disabled.
+ * Fix. Cron. Restoring cron tasks during plugin updating.
+ * Fix. SFW. Logs sending used limit.
+ * Fix: set correct api_key value for ajax calls.
+ * Fix. Frontend widget. The widget layout fixed.
+ * Fix. Integration. Formidable preparing data for checking.
+
+= 5.159.5 Jun 24 2021 =
+ * New: Admin bar. Attention mark added.
+ * Upd: Admin notices have been rebuilt.
+ * Upd: Integrations with HappyForms updated.
+ * Fix: Skip fluentform multistep request.
+ * Fix: Correct fluent_form skip name.
+ * Fix: Admin notices. Trial and renew notices ID attributes renamed.
+ * Fix: Admin bar. Trial notice font color changed.
+ * Fix: Admin bar. Show admin bar without api key.
+ * Fix: Admin bar. Show attention badge if the api key is empty.
+ * Fix: AC. Skip checking on 302 redirects.
+ * Fix: Added IF NOT EXISTS after ADD COLUMN in cleantalk-updater.php
+ * Fix: Removed ADD PRIMARY KEY from apbct_update_to_5_146_4
+ * Fix: Removed apbct_update_to_5_146_4
+ * Fix: Checking output parameters of API-method get_2s_blacklists_db.
+ * Fix: SFW. Writing exclusions fixed.
+ * Fix: Integration. GF names detection fixed.
+ * Fix: Integration. WPForms nicknames detecting fixed.
+ * Fix. SFW. Updating fixed.
+ * Fix: Excluding REST API requests from check.
+ * Fix. Admin notices. Incompatibility notice fixed.
+ * Fix. Compatibility. Notice saving fixed.
+ * Fix. Compatibility. Prevent disabling SFW on incompatibility detected.
+ * Fix. Compatibility. SFW option is no longer disabled on incompatibility detected.
+ * Fix. Admin bar. Reset counters fixed.
+
+= 5.159.4 Jun 17 2021 =
+ * Fix: Admin bar. PHP error.
+
+= 5.159.3 Jun 15 2021 =
+ * Fix: Admin bar. Conflict with previous version of Security by Cleantalk.
+
+= 5.159.2 Jun 15 2021 =
+ * Fix. Renew notice banner shows only on cleantalk pages.
+ * Fix. SFW updating. Getting remote data error handling fixed.
+ * Upd. Readme updated.
+ * Fix. SFW. Auto-updating fixed.
+ * Fix: Admin bar style. Install link is no longer highlighted.
+ * Fix: Admin bar style. Style for security icon.
+ * Fix: Admin bar. Reset buttons counters leads to the same page.
+ * Fix. Manual register link fixed.
+ * Fix: do not display errors on subsites when wl is enabled.
+ * Fix: Admin bar. Rapid fix.
+ * Fix. Skipping. WPForms check restricted email request skipped.
+ * Fix. Helper. CURL request timeout increased.
+ * Fix. Comments/users checker. Description fixed.
+ * Fix. Get fields any. Preset nickname parameter fixed.
+ * Fix: wpms settings.
+
+= 5.159.1 Jun 10 2021 =
+ * Fix: Cron. Cron calling in cleantalk-updater.php fixed.
+
+= 5.159 Jun 10 2021 =
+ * New. Admin Bar. Common admin bar implemented.
+ * New: email check before post.
+ * New: New admin bar style.
+ * New. SFW. Updating integrity control implemented.
+ * New. Custom Ajax. Email checking before post.
+ * New. Custom Ajax. Getting JS key.
+ * New. Custom Ajax. Alternative cookies.
+ * Upd. Integrations. Support multiple non-ajax hooks.
+ * Upd. Cron. Cron class and cron usage updated.
+ * Upd. Pixel. Pixel setting is "auto" for the new installations.
+ * Upd. Users checker. Users with completed WC orders no checked.
+ * Upd. WPMS settings.
+ * Mod. limiting the size of an array top5_spam_ip to five elements in widget.
+ * Mod. update data__pixel title.
+ * Mod. Update data__use_static_js_key title.
+ * Mod. add 'relative' parameter in admin_url() for getting ajaxurl.
+ * Mod. update field name honeypot_field, reverse logic
+ * Mod. changed website field from comments form: type text, display none.
+ * Fix. resolve conflict with wiloke theme and unknown plugin, that removes standard authorization cookies.
+ * Fix. moved the wiloke_theme options_ajax_save_skip check to apbct_is_skip_request function.
+ * Fix. added a theme check along with a hook wiloke_themeoptions_ajax_save_skip.
+ * Fix. Integration. Essentials addons for elementor integration fixed.
+ * Fix. AC/AF. Clearing AC table via cron fixed.
+ * Fix. SFW. Obtaining the count of the networks was fixed.
+ * Fix. Cron. Last cron start fixed.
+ * Fix. cookies for login page.
+ * Fix. Firewall. Update. Filtering bad data.
+ * Fix. Custom Ajax. Localized login scripts.
+ * Fix. API. Cleantalk\ApbctWP\API fixed to work on SHORTINIT mode.
+ * Fix. Custom Ajax. Getting JS key - removed WP ajax hooks.
+ * Fix. GetFieldsAny. Bypassing collecting email and names logic fixed.
+ * Fix. New admin bar style. Sorting plugins by Alphabet.
+ * Fix. ct_get_admin_email return network email if set.
+ * Fix. Fixed the name of the key containing the file address to check the number of records.
+ * Fix. Comments checker. Non-checkable users tab removed.
+ * Fix. Visible fields. Formidable visible fields collecting fixed.
+ * Fix. Get fields any fixed.
+ * Fix. empty key error for hosting.
+ * Fix. WPMS. Api key saving fixed.
+ * Fix. WPMS. Network settings saving fixed.
+ * Fix. WPMS. Plugin name setting field is not required now.
+ * Fix. Alt sessions js fixed.
+
+= 5.158 May 27 2021 =
+ * Fix: Firewall. SQL-request error.
+
+= 5.158 May 26 2021 =
+ * New. Integration. WP Foro register system integration.
+ * New. Integration. Elementor essentials LoginRegister integration implemented.
+ * New: SQL-schema and updater for extended SpamFirewall logs.
+ * New: Extended SpamFirewall logs.
+ * New: Pixel.
+ * Mod: Few improvements to SFW update.
+ * Mod: add settings for hidding website field from comment form.
+ * Mod: Few improvements to SFW update #2.
+ * Mod: Possibility to send empty JSON object in API.
+ * Mod: Extended SpamFirewall logs for AntiCrawler module.
+ * Upd: SFW. Direct updating method implemented.
+ * Upd. Settings. Network settings templates updated.
+ * Upd: Firewall. Improvements to update system.
+ * Upd: Firewall. Improvements to update system.
+ * Fix: replace wp_die to die in ct_die(), refactoring ct_die()
+ * Fix. Forms. Exclude field wp-editor-area from collecting visible fields.
+ * Fix. Widget. Widget content logic fixed.
+ * Fix: Forms. Nicknames detecting fixed #2.
+ * Fix: Forms. Getting check_js key fixed.
+ * Fix: update ct_die_extended() as ct_die().
+ * Fix. Code. Getting delay before js code get if async option enabled.
+ * Fix. WPMU. Blog id added in settings templates list.
+ * Fix. Integration. Elementor essentials LoginRegister login form protection skipped.
+ * Fix. WPMU. Blog id added in settings templates list.
+ * Fix. Readme. Required PHP version increased to 5.6.
+ * Fix. Updater. 5_157_10 updating fixed #2.
+ * Fix. JS. DOMContentLoaded used instead jQuery(document).ready().
+ * Fix: SpamFirewall. Update. "FW UPDATE INIT: KEY_EMPTY", "SFW UPDATE INIT: KEY_IS_NOT_VALID" errors.
+ * Fix. Users checker. Export to the csv fixed.
+ * Fix: SpamFirewall. Update. Error "WRONG_UPDATE_ID".
+ * Fix: SpamFirewall. Update. "FW UPDATE INIT: KEY_EMPTY", "SFW UPDATE INIT: KEY_IS_NOT_VALID" errors.
+ * Fix: SpamFirewall. Update. Error "WRONG_UPDATE_ID".
+ * Fix: \Cleantalk\Common\Helper::http__request() consider only boolean false (empty string '' considering as good) as bad response.
+ * Fix: SpamFirewall. Update.
+ * Fix: SpamFirewall. Update #2.
+ * Fix: WPMS empty apikey in options
+ * Fix: "Mod: add settings for hidding website field from comment form".
+ * Fix: Common/Helper::http__get_headers() fixed.
+ * Fix: SpamFirewall admin bar counter.
+ * Fix: "Fix: Common/Helper::http__get_headers() fixed."
+ * Fix: Pixel.
+ * Fix: "Pixel" setting description.
+ * Fix: Extended SpamFirewall logs for AntiCrawler module.
+ * Fix: Extended SpamFirewall logs for AntiCrawler module #2.
+ * Fix: WPFroms. PHP notice.
+ * Fix: Gravity Forms. PHP notice.
+ * Revert: Fix: Code. get_fields_any() notice fixed.
 
 = 5.157.2 May 05 2021 =
  * Fix: Code. get_fields_any() notice fixed.
@@ -825,7 +1207,7 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: Exception for Xoo login form.
  * Fix: Users deleting feedback fixed.
 
-= 5.152.5 Feb 04 2020 =
+= 5.152.5 Feb 04 2021 =
  * Fix: SFW. Auto-updating interval decreased to 5 mins.
  * Fix: Divi. Skip saving epanel.
  * New: Find users/comments table. Add footer description.
@@ -833,21 +1215,21 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW. AC checking by UA enabled by default.
  * Fix: SFW. AF disabled by default for the new installations.
 
-= 5.152.4 Feb 01 2020 =
+= 5.152.4 Feb 01 2021 =
  * Fix: Cron tasks compare fixed.
 
-= 5.152.3 Jan 31 2020 =
+= 5.152.3 Jan 31 2021 =
  * Fix: Error: SFW_DISABLED.
  * Fix: Moderate connection timeout increased to 6sec.
  * Fix: SFW uses the right API class.
 
-= 5.152.2 Jan 30 2020 =
+= 5.152.2 Jan 30 2021 =
  * Fix: API-requests.
 
-= 5.152.1 Jan 29 2020 =
+= 5.152.1 Jan 29 2021 =
  * Fix: Errors in IP detection.
 
-= 5.152 Jan 29 2020 =
+= 5.152 Jan 29 2021 =
  * Fix: Using server protocol for AC checking.
  * Fix: Prevent caching db queries for SFW.
  * Fix: mgm registration temp fix.
@@ -876,11 +1258,11 @@ If your website has forms that send data to external sources, you can enable opt
  * Mod: Cron. Do not runs when it already runs.
  * Mod: Cron class updated.
 
-= 5.151.4 Jan 18 2020 =
+= 5.151.4 Jan 18 2021 =
  * Fix: Users checking performance fix.
  * Fix: AC disabled if SFW contains less than 50 entries.
 
-= 5.151.3 Jan 15 2020 =
+= 5.151.3 Jan 15 2021 =
  * Fix: Prevent logging false blocking for whitelisted networks.
  * Integration: Rafflepress integration implemented.
  * Fix: AF limit increased to 20 by default.
@@ -895,391 +1277,5 @@ If your website has forms that send data to external sources, you can enable opt
  * Fix: SFW updating id getting fixed.
  * Fix: SFW networks counter fixed.
  * Fix: Deleting options fixed.
-
-= 5.151.2 Dec 30 2020 =
- * Fix: Prevent skip checking UltimateMember register.
- * Upd: SFW die pages updated - networks count added.
- * Fix: AF auto cleaning table fixed.
- * Fix: Removing spam flag on gravity forms checking.
- * Fix: Remote call's request checking moved to separated func.
- * Fix: Prevent CRON action from remote call request.
-
-= 5.151.1 Dec 22 2020 =
- * Upd: Firewall now has it's own options, independent from the other.
- * Upd: New API server added.
- * Fix: Wrong count of blocked entries fixed
- * Fix: Skip logging for non-blocked requests.
- * Fix: SFW sending logs fixed.
- * Fix: SFW skip Customizer preview requests.
- * Fix: FW do logging an one passed request.
- * Fix: Logging exclusion moved to firewall class.
- * Fix: FW stats option fixed.
- * Upd: New API server added.
- * Fix: SFW logging logic fixed.
- * Fix: SFW sent logs structure fixed.
-
-= 5.151 Dec 17 2020 =
- * Mod: Cleantalk Alternative Sessions. Store time reduces to 1 day.
- * Fix: Unusable alternative cookies table clearing.
- * Fix: AC UA case insensitive checking fixed.
- * Fix: AC UA enabled by default.
- * Fix: AC UA spelling fixed.
- * Fix: skip ajax mailpoet import users.
- * Fix: Helper::get_mime_type().
- * Fix: Users - spam/not spam icons removed.
- * Fix: Users/Comments - additional button removed.
- * Integration: WP Members integration implemented.
- * Fix: Prevent mod_security protection blocking.
- * Fix: WLM sub site key getting fixed.
- * New: SFW updating through a temporary table.
- * New: UA logging for all FW modules.
- * Fix: Replace clearing table from SFW updating process.
- * Fix: SFW - Unused method removed.
- * Fix: IP detection.
- * Fix: Helper - Clean input of null bytes.
- * Fix: SFW updating - https protocol returned.
- * Fix: SFW updating - truncating temporary table.
- * Fix: SFW updating process percents added.
-
-= 5.150.1 Dec 8 2020 =
- * Fix: Jetpack logic fixed.
- * Fix: AC UA table structure fixed.
-
-= 5.150 Dec 3 2020 =
- * Fix: Prevent skip checking woocommerce registration during checkout.
- * Fix: skip gravity multipage checking.
- * New: AC UA checking implemented.
- * Fix: skip buffer replace for rss feeds.
- * Fix: Easy Registration Forms login form skip.
- * Fix: Quotas in hidden fields.
- * Fix: skip tinkoff payment form fields collection.
- * New: Helper prepare_param added.
- * Fix: erforms internal request skip.
- * Integration: Landing Page Builder integration implemented.
- * Upd: Easy Registration Form block message implemented.
- * Integration: Profile Builder.
- * Fix: Skip connector mysql request.
- * New: AC UA - new option implemented.
-
-= 5.149 Nov 19 2020 =
- * Fix: External forms protection fixed.
- * Fix: check for array in spam_stat collect.
- * Fix: Spam Firewall. Operating with IPs on 32 bit systems.
- * Fix: Skip WFU ask_server request.
- * Fix: AC user agents support fixed.
- * New: Hook 'apbct_pre_block_page' added.
- * Fix: Woocommerce ajax internal.
- * Fix: skip redirect ajax login.
- * Fix: SFW updating return statement added.
- * Fix: Skip reset pass checking.
- * Fix: replace current_action() to current_filter().
- * Upd: AMP support description updated.
- * Fix: SQL injection fixed.
-
-= 5.148 Oct 28 2020 =
- * Fix: Visible fields collecting on external forms fixed.
- * Fix: Skip pre-filled form data for specific form.
- * Fix: Security key usage.
- * Upd: External forms protection updated.
- * Upd: External forms protection updated - Convertbox support.
- * Fix: SimpleFiles skip checking job edit.
- * New: JS event apbctAjaxBockAlert added.
- * Fix: Account banner check description.
- * Fix: AC logs table clearing time fixed.
-
-= 5.147.1 Oct 08 2020 =
- * Fix: Visible fields JS error fixed.
-
-= 5.147 Oct 08 2020 =
- * Fix: WPForms. Auto submitting.
- * Fix: Synchronization timeout increased to 25 seconds.
- * Fix: Cookiebot compatibility.
- * Fix: Visible fields logic fixed.
- * New: Duplicated requests prevention.
- * Fix: SpamFireWall auto incremental uses primary key.
- * Fix: Skip woocommerce internal request.
- * Upd: Url exclusions option updated.
- * Fix: Checking comments/users - redirecting after deleting all items fixed.
- * New: Comments scanner - marking as spam action implemented.
- * Fix: SFW table fixed.
- * Upd: Comments scanner - moving to trash instead deleting.
- * Upd: Visible fields collecting functionality updated.
-
-= 5.146.1 Sep 23 2020 =
- * Fix: URL exclusions setting.
- * Fix: Login scripts output fixed.
- * Fix: Updater function name fixed.
- * New: Debug mode for Anti-Crawler.
- * Fix: Pass AC check if 301 HTTP response code received.
- * Fix: Antibot cookie value fixed.
-
-= 5.146 Sep 17 2020 =
- * Fix: Deprecated function wp_blacklist_check() fixed.
- * Fix: Roles exclusion fixed.
- * Mod: Namespace import in \Cleantalk\ApbctWP\Firewall\SFW.
- * Fix: Comments checking fixed.
- * Fix: Spam scan tabs layout fixed.
- * New: Countdown timer implemented for the AntiCrawler page.
- * Mod: User-agent signature added to the AC checking.
- * Mod: Find-spam classes for comments and users refactored
- * Upd: Spam scan - scanning users/comments updated.
- * Fix: Double requests for Ninja Forms.
- * New: 'wpms' flag in sender_info.
- * Fix: Visible params gathering.
- * Fix: WooCommerce AJAX order call 2.
- * Fix: Block page grammar fixed.
- * Fix: Users/comments list - unnecessary button removed.
- * Upd: Skiping AC blocking after 3 sec for real users.
- * New: Countdown timer for AF block page implemented.
- * New: Countdown timer for SFW block page implemented.
-
-= 5.145.2 Sep 03 2020 =
- * Fix: WooCommerce AJAX order call.
- * Fix: AJAX error while getting JS key.
- * Fix: Using the version parameter when attaching cleantalk-public.js on wp-login page.
- * Fix: Showing support link in console when AJAX error occurs.
- * Fix: apbct_public_sendAJAX. Silent mode doesn't write errors to console.
-
-= 5.145.1 Aug 31 2020 =
- * New: Silent mode for AJAX requests.
- * Fix: No nonce check for AJAX JS check.
- * Fix: AJAX JS check using "DOMContentLoaded" event instead of "load".
- * New: Extended error text for failed AJAX requests.
- * Fix: Exclusion for the Frontend Reset Password plugin.
- * Fix: Accept 501 response code for SFW datafiles.
- * Fix: SFW update. The internal array pointer handling.
- * Fix: Exception for the WooCommerce edit profile form.
- * Fix: SFW updating via plugin activation fixed.
-
-= 5.145 Aug 27 2020 =
- * Fix: Blocking pages names fixed.
- * Fix: Logs id modified to prevent the overwriting.
- * Fix: FireWall checking flow fixed.
- * Mod: New SpamFirewall, Anti-Crawler, Anti-Flood modules priority.
- * Upd: Block message updated.
- * Fix: "The sender has been blacklisted" message removed.
- * Fix: "The sender has been whitelisted" message removed.
- * Fix: Integration DW Question & Answer plugin.
- * Fix: Dashboard widget layout fixed.
- * Fix: AC & AD skipping checking by roles.
- * Integration: Estimation Form integration implemented.
- * Fix: External contact forms check.
- * Fix: URL, IP and Role exclusions for all requests.
- * Fix: Exception for WooCommerce adding to cart.
- * Fix: Exception for PPOM for WooCommerce plugin.
-
-= 5.144 Aug 13 2020 =
- * Fix: WPMS setting updating fixed.
- * Fix: Text domain added for some options name.
- * Fix: AntiCrowler die page fixed.
- * Fix: Pause button for comments check fixed.
- * Fix: Delete Anti-Flood table when subsite is deleted.
- * New: Clear Anti-Flood table each 10 minutes.
- * Fix: FW checking for whitelisted skipped.
- * Fix: WP 5.5 JS errors fixed.
- * New: Debug message for auto updating error.
- * Fix: Array declaration fixed.
- * Fix: Skip anti-flood checking for authorized users.
- * Fix: Is whitelisted checking fixed.
-
-= 5.143.1 Aug 06 2020 =
- * Fix: Recursion fixed.
- * Fix: Rebuild url for SFW updating process.
-
-= 5.143 Aug 05 2020 =
- * New: Synchronize button. New way of synchronize with the Cleantalk Cloud.
- * Fix: SpamFireWall (firewall against spam) update, storing system.
- * Fix: Skip Woocomerce metorik send cart.
- * Spam protection improved.
- * Minor fixes.
-
-= 5.142.2 Jul 29 2020 =
- * Fix: Issue with SpamFireWall logs.
-
-= 5.142.1 Jul 28 2020 =
- * Fix: Blocking good bots.
-
-= 5.142 Jul 27 2020 =
- * New: Bot Protection module for Firewall.
- * New: Anti-Crawler module for Firewall.
- * Mod: Improved spam Protection.
- * Fix: Caching plugins auto detection.
- * Fix: Skip Divi system fields.
- * Fix: Ultimate Form Builder exception.
- * Plenty of fixes and upgrades.
-
-= 5.141.3 Jul 17 2020 =
- * Fix: 403 error issues with cache plugins.
- * Fix: remove apbct-common.js.
- * Fix: exclude caspio form.
- * Fix: Recompile nocache map.
- * Fix: indexof is not a function.
- * Fix: SFW updating fix for hosting.
- * Upd: Temporary remove spinner for SFW check.
-
-= 5.141.2 Jul 08 2020 =
- * Fix: SFW issues.
- * Upd: Temporary remove spinner for SFW check.
-
-= 5.141.1 Jul 06 2020 =
- * Fix: Add timeout for first SFW activation.
-
-= 5.141 Jul 06 2020 =
- * Fix: WP Fusion web hooks skipped.
- * Upd: Readme old changelogs replaced.
- * Fix: SFW typo fixed.
- * Upd: Set update banner timer to 15 minutes.
- * Fix: sfw updating after disabling.
- * Fix: sendAjax 403 issues.
- * New: Add wpmu settings template.
- * Fix: SameSite attribute removed for php version <7.3.
- * Fix: Nocache parameter added.
- * Upd: Add description support for convertkit/active campaign.
- * Integration: Enfold Theme contact form.
- * Upd: Add update/add hooks for settings to avoid sfw update issues.
-
-= 5.140.1 Jun 25 2020 =
- * Upd: .POT updated.
- * Upd: RU .po updated.
-
-= 5.140 Jun 18 2020 =
-  * New: Add SFW status in plugin settings.
-  * Fix: Remove sleep for sfw update.
-  * Fix: Check account status only once in 86400 seconds.
-  * Fix: Postmark avocet theme.
-  * Fix: Find spam users - from-till implemented.
-  * Upd: Add common.js.
-  * Fix: Bookly admin action excluded.
-  * Fix: sfw_pass_key cookie domain attribute removed.
-  * Fix: SFW no cache meta tags added.
-  * Fix: MEC Pro plugin compatibility fixed.
-  * Mod: Catching SpamFireWall update errors.
-  * Fix: UltimateBuilder skip fields.
-  * Fix: Strip tags on comment.
-
-= 5.139 Jun 02 2020 =
-  * Fix: Profile link fixed.
-  * Fix: WPMS plugin name fixed.
-  * Fix: WPMS plugin settings link fixed.
-  * Fix: Integration with Easy Forms for Mailchimp.
-  * Fix: JS check on the registration form.
-  * Fix: Double JS attaching on the login page.
-  * Fix: Clear SpamFireWall table. Throw error if failed.
-  * Upd: Cookies attr "samesite" added.
-  * New: Users checking result icons added.
-  * Upd: Whitelists support added for SFW.
-  * Fix: Clear users meta everywhere by complete deactivation.
-  * New: Comment notification updated - blacklist links added.
-  * Fix: PHP Warning in cleantalk-pluggable.php.
-  * Fix: White Label mode is not accessible if CLEANTALK_ACCESS_KEY is defined.
-  * Fix: Deprecated condition.
-  * Fix: Setting layout for the right to left direction languages.
-
-= 5.138.1 May 20 2020 =
-  * Fix: Ninja Forms. Spam submissions.
-
-= 5.138 May 14 2020 =
-  * Fix: Scan users fixed.
-  * Fix: Notice fixed (Creating default object from empty value).
-  * Fix: Creating table for SFW data for child blogs on WPMS.
-  * Upd: SFW query optimized.
-  * Fix: Adding cleantalk_spamscan_logs table for each blog when updating from 5.137.2.
-  * New: White Lists for SFW implemented.
-  * Fix: correct comments checking status text.
-  * Fix: Users scan. Reducing memory load.
-  * Fix: "Capture Buffer" settings. The issue with YoastSEO.
-  * Fix: SFW query fixed.
-  * Fix: SFW die page fixed.
-  * Fix: Membermouse API false positives.
-  * Fix: gz*() functions calling from global namespace for now.
-
-= 5.137.1 April 29 2020 =
-  * Fix: Call to undefined function wp_get_current_user().
-  * Fix: "Capture buffer" setting, YOAST sitemap.
-  * Integration: Simple Membership plugin integration implemented.
-  * Fix: Integrations system fixed.
-  * Fix: Query for SFW fixed.
-  * Fix: SFW error handling.
-
-= 5.137 April 23 2020 =
-  * Fix: WPMU and WhiteLabel mode fixed.
-  * Fix: 403 Response code for blocked entries.
-  * Upd: SFW die page updated (spinner and delay).
-  * New: SFW query updated.
-  * Fix: SFW truncate instead of delete.
-  * Fix: AJAX exception for WordPress Membership Plugin – Restrict Content.
-  * Fix: Check spam users.
-  * Fix: Debug functionality for users check.
-  * Fix: Gravity Forms. Modifying message.
-  * Fix: Sanitizing settings.
-  * Fix: "Delete all spam users" button.
-
-= 5.136.4 April 8 2020 =
-  * Security: Possible XSS vulnerability.
-
-= 5.136.3 April 7 2020 =
-  * Security: Possible XSS vulnerability.
-
-= 5.136.2 April 7 2020 =
-  * Mod: bbPress is using role exclusions now.
-  * Mod: Show info on SpamFirewall block page.
-  * Mod: Log SpamFirewall tests.
-  * Fix: get_fields_any() fixed.
-  * Fix: Multiple requests on WooCommerce checkout.
-  * Fix: The SpamFirewall block page.
-
-= 5.136.1 April 2 2020 =
-  * Mod: Setting "Show links to check Emails, IPs for spam" splitted in two.
-  * Mod: Added setting "Manage comments on public pages".
-  * Fix: Feedback from public pages.
-  * Fix: Output for setting "Manage comments on public pages".
-  * Fix: Public widget errors.
-
-= 5.136 April 1 2020 =
-  * New: Feature allowing to track missed spam requests with the special plugin.
-  * Mod: Enable WooCommerce checkout test by default.
-  * Fix: Fluent forms integration fixed.
-  * Fix: Logging skipped requests - actions added.
-  * Fix: Comments output.
-  * Fix: External forms protection.
-  * Fix: PHP 7.4 compatibility.
-  * Performance improved.
-
-= 5.135 March 16 2020 =
-  * New: Setting which disallow sub-sites administrators to manage plugin settings.
-  * New: Add custom title for message.
-  * Mod: New headers for spam scan tabs.
-  * Fix: ARM form login check.
-  * Fix: For GET requests in HTTP API.
-  * Fix: Getting variables in Get and Server classes.
-  * Fix: SFW update system.
-  * Fix: Empty connection error in Cleantalk/Antispam/API.
-
-= 5.134 February 27 2020 =
-  * Fix: SpamFireWall update large data issues.
-  * Fix: Auto-update for some banner notifications.
-  * Fix: QuickContactForm protection.
-  * Minor fixes.
-  * Spam protection improved.
-
-= 5.133.2 February 10 2020 =
-  * Fix: Add no-index meta tag to search page only.
-  * Fix: Namespace issues.
-
-= 5.133.1 February 03 2020 =
-  * Fix: PHP 7.4 issues.
-  * Fix: Woocommerce options moved to a separate block.
-  * Fix: CSS/HTML issues on settings page.
-  * Minor fixes.
-  * Spam protection improved.
-
-= 5.133 January 20 2020 =
-  * Upd: Rebuilding users/comments scan
-  * Fix: UltimateMember - form validation checking fixed.
-  * Fix: Exclusion for login form.
-  * Fix: Disable scripts on excluded pages.
-  * Fix: PHP 7.4 compability.
-  * Minor fixes.
-  * Spam protection improved.
 
 = Early changelogs look in changelog.txt =

@@ -3,8 +3,8 @@ Contributors: WebFactory
 Tags: coming soon page, under construction mode, under construction, under construction page, coming soon, maintenance mode, maintenance page, launch page, coming soon mode, maintenance mode page, offline page, maintenance, landing page
 Requires at least: 4.0
 Requires PHP: 5.2
-Tested up to: 5.6
-Stable tag: 3.88
+Tested up to: 5.8
+Stable tag: 3.89
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -133,6 +133,10 @@ Or if needed, upload manually;
 
 
 == Changelog ==
+
+= 3.89 =
+* 2021/07/23
+* bug fix for Weglot
 
 = 3.88 =
 * 2021/02/20

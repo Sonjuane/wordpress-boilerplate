@@ -37,6 +37,7 @@ if (false === class_exists('WF_Licensing')) {
       $this->slug = dirname(plugin_basename(trim($params['plugin_file'])));
       $this->basename = plugin_basename(trim($params['plugin_file']));
       $this->plugin_file = $params['plugin_file'];
+      $this->plugin_page = trim($params['plugin_page']);
       $this->debug = !empty($params['debug']);
 
       if ($params['js_folder']) {
@@ -68,27 +69,38 @@ if (false === class_exists('WF_Licensing')) {
     function init()
     {
       if (is_admin()) {
-        $vars = array(
-          'prefix' => $this->prefix,
-          'debug' => $this->debug,
-          'nonce' => wp_create_nonce('wf_licensing_' . $this->prefix),
-          'licensing_endpoint' => $this->licensing_servers[0] . $this->api_ver,
-          'request_data' => array(
-            'action' => 'validate_license',
-            'license_key' => '',
-            'rand' => rand(1000, 9999),
-            'version' => $this->version,
-            'wp_version' => get_bloginfo('version'),
-            'site_url' => get_home_url(),
-            'site_title' => get_bloginfo('name'),
-            'meta' => array()
-          )
-        );
-
-        wp_enqueue_script('wf_licensing', $this->js_folder . 'wf-licensing.js', array(), 1.0, true);
-        wp_localize_script('wf_licensing', 'wf_licensing_' . $this->prefix, $vars);
+        add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
       }
     } // init
+
+
+    function admin_enqueue_scripts() {
+      $current_screen = get_current_screen();
+
+      if (empty($current_screen->id) || $current_screen->id != $this->plugin_page) {
+        return false;
+      }
+
+      $vars = array(
+        'prefix' => $this->prefix,
+        'debug' => $this->debug,
+        'nonce' => wp_create_nonce('wf_licensing_' . $this->prefix),
+        'licensing_endpoint' => $this->licensing_servers[0] . $this->api_ver,
+        'request_data' => array(
+          'action' => 'validate_license',
+          'license_key' => '',
+          'rand' => rand(1000, 9999),
+          'version' => $this->version,
+          'wp_version' => get_bloginfo('version'),
+          'site_url' => get_home_url(),
+          'site_title' => get_bloginfo('name'),
+          'meta' => array()
+        )
+      );
+
+      wp_enqueue_script('wf_licensing', $this->js_folder . 'wf-licensing.js', array(), 1.0, true);
+      wp_localize_script('wf_licensing', 'wf_licensing_' . $this->prefix, $vars);
+    } // admin_enqueue_scripts
 
 
     /**
@@ -433,7 +445,8 @@ if (false === class_exists('WF_Licensing')) {
     {
       check_ajax_referer('wf_licensing_' . $this->prefix);
 
-      $license_key = trim($_REQUEST['license_key']);
+      $license_key = sanitize_text_field($_REQUEST['license_key']);
+      $license_key = trim(substr($license_key, 0, 64));
       if (empty($license_key)) {
         $this->update_license(false);
         do_action('wf_licensing_' . $this->prefix . '_validate_ajax', $license_key, false);
@@ -469,15 +482,17 @@ if (false === class_exists('WF_Licensing')) {
     {
       check_ajax_referer('wf_licensing_' . $this->prefix);
 
-      $out['license_key'] = trim($_POST['license_key']);
+      $license_key = sanitize_text_field($_POST['license_key']);
+      $license_key = trim(substr($license_key, 0, 64));
+      $out['license_key'] = $license_key;
 
       if ($_POST['success'] == 'true') {
-        $out['error'] = trim($_POST['data']['error']);
-        $out['name'] = trim($_POST['data']['name']);
-        $out['valid_until'] = trim($_POST['data']['valid_until']);
-        $out['meta'] = $_POST['data']['meta'];
+        $out['error'] = sanitize_text_field($_POST['data']['error']);
+        $out['name'] = sanitize_text_field($_POST['data']['name']);
+        $out['valid_until'] = sanitize_text_field($_POST['data']['valid_until']);
+        $out['meta'] = sanitize_text_field($_POST['data']['meta']);
       } else {
-        $out['error'] = trim($_POST['data']);
+        $out['error'] = sanitize_text_field($_POST['data']);
         $out['name'] = '';
         $out['valid_until'] = '';
         $out['meta'] = array();

@@ -5,7 +5,7 @@
  * Description: Extension for All-in-One WP Migration that enables using Amazon S3 for imports and exports
  * Author: ServMask
  * Author URI: https://servmask.com/
- * Version: 3.61
+ * Version: 3.66
  * Text Domain: all-in-one-wp-migration-s3-extension
  * Domain Path: /languages
  * Network: True

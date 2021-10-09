@@ -534,7 +534,7 @@ class Ai1wmse_S3_Curl {
 		$signature = $this->calculate_signature( $string_to_sign );
 
 		// Set authorization
-		$this->set_header( 'Authorization', $this->build_authorization_string( $signature ) );
+		$this->set_raw_header( 'Authorization', $this->build_authorization_string( $signature ) );
 
 		// Apply cURL headers
 		$http_headers = array();
@@ -573,6 +573,14 @@ class Ai1wmse_S3_Curl {
 
 		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$http_code = curl_getinfo( $this->handler, CURLINFO_HTTP_CODE );
+		if ( $http_code === 429 ) {
+			throw new Ai1wmse_Rate_Limit_Exception( sprintf( __( 'Too many requests. Please try again later. Error code: %s <a href="https://help.servmask.com/knowledgebase/amazon-s3-error-codes/#%s" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), $http_code, $http_code ) );
+		}
+
+		if ( $http_code >= 500 ) {
+			throw new Ai1wmse_Internal_Server_Error_Exception( sprintf( __( 'Internal Server Error. Please try again later. Error code: %s <a href="https://help.servmask.com/knowledgebase/amazon-s3-error-codes/#%s" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), $http_code, $http_code ) );
+		}
+
 		if ( $http_code >= 400 ) {
 			if ( ( $data = simplexml_load_string( $response ) ) ) {
 				if ( isset( $data->Code ) ) {
@@ -624,6 +632,13 @@ class Ai1wmse_S3_Curl {
 								throw new Ai1wmse_No_Such_Bucket_Exception( sprintf( __( 'Please check your bucket name. %s. <a href="https://help.servmask.com/knowledgebase/amazon-s3-error-codes/#NoSuchBucket" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), $data->Message ) );
 							} else {
 								throw new Ai1wmse_No_Such_Bucket_Exception( sprintf( __( 'Please check your bucket name. Error code: %s. <a href="https://help.servmask.com/knowledgebase/amazon-s3-error-codes/#NoSuchBucket" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), $data->Code ) );
+							}
+
+						case 'RequestTimeout':
+							if ( isset( $data->Message ) ) {
+								throw new Ai1wmse_Request_Timeout_Exception( sprintf( __( '%s. <a href="https://help.servmask.com/knowledgebase/amazon-s3-error-codes/#RequestTimeout" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), $data->Message ) );
+							} else {
+								throw new Ai1wmse_Request_Timeout_Exception( sprintf( __( 'Error code: %s. <a href="https://help.servmask.com/knowledgebase/amazon-s3-error-codes/#RequestTimeout" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), $data->Code ) );
 							}
 
 						default:

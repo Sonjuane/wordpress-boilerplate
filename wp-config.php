@@ -17,6 +17,8 @@
  *
  * @package WordPress
  */
+// enable debug
+define('WP_DEBUG', false);
 
 // ** MySQL settings ** //
 /** The name of the database for WordPress */

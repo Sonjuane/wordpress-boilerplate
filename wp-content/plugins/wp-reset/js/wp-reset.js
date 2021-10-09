@@ -285,7 +285,13 @@ jQuery(document).ready(function ($) {
       } else {
         msg = $(button).data('text-done').replace('%n', cnt);
       }
-      wpr_swal.fire({ icon: 'success', title: msg });
+      wpr_swal.fire({
+        icon: 'success',
+        title: msg,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: true,
+      });
     });
 
     return false;
@@ -588,8 +594,32 @@ jQuery(document).ready(function ($) {
       return false;
     }
 
-    $(this).off('submit').submit();
-    return true;
+    $reset_form = $(this);
+
+    $.get({
+        url: ajaxurl,
+        data: {
+            action: 'wp_reset_run_tool',
+            _ajax_nonce: wp_reset.nonce_run_tool,
+            tool: 'before_reset'
+        },
+    }).done(function (data) {
+        if (data.success) {
+            $reset_form.off('submit').submit();
+        } else {
+            wpr_swal.fire({
+                icon: 'error',
+                title: wp_reset.undocumented_error,
+            });
+        }
+    }).fail(function (data) {
+        wpr_swal.fire({
+            icon: 'error',
+            title: wp_reset.undocumented_error,
+        });
+    });
+
+    return false;
   }); // bypass default submit behaviour
 
   $('#wp_reset_submit').click(function (e) {
@@ -851,7 +881,7 @@ jQuery(document).ready(function ($) {
   wp_reset.collections = [];
   wp_reset.collections[1] = {
     id: 1,
-    name: 'Must-have WordPress Plugins',
+    name: 'Must Have WordPress Plugins',
     created: '2020-04-01',
     items: [],
   };

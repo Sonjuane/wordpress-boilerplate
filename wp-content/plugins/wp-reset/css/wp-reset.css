@@ -50,7 +50,7 @@ body.tools_page_wp-reset {
 .wpr-container {
   margin: 0 auto;
   max-width: 100%;
-  width: 760px;
+  width: 910px;
 }
 
 .tools_page_wp-reset header {
@@ -292,6 +292,7 @@ body.tools_page_wp-reset {
 .tools_page_wp-reset .swal2-popup .swal2-title {
   line-height: 1.1;
   font-weight: 700;
+  display: block !important;
 }
 
 .tools_page_wp-reset code {

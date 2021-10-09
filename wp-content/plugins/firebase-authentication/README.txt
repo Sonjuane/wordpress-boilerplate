@@ -3,8 +3,8 @@ Contributors: cyberlord92
 Donate link: https://miniorange.com
 Tags: firebase, authentication, login, sso, jwt, social login, OTP verification, firebase otp, woocommerce, woocommerce integration
 Requires at least: 3.0.1
-Tested up to: 5.7
-Stable tag: 1.4.4
+Tested up to: 5.8
+Stable tag: 1.5.0
 License: MIT/Expat
 License URI: https://docs.miniorange.com/mit-license
 
@@ -66,6 +66,21 @@ Please email us at info@xecurify.com or <a href="https://miniorange.com/contact"
 3. The result after successful Test Authentication
 
 == Changelog ==
+
+= 1.5.0 =
+* Improvements in the flow of wp-login with firebase credentials 
+* Minor UI changes
+
+= 1.4.8 =
+* Added compatibility with WP 5.8
+* Minor UI changes
+
+= 1.4.7 =
+* Minor UI changes
+* Readme changes
+
+= 1.4.5 =
+* Readme changes
 
 = 1.4.4 =
 * Added compatibility with WP 5.7

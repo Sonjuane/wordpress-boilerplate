@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common;
 
+use Exception;
+
 class Schema
 {
     /**
@@ -15,6 +17,7 @@ class Schema
 			`network` int(11) unsigned NOT NULL,
 			`mask` int(11) unsigned NOT NULL,
 			`status` TINYINT(1) NOT NULL DEFAULT 0,
+			`source` TINYINT(1) NULL DEFAULT NULL,
 			PRIMARY KEY (`id`),
 			INDEX (  `network` ,  `mask` )
 		    );',
@@ -33,7 +36,11 @@ class Schema
             `blocked_entries` INT NOT NULL,
             `entries_timestamp` INT NOT NULL,
             `ua_id` INT(11) NULL DEFAULT NULL,
-            `ua_name` VARCHAR(1024) NOT NULL, 
+            `ua_name` VARCHAR(1024) NOT NULL,
+            `source` TINYINT(1) NULL DEFAULT NULL,
+            `network` VARCHAR(20) NULL DEFAULT NULL,
+            `first_url` VARCHAR(100) NULL DEFAULT NULL,
+            `last_url` VARCHAR(100) NULL DEFAULT NULL,
             PRIMARY KEY (`id`));',
         'ac_logs' => 'CREATE TABLE IF NOT EXISTS `%scleantalk_ac_log` (
             `id` VARCHAR(40) NOT NULL,
@@ -60,21 +67,21 @@ class Schema
     );
 
     /**
-     * @param null|string $table         Name of called table
+     * @param null|string $table Name of called table
+     *
      * @return array                     Array of schemas
-     * @throws \Exception                Throws if calling un-existed schema
+     * @throws Exception                Throws if calling un-existed schema
      */
-    public static function getSchema( $table = null )
+    public static function getSchema($table = null)
     {
-        if( is_null( $table ) ) {
+        if (is_null($table)) {
             return self::$schemas;
         }
 
-        if( array_key_exists( $table, self::$schemas ) ) {
-            return array( self::$schemas[$table] );
+        if (array_key_exists($table, self::$schemas)) {
+            return array(self::$schemas[$table]);
         }
 
-        throw new \Exception( 'Called table scheme not exist.' );
+        throw new Exception('Called table scheme not exist.');
     }
-
 }

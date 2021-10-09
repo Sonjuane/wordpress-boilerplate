@@ -56,6 +56,11 @@ class Ai1wmse_Import_Download {
 		// Set file chunk size for download
 		$file_chunk_size = get_option( 'ai1wmse_s3_file_chunk_size', AI1WMSE_DEFAULT_FILE_CHUNK_SIZE );
 
+		// Set archive offset
+		if ( ! isset( $params['archive_offset'] ) ) {
+			$params['archive_offset'] = 0;
+		}
+
 		// Set file range start
 		if ( ! isset( $params['file_range_start'] ) ) {
 			$params['file_range_start'] = 0;
@@ -71,6 +76,11 @@ class Ai1wmse_Import_Download {
 			$params['download_retries'] = 0;
 		}
 
+		// Set download backoff
+		if ( ! isset( $params['download_backoff'] ) ) {
+			$params['download_backoff'] = 1;
+		}
+
 		// Set Amazon S3 client
 		if ( is_null( $s3 ) ) {
 			$s3 = new Ai1wmse_S3_Client(
@@ -81,25 +91,34 @@ class Ai1wmse_Import_Download {
 		}
 
 		// Open the archive file for writing
-		$archive = fopen( ai1wm_archive_path( $params ), 'ab' );
+		$archive = fopen( ai1wm_archive_path( $params ), 'cb' );
 
-		try {
+		// Write file chunk data
+		if ( ( fseek( $archive, $params['archive_offset'] ) !== -1 ) ) {
+			try {
 
-			$params['download_retries'] += 1;
+				$params['download_retries'] += 1;
+				$params['download_backoff'] *= 2;
 
-			// Download file chunk data
-			$s3->get_file( $archive, $params['file_path'], $params['bucket_name'], $params['region_name'], $params['file_range_start'], $params['file_range_end'] );
+				// Download file chunk data
+				$s3->get_file( $archive, $params['file_path'], $params['bucket_name'], $params['region_name'], $params['file_range_start'], $params['file_range_end'] );
 
-			// Unset download retries
-			unset( $params['download_retries'] );
+				// Unset download retries
+				unset( $params['download_retries'] );
+				unset( $params['download_backoff'] );
 
-		} catch ( Ai1wmse_Connect_Exception $e ) {
-			if ( $params['download_retries'] <= 3 ) {
-				return $params;
+			} catch ( Ai1wmse_Connect_Exception $e ) {
+				sleep( $params['download_backoff'] );
+				if ( $params['download_retries'] <= 3 ) {
+					return $params;
+				}
+
+				throw $e;
 			}
-
-			throw $e;
 		}
+
+		// Set archive offset
+		$params['archive_offset'] = ftell( $archive );
 
 		// Set file range start
 		if ( $params['file_size'] <= ( $params['file_range_start'] + $file_chunk_size ) ) {
@@ -120,14 +139,7 @@ class Ai1wmse_Import_Download {
 
 		// Set progress
 		if ( defined( 'WP_CLI' ) ) {
-			WP_CLI::log(
-				sprintf(
-					__( 'Downloading %s (%s) [%d%% complete]', AI1WMSE_PLUGIN_NAME ),
-					$params['file_path'],
-					$params['file_size'],
-					$progress
-				)
-			);
+			WP_CLI::log( sprintf( __( 'Downloading %s (%s) [%d%% complete]', AI1WMSE_PLUGIN_NAME ), $params['file_path'], $params['file_size'], $progress ) );
 		} else {
 			Ai1wm_Status::progress( $progress );
 		}
@@ -146,6 +158,9 @@ class Ai1wmse_Import_Download {
 
 			// Unset region name
 			unset( $params['region_name'] );
+
+			// Unset archive offset
+			unset( $params['archive_offset'] );
 
 			// Unset file range start
 			unset( $params['file_range_start'] );

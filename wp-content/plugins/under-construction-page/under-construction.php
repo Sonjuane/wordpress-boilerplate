@@ -4,10 +4,10 @@
   Plugin URI: https://underconstructionpage.com/
   Description: Put your site behind a great looking under construction, coming soon, maintenance mode or landing page.
   Author: WebFactory Ltd
-  Version: 3.88
+  Version: 3.89
   Requires at least: 4.0
   Requires PHP: 5.2
-  Tested up to: 5.6
+  Tested up to: 5.8
   Author URI: https://www.webfactoryltd.com/
   Text Domain: under-construction-page
 
@@ -1445,7 +1445,7 @@ class UCP {
 
     if (self::is_weglot_setup()) {
       $tmp = '';
-      $active_languages = weglot_get_destination_language();
+      $active_languages = weglot_get_destination_languages();
       $languages = weglot_get_languages_available();
       $original_language = weglot_get_original_language();
 
@@ -2362,7 +2362,7 @@ class UCP {
       return false;
     }
 
-    $active_languages = weglot_get_destination_language();
+    $active_languages = weglot_get_destination_languages();
     if (!empty($active_languages)) {
       return true;
     } else {

@@ -6,8 +6,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 {
     protected $apbct;
 
-    function __construct(){
-
+    public function __construct()
+    {
         parent::__construct(array(
             'singular' => 'spam',
             'plural'   => 'spam'
@@ -21,75 +21,102 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         global $apbct;
         $this->apbct = $apbct;
-
     }
-    // Set columns
-    function get_columns(){
+
+    /**
+     * Set columns
+     *
+     * @return array
+     */
+    public function get_columns() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
         return array(
             'cb'             => '<input type="checkbox" />',
-            'ct_author'      => esc_html__( 'Author', 'cleantalk-spam-protect'),
-            'ct_comment'     => esc_html__( 'Comment', 'cleantalk-spam-protect'),
-            'ct_response_to' => esc_html__( ' 	In Response To', 'cleantalk-spam-protect'),
+            'ct_author'      => esc_html__('Author', 'cleantalk-spam-protect'),
+            'ct_comment'     => esc_html__('Comment', 'cleantalk-spam-protect'),
+            'ct_response_to' => esc_html__(' 	In Response To', 'cleantalk-spam-protect'),
         );
     }
 
-    // CheckBox column
-    function column_cb( $item ){
-        echo '<input type="checkbox" name="spamids[]" id="cb-select-'. $item['ct_id'] .'" value="'. $item['ct_id'] .'" />';
+    /**
+     * CheckBox column
+     *
+     * @param object $item
+     *
+     * @psalm-suppress InvalidArrayAccess
+     */
+    public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        echo '<input type="checkbox" name="spamids[]" id="cb-select-' . $item['ct_id'] . '" value="' . $item['ct_id'] . '" />';
     }
 
-    // Author (first) column
-    function column_ct_author( $item ) {
-
+    /**
+     * Author (first) column
+     *
+     * @param $item
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function column_ct_author($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
         $column_content = '';
-        $email = $item['ct_comment']->comment_author_email;
-        $ip = $item['ct_comment']->comment_author_IP;
+        $email          = $item['ct_comment']->comment_author_email;
+        $ip             = $item['ct_comment']->comment_author_IP;
 
         // Avatar, nickname
-        $column_content .= '<strong>'. $item['ct_comment']->comment_author . '</strong>';
+        $column_content .= '<strong>' . $item['ct_comment']->comment_author . '</strong>';
         $column_content .= '<br /><br />';
 
         // Email
-        if( ! empty( $email ) ){
+        if ( ! empty($email) ) {
             $column_content .= "<a href='mailto:$email'>$email</a>"
-                .( ! $this->apbct->white_label
+                               . (! $this->apbct->white_label
                     ? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
-                    ."&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
-                    ."</a>"
+                      . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
+                      . "</a>"
                     : '');
         } else {
-            $column_content .= esc_html__( 'No email', 'cleantalk-spam-protect');
+            $column_content .= esc_html__('No email', 'cleantalk-spam-protect');
         }
 
         $column_content .= '<br/>';
 
         // IP
-        if( ! empty( $ip ) ) {
+        if ( ! empty($ip) ) {
             $column_content .= "<a href='edit-comments.php?s=$ip&mode=detail'>$ip</a>"
-                .( ! $this->apbct->white_label
-                    ?"<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
-                    ."&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
-                    ."</a>"
+                               . (! $this->apbct->white_label
+                    ? "<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
+                      . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
+                      . "</a>"
                     : '');
-        }else
-            $column_content .= esc_html__( 'No IP adress', 'cleantalk-spam-protect');
+        } else {
+            $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
+        }
 
         return $column_content;
-
     }
 
-    function column_ct_comment( $item ){
-
-        $id = $item['ct_id'];
+    /**
+     * @param $item
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function column_ct_comment($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $id             = $item['ct_id'];
         $column_content = '';
 
         $column_content .= '<div class="column-comment">';
 
         $column_content .= '<div class="submitted-on">';
 
-        $column_content .= sprintf( __( 'Submitted on <a href="%1$s">%2$s at %3$s</a>' ), get_comment_link($id),
-            get_comment_date( __( 'Y/m/d' ),$id ),
-            get_comment_date( get_option( 'time_format' ),$id )
+        $column_content .= sprintf(
+            __('Submitted on <a href="%1$s">%2$s at %3$s</a>'),
+            get_comment_link($id),
+            get_comment_date(__('Y/m/d'), $id),
+            get_comment_date(get_option('time_format'), $id)
         );
 
         $column_content .= '</div>';
@@ -99,37 +126,66 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $column_content .= '</div>';
 
         $actions = array(
-            'approve'   => sprintf( '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>', $_REQUEST['page'],'approve', $id ),
-            'spam'      => sprintf( '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>', $_REQUEST['page'],'spam', $id ),
-            'trash'     => sprintf( '<a href="?page=%s&action=%s&spam=%s">Trash</a>', $_REQUEST['page'],'trash', $id ),
+            'approve' => sprintf(
+                '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>',
+                $_REQUEST['page'],
+                'approve',
+                $id
+            ),
+            'spam'    => sprintf(
+                '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>',
+                $_REQUEST['page'],
+                'spam',
+                $id
+            ),
+            'trash'   => sprintf('<a href="?page=%s&action=%s&spam=%s">Trash</a>', $_REQUEST['page'], 'trash', $id),
         );
 
-        return sprintf( '%1$s %2$s', $column_content, $this->row_actions( $actions ) );
-
+        return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
     }
 
-    function column_ct_response_to( $item ) {
+    /**
+     * @param $item
+     *
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function column_ct_response_to($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
         $post_id = $item['ct_response_to'];
         ?>
         <div>
             <span>
-                <a href="/wp-admin/post.php?post=<?php echo $post_id; ?>&action=edit"><?php print get_the_title( $post_id ); ?></a>
+                <a href="/wp-admin/post.php?post=<?php
+                echo $post_id; ?>&action=edit"><?php
+                    print get_the_title($post_id); ?></a>
                 <br/>
-                <a href="/wp-admin/edit-comments.php?p=<?php echo $post_id; ?>" class="post-com-count">
+                <a href="/wp-admin/edit-comments.php?p=<?php
+                echo $post_id; ?>" class="post-com-count">
                     <span class="comment-count"><?php
-                        $p_cnt = wp_count_comments( $post_id );
+                        $p_cnt = wp_count_comments($post_id);
                         echo $p_cnt->total_comments;
-                        ?></span>
+                    ?></span>
                 </a>
             </span>
-            <a href="<?php print get_permalink( $post_id ); ?>"><?php _e( 'View Post' );?></a>
+            <a href="<?php
+            print get_permalink($post_id); ?>"><?php
+                _e('View Post'); ?></a>
         </div>
         <?php
     }
 
-    // Rest of columns
-    function column_default( $item, $column_name ) {
-        switch( $column_name ) {
+    /**
+     * Rest of columns
+     *
+     * @param object $item
+     * @param string $column_name
+     *
+     * @return bool|string|void
+     * @psalm-suppress InvalidArrayAccess
+     */
+    public function column_default($item, $column_name) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        switch ( $column_name ) {
             case 'ct_author':
             case 'ct_comment':
             case 'ct_response_to':
@@ -137,199 +193,209 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             case 'ct_checked':
             case 'ct_spam':
             case 'ct_bad':
-                return $item[ $column_name ];
+                return $item[$column_name];
             default:
-                return print_r( $item, true ) ;
+                return print_r($item, true);
         }
     }
 
-    function get_bulk_actions() {
-        $actions = array(
-            'spam'      => esc_html__( 'Mark as spam', 'cleantalk-spam-protect' ),
-            'trash'     => esc_html__( 'Move to trash', 'cleantalk-spam-protect' ),
+    public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        return array(
+            'spam'  => esc_html__('Mark as spam', 'cleantalk-spam-protect'),
+            'trash' => esc_html__('Move to trash', 'cleantalk-spam-protect'),
         );
-        return $actions;
     }
 
-    function bulk_actions_handler() {
+    public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) {
+            return;
+        }
 
-        if( empty($_POST['spamids']) || empty($_POST['_wpnonce']) ) return;
+        if ( ! $action = $this->current_action() ) {
+            return;
+        }
 
-        if ( ! $action = $this->current_action() ) return;
-
-        if( ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) )
+        if ( ! wp_verify_nonce($_POST['_wpnonce'], 'bulk-' . $this->_args['plural']) ) {
             wp_die('nonce error');
-
-        if( 'trash' == $action ) {
-            $this->moveToTrash( $_POST['spamids'] );
         }
 
-        if( 'spam' == $action ) {
-            $this->moveToSpam( $_POST['spamids'] );
+        if ( 'trash' === $action ) {
+            $this->moveToTrash($_POST['spamids']);
         }
 
+        if ( 'spam' === $action ) {
+            $this->moveToSpam($_POST['spamids']);
+        }
     }
 
-    function row_actions_handler() {
-
-        if( empty($_GET['action']) ) return;
-
-        if( $_GET['action'] == 'approve' ) {
-
-            $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
-            $this->approveSpam( $id );
-
+    public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( empty($_GET['action']) ) {
+            return;
         }
 
-        if( $_GET['action'] == 'trash' ) {
-
-            $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
-            $this->moveToTrash( array( $id ) );
-
+        if ( $_GET['action'] === 'approve' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
+            $this->approveSpam($id);
         }
 
-        if( $_GET['action'] == 'spam' ) {
-
-            $id = filter_input( INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT );
-            $this->moveToSpam( array( $id ) );
-
+        if ( $_GET['action'] === 'trash' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
+            $this->moveToTrash(array($id));
         }
 
+        if ( $_GET['action'] === 'spam' ) {
+            $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
+            $this->moveToSpam(array($id));
+        }
     }
 
-    function no_items() {
-        esc_html_e( 'No spam found.', 'cleantalk-spam-protect');
+    public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        esc_html_e('No spam found.', 'cleantalk-spam-protect');
     }
 
     //********************************************//
     //                 LOGIC                     //
     //*******************************************//
 
-    function approveSpam( $id ) {
+    public function approveSpam($id)
+    {
+        $comment_meta = delete_comment_meta((int)$id, 'ct_marked_as_spam');
 
-        $comment_meta = delete_comment_meta( $id, 'ct_marked_as_spam' );
-
-        if( $comment_meta ) {
-
-            $comment = get_comment($id, 'ARRAY_A');
-            $comment['comment_approved'] = 1;
-
-            wp_update_comment( $comment );
-            apbct_comment__send_feedback( $id, 'approve', false, true );
-
+        if ( $comment_meta ) {
+            wp_set_comment_status((int)$id, '1');
+            apbct_comment__send_feedback((int)$id, 'approve', false, true);
         }
-
     }
 
-    function moveToTrash( $ids ) {
-
-        if( ! empty( $ids ) ) {
-            foreach ( $ids as $id) {
-                delete_comment_meta( $id, 'ct_marked_as_spam' );
-                $comment = get_comment( $id );
-                wp_trash_comment( $comment );
+    public function moveToTrash($ids)
+    {
+        if ( ! empty($ids) ) {
+            foreach ( $ids as $id ) {
+                delete_comment_meta((int)$id, 'ct_marked_as_spam');
+                $comment = get_comment((int)$id);
+                wp_trash_comment($comment);
             }
         }
-
     }
 
-    function moveToSpam( $ids ) {
-
-        if( ! empty( $ids ) ) {
-            foreach ( $ids as $id) {
-                delete_comment_meta( $id, 'ct_marked_as_spam' );
-                $comment = get_comment( $id );
-                wp_spam_comment( $comment );
+    public function moveToSpam($ids)
+    {
+        if ( ! empty($ids) ) {
+            foreach ( $ids as $id ) {
+                delete_comment_meta((int)$id, 'ct_marked_as_spam');
+                $comment = get_comment((int)$id);
+                wp_spam_comment($comment);
             }
         }
-
     }
 
-    public function getTotal() {
-
-        $total_comments = new \WP_Comment_Query();
-        return $total_comments;
-
+    /**
+     * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getTotal()
+    {
+        return new \WP_Comment_Query();
     }
 
-    public function getChecked() {
-
+    /**
+     * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getChecked()
+    {
         $params_spam = array(
             'meta_key' => 'ct_checked',
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
 
+        return new \WP_Comment_Query($params_spam);
     }
 
-    public function getCheckedNow() {
-
+    /**
+     * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getCheckedNow()
+    {
         $params_spam = array(
             'meta_key' => 'ct_checked_now',
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
 
+        return new \WP_Comment_Query($params_spam);
     }
 
-    public function getSpam() {
-
+    /**
+     * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getSpam()
+    {
         $params_spam = array(
             'meta_key' => 'ct_marked_as_spam',
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
 
+        return new \WP_Comment_Query($params_spam);
     }
 
-    public function getSpamNow() {
-
-        // Spam comments
+    /**
+     * Spam comments
+     *
+     * @return \WP_Comment_Query
+     */
+    public function getSpamNow()
+    {
         $params_spam = array(
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
-                    'key' => 'ct_marked_as_spam',
+                    'key'     => 'ct_marked_as_spam',
                     'compare' => 'EXISTS'
                 ),
                 array(
-                    'key' => 'ct_checked_now',
+                    'key'     => 'ct_checked_now',
                     'compare' => 'EXISTS'
                 ),
             )
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        return $spam_comments;
 
+        return new \WP_Comment_Query($params_spam);
     }
 
-    public function getBad() { // Without IP and EMAIL
-
+    /**
+     * Without IP and EMAIL
+     *
+     * @return \WP_Comment_Query
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getBad()
+    {
         $params_bad = array(
             'meta_key' => 'ct_bad',
         );
-        $bad_users = new \WP_Comment_Query($params_bad);
-        return $bad_users;
 
+        return new \WP_Comment_Query($params_bad);
     }
 
-    public function getScansLogs() {
-
+    public function getScansLogs()
+    {
         global $wpdb;
         $query = "SELECT * FROM " . APBCT_SPAMSCAN_LOGS . " WHERE scan_type = 'comments'";
-        $res = $wpdb->get_results( $query, ARRAY_A );
-        return $res;
 
+        return $wpdb->get_results($query, ARRAY_A);
     }
 
-    protected function removeLogs( $ids ) {
-
-        $ids_string = implode( ', ', $ids );
+    protected function removeLogs($ids)
+    {
+        $ids_string = implode(', ', $ids);
         global $wpdb;
 
-        $wpdb->query("DELETE FROM " . APBCT_SPAMSCAN_LOGS . " WHERE 
-                ID IN ($ids_string)");
-
+        $wpdb->query(
+            "DELETE FROM " . APBCT_SPAMSCAN_LOGS . " WHERE 
+                ID IN ($ids_string)"
+        );
     }
-
 }

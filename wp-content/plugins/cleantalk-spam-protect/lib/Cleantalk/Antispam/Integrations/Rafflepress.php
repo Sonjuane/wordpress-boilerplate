@@ -1,18 +1,20 @@
 <?php
 
-
 namespace Cleantalk\Antispam\Integrations;
-
 
 class Rafflepress extends IntegrationBase
 {
-
-    function getDataForChecking( $argument )
+    public function getDataForChecking($argument)
     {
-        return ct_get_fields_any( $_POST );
+        /**
+         * Filter for POST
+         */
+        $input_array = apply_filters('apbct__filter_post', $_POST);
+
+        return ct_get_fields_any($input_array);
     }
 
-    function doBlock( $message )
+    public function doBlock($message)
     {
         wp_send_json(
             array(

@@ -40,9 +40,6 @@ function arc_function()
     wp_get_current_user();
     $username = $current_user->user_login;
     $users = array("arclabs", "atomic", "Atomic"); // Usernames to check
-    
-    wp_enqueue_script('arc-wp-script', plugins_url() . '/arc-wp-plugin/js/arc-wp-plugin.js');
-    wp_localize_script('arc-wp-script', 'userName', $username); // localizes username to Window JS Object
 
     if (!in_array($username, $users)) { // CONDITIONAL IF CURRENT USERNAME EXISTS IN USERS ARRAY
 
@@ -97,51 +94,50 @@ function arc_function()
     }
 
     // GET ALL WORDPRESS PAGES (with children) AND CREATE JS VARIABLE
-    function pages()
-    {
+    // function pages()
+    // {
 
-        // gets all pages as flat array
-        //$pages = get_posts( array( 'post_type' => 'page', null, 'post_status' => array( 'draft', 'publish' ) ) );
+    //     // gets all pages as flat array
+    //     //$pages = get_posts( array( 'post_type' => 'page', null, 'post_status' => array( 'draft', 'publish' ) ) );
 
-        $pages = get_posts(array('post_type' => 'page', 'post_parent' => 0, 'post_status' => array('draft', 'publish')));
-        $pageArray = array();
+    //     $pages = get_posts(array('post_type' => 'page', 'post_parent' => 0, 'post_status' => array('draft', 'publish')));
+    //     $pageArray = array();
 
-        foreach ($pages as $page) {
-            $child_ = array();
-            $page_ = array(
-                id => $page->ID,
-                title => get_the_title($page->ID),
-                status => get_post_status($page->ID),
-            );
-            // gets children pages
-            $children = get_children('post_parent=' . $page->ID);
-            foreach ($children as $subpage) {
-                $subpage_ = array(
-                    id => $subpage->ID,
-                    title => get_the_title($subpage->ID),
-                    status => get_post_status($subpage->ID),
-                );
-                array_push($child_, $subpage_);
-            }
+    //     foreach ($pages as $page) {
+    //         $child_ = array();
+    //         $page_ = array(
+    //             id => $page->ID,
+    //             title => get_the_title($page->ID),
+    //             status => get_post_status($page->ID),
+    //         );
+    //         // gets children pages
+    //         $children = get_children('post_parent=' . $page->ID);
+    //         foreach ($children as $subpage) {
+    //             $subpage_ = array(
+    //                 id => $subpage->ID,
+    //                 title => get_the_title($subpage->ID),
+    //                 status => get_post_status($subpage->ID),
+    //             );
+    //             array_push($child_, $subpage_);
+    //         }
 
-            if (count($child_) > 0) {
-                // children array if exists
-                $page_['children'] = $child_;
-            }
-            array_push($pageArray, $page_);
-        }
-        
-        wp_localize_script('arc-wp-script', 'pages', $pageArray); // where pages is the variable name
-        
-    }
-
-    pages();
+    //         if (count($child_) > 0) {
+    //             // children array if exists
+    //             $page_['children'] = $child_;
+    //         }
+    //         array_push($pageArray, $page_);
+    //     }
+    //     wp_enqueue_script('arc-wp-script', plugins_url() . '/arc-wp-plugin/js/arc-wp-plugin.js');
+    //     wp_localize_script('arc-wp-script', 'pages', $pageArray); // where pages is the variable name
+    // }
+    // pages();
 }
 
 require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
 require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 // GET CONTENT FROM HTML FILE
-// to use [get_file file="about.html"] - will display html contents from http://MyWebsite.com/wp-content/themes/my-theme/page-content/about.html
+// to use [get_file file="about.html"]
+// will display html contents from http://MyWebsite.com/wp-content/themes/my-theme/page-content/about.html
 add_shortcode('get_file', 'get_file_func');
 function get_file_func($atts)
 {
@@ -157,23 +153,9 @@ function get_file_func($atts)
         return WP_Filesystem_Direct::get_contents($path);
         //return @file_get_contents(get_template_directory_uri() . "/page-content-html/" . $file);
     }
-
 }
 
-// Custon JSON navigation route to get data: https://website.com/wp-json/wp/v2/menu
-add_action( 'rest_api_init', function () {
-    register_rest_route( 'wp/v2', 'menu', array(
-        'methods' => 'GET',
-        'callback' => 'get_site_menu',
-    ) );
-} );
-function get_site_menu() {
-    // Replace your menu name, slug or ID carefully
-    return wp_get_nav_menu_items('Primary Menu');
-}
-
-
-// // LISTS ALL INSTALLED MENU ITEMS IN ADMIN DASHBOARD
+// LISTS ALL INSTALLED MENU ITEMS
 // add_action( 'admin_init', function () {
 //     echo '<pre>' . print_r( $GLOBALS[ 'menu' ], true) . '</pre>';
 //     echo '<style> #adminmenuback {display: none !important}</style>';

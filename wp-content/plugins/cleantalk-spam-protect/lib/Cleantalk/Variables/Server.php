@@ -88,7 +88,7 @@ class Server extends ServerVariables
      */
     public static function getDomain()
     {
-        preg_match('@\.(\S+)\/?$@', self::get('HTTP_HOST'), $matches);
+        preg_match('@\S+\.(\S+)\/?$@', self::get('HTTP_HOST'), $matches);
 
         return isset($matches[1]) ? $matches[1] : false;
     }
@@ -126,5 +126,17 @@ class Server extends ServerVariables
     public static function isGet()
     {
         return self::get('REQUEST_METHOD') === 'GET';
+    }
+
+    /**
+     * Determines if SSL is used.
+     *
+     * @return bool True if SSL, otherwise false.
+     */
+    public static function isSSL()
+    {
+        return self::get('HTTPS') === 'on' ||
+               self::get('HTTPS') === '1' ||
+               self::get('SERVER_PORT') == '443';
     }
 }

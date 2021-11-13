@@ -83,14 +83,11 @@ class State extends \Cleantalk\Common\State
         'data__protect_logged_in'                  => 1,
         // Do anti-spam tests to for logged in users.
         'data__use_ajax'                           => 1,
-        'data__use_ajax__type'                     => 1,
         // Ajax handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
         'data__set_cookies'                        => 1,
-        // Set cookies: Disable - 0 / Enable - 1 / Use Alternative cookies - 2.
-        'data__set_cookies__alt_sessions_type'     => 0,
         // Alternative cookies handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
         'data__ssl_on'                             => 0,
         // Secure connection to servers
@@ -144,6 +141,7 @@ class State extends \Cleantalk\Common\State
         'last_remote_call'               => 0, //Timestam of last remote call
         'current_settings_template_id'   => null,  // Loaded settings template id
         'current_settings_template_name' => null,  // Loaded settings template name
+        'ajax_type'                      => false, // Ajax type
 
         // Antispam
         'spam_store_days'                => 15, // Days before delete comments from folder Spam
@@ -151,6 +149,7 @@ class State extends \Cleantalk\Common\State
         'notice_api_errors'              => 0, // Send API error notices to WP admin
 
         // Account data
+        'account_email'                  => '',
         'service_id'                     => 0,
         'moderate'                       => 0,
         'moderate_ip'                    => 0,
@@ -207,6 +206,9 @@ class State extends \Cleantalk\Common\State
         'key_is_ok'                   => 0,
         'salt'                        => '',
 
+        // Comment's test
+        'count_checked_comments'      => 0,
+        'count_bad_comments'          => 0,
     );
 
     public $def_network_settings = array(
@@ -289,6 +291,7 @@ class State extends \Cleantalk\Common\State
             'activation__timestamp'          => 0,
             'activation_previous__timestamp' => 0,
             'activation__times'              => 0,
+            'plugin_is_being_updated'        => 0,
         ),
         'cron'           => array(
             'last_start' => 0,
@@ -301,11 +304,12 @@ class State extends \Cleantalk\Common\State
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
-        'last_firewall_updated'        => 0,
         'expected_networks_count'      => 0,
         'expected_ua_count'            => 0,
         'update_mode'                  => 0,
     );
+
+    public $errors;
 
     protected function setDefinitions()
     {
@@ -430,7 +434,7 @@ class State extends \Cleantalk\Common\State
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
         $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
-        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->isHaveErrors();
+        $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->data['notice_incompatibility'] || $this->isHaveErrors();
 
         // Network with Mutual key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
@@ -564,10 +568,39 @@ class State extends \Cleantalk\Common\State
             'error_time' => $set_time ? current_time('timestamp') : null,
         );
 
+        //@ToDo Have to rebuild subtypes. These are too difficult to process now.
         if ( ! empty($major_type)) {
-            $this->errors[$major_type][$type] = $error;
+            if ( is_array($this->errors[$major_type][$type]) && count($this->errors[$major_type][$type]) >= 5 ) {
+                array_shift($this->errors[$major_type][$type]);
+            }
+            $this->errors[$major_type][$type][] = $error;
         } else {
-            $this->errors[$type] = $error;
+            // Remove subtype errors from processing.
+            // No need to array_shift for these
+            $sub_errors = array();
+            if ( is_array($this->errors[$type]) ) {
+                foreach ( $this->errors[$type] as $key => $sub_error ) {
+                    if ( is_string($key) ) {
+                        $sub_errors[$key] = $sub_error;
+                        unset($this->errors[$type][$key]);
+                    }
+                }
+            }
+
+            // Drop first element if errors array length is more than 5
+            if ( is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
+                array_shift($this->errors[$type]);
+            }
+
+            // Add the error to the errors array
+            $this->errors[$type][] = $error;
+
+            // Add the sub error to the errors array
+            if ( count($sub_errors) ) {
+                foreach ( $sub_errors as $sub_key => $sub_val ) {
+                    $this->errors[$type][$sub_key] = $sub_val;
+                }
+            }
         }
 
         $this->saveErrors();
@@ -692,7 +725,7 @@ class State extends \Cleantalk\Common\State
      *
      * @return mixed
      */
-    public function __get($name)
+    public function &__get($name)
     {
         // First check in storage
         if (isset($this->storage[$name])) {

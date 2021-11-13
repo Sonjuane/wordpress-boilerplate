@@ -42,16 +42,9 @@ class Ai1wmse_Settings {
 	public function get_next_backup_date( $schedules ) {
 		$future_backup_timestamps = array();
 
+		// Get next scheduled event
 		foreach ( $schedules as $schedule ) {
-			$future_backup_timestamps[] = wp_next_scheduled(
-				"ai1wmse_s3_{$schedule}_export",
-				array(
-					array(
-						'secret_key' => get_option( AI1WM_SECRET_KEY ),
-						's3'         => 1,
-					),
-				)
-			);
+			$future_backup_timestamps[] = wp_next_scheduled( "ai1wmse_s3_{$schedule}_export", array( $this->get_cron_args() ) );
 		}
 
 		sort( $future_backup_timestamps );
@@ -141,17 +134,7 @@ class Ai1wmse_Settings {
 
 		// Update cron schedules
 		foreach ( $schedules as $schedule ) {
-			Ai1wm_Cron::add(
-				"ai1wmse_s3_{$schedule}_export",
-				$schedule,
-				$this->get_cron_timestamp(),
-				array(
-					array(
-						'secret_key' => get_option( AI1WM_SECRET_KEY ),
-						's3'         => 1,
-					),
-				)
-			);
+			Ai1wm_Cron::add( "ai1wmse_s3_{$schedule}_export", $schedule, $this->get_cron_timestamp(), array( $this->get_cron_args() ) );
 		}
 
 		return update_option( 'ai1wmse_s3_cron', $schedules );
@@ -159,6 +142,19 @@ class Ai1wmse_Settings {
 
 	public function get_cron() {
 		return get_option( 'ai1wmse_s3_cron', array() );
+	}
+
+	public function init_cron() {
+		foreach ( $this->get_cron() as $schedule ) {
+			if ( ! Ai1wm_Cron::exists( "ai1wmse_s3_{$schedule}_export", array( $this->get_cron_args() ) ) ) {
+				Ai1wm_Cron::clear( "ai1wmse_s3_{$schedule}_export" );
+				Ai1wm_Cron::add( "ai1wmse_s3_{$schedule}_export", $schedule, $this->get_cron_timestamp(), array( $this->get_cron_args() ) );
+			}
+		}
+	}
+
+	public function get_cron_args() {
+		return array( 'secret_key' => get_option( AI1WM_SECRET_KEY ), 's3' => 1 );
 	}
 
 	public function set_access_key( $access_key ) {

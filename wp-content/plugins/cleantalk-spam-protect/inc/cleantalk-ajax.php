@@ -512,14 +512,21 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    // Kali form integration
+    if (Post::hasString('action', 'kaliforms_form_process')) {
+        $ct_post_temp = $_POST['data'];
+    }
+
     /**
      * Filter for POST
      */
-    $input_array = apply_filters('apbct__filter_post', $_POST);
+    if (!empty($ct_post_temp)) {
+        $input_array = apply_filters('apbct__filter_post', $ct_post_temp);
+    } else {
+        $input_array = apply_filters('apbct__filter_post', $_POST);
+    }
 
-    $ct_temp_msg_data = isset($ct_post_temp)
-        ? ct_get_fields_any($ct_post_temp)
-        : ct_get_fields_any($input_array);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = $ct_temp_msg_data['email'] ?: '';
     $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
@@ -881,6 +888,18 @@ function ct_ajax_hook($message_obj = null)
         // Easy Registration Form
         if ( isset($_POST['action']) && strpos($_POST['action'], 'erf_submit_form') !== false ) {
             wp_send_json_error(array(0 => array('username_error', $ct_result->comment)));
+        }
+
+        // Kali Form Integration
+        if ( Post::hasString('action', 'kaliforms_form_process') ) {
+            die(
+                json_encode(
+                    array(
+                        'status' => 'ok',
+                        'thank_you_message' => $ct_result->comment
+                    )
+                )
+            );
         }
 
         // Regular block output

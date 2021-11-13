@@ -439,9 +439,7 @@ class Ai1wmse_Main_Controller {
 	}
 
 	public function get_missing_dependencies() {
-		$messages   = array();
 		$extensions = array();
-
 		if ( ! extension_loaded( 'curl' ) ) {
 			$extensions[] = 'cURL';
 		}
@@ -454,6 +452,7 @@ class Ai1wmse_Main_Controller {
 			$extensions[] = 'SimpleXML';
 		}
 
+		$messages = array();
 		if ( ! empty( $extensions ) ) {
 			$messages[] = sprintf( __( 'Your PHP is missing: %s. <a href="https://help.servmask.com/knowledgebase/dependencies/" target="_blank">Technical details</a>', AI1WMSE_PLUGIN_NAME ), implode( ', ', $extensions ) );
 		}
@@ -506,6 +505,9 @@ class Ai1wmse_Main_Controller {
 			} else {
 				add_action( 'admin_menu', array( $this, 'admin_menu' ), 20 );
 			}
+
+			// Amazon S3 init cron
+			add_action( 'init', 'Ai1wmse_Settings_Controller::init_cron' );
 
 			// Amazon S3 connection
 			add_action( 'admin_post_ai1wmse_s3_connection', 'Ai1wmse_Settings_Controller::connection' );

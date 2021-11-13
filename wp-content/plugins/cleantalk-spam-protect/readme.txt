@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 5.163.1
+Stable tag: 5.165.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -594,6 +594,76 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.165.1 Nov 09 2021 =
+ * Fix. Settings. Saving settings fixed.
+
+= 5.165 Nov 08 2021 =
+ * New: Public. Mouse moved flag implemented.
+ * Upd: State. Errors adding method updated.
+ * Upd: Settings. Errors show function updated.
+ * Upd: Updater. Clean errors options for new errors structure.
+ * Upd: Public. Cookies aggregation.
+ * Mod: Improving the functionality of checking comments for spam.
+ * Mod: CommentsChecker - updated functionality and refactoring
+ * Mod: merged inc/cleantalk-updater.php
+ * Mod: merged UpdatePlugin dir
+ * Mod: merged Schema.php
+ * Mod: merged SchemaTest.php
+ * Mod: merged cleantalk.php
+ * Mod: merged State.php, Activator.php
+ * Fix: SFW. Directory for FW files moved to wordpress uploads directory.
+ * Fix: Settings. GDPR link fixed.
+ * Fix: testrequesttohost error handle.
+ * Fix: check ctsetcookie before call.
+ * Fix: Settings. Save button padding fixed.
+ * Fix: add console.log if ctSetcookie is not defined.
+ * Fix: SFW. Skip if sfw not updated yet.
+ * Fix: change console output if apbct-public-functions.js is not loaded.
+ * Fix: Added secure and samesite in cookie
+ * Fix: Renamed field apbct_wc_honeypot to wc_apbct_email_id
+ * Fix.Users.Feedback about deleting user implemented.
+ * Fix. SFW. Deleting table fixed.
+ * Fix: set buffer type to string if epico theme is active.
+ * Fix: Integration. Jetpack contact forms hooks fixed.
+ * Fix: SFW. Separating the end of update stage into several stages.
+ * Fix: SFW. Fallback function on SFW updating errors implemented.
+ * Fix. Integration. WP Forms hooks fixed.
+ * Fix. SFW. Auto updating for new users fixed.
+ * Fix. Comment. Set meta fixed.
+ * Fix: WPMS. Settings saving fixed.
+
+= 5.164.1 Oct 21 2021 =
+ * Fix. SFW. Incompatibility WP-Rocket notice removed.
+
+= 5.164 Oct 21 2021 =
+ * New: Integration. UsersWP plugin integration implemented.
+ * New. SFW. Incompatibility WP-Rocket notice added.
+ * New: Settings. Advanced settings navigation implemented.
+ * New: Server variables. isSSL method added.
+ * Mod: Added the functionality of changing the mail when receiving the key during the initial installation.
+ * Mod: Custom admin email. Added minified js and css files
+ * Mod: validate api key before save settings for new accounts
+ * Mod: Antispam. Comments check. Send feedback with hash:01:url data only if post_info->post_url is empty.
+ * Fix: State. Option prefix field is public now.
+ * Fix: Using get_option('home') for getting the blog url instead get_option('siteurl').
+ * Fix: State. Magic __get notice fixed.
+ * Fix. State. Exclamation mark fixed.
+ * Fix. Common. Getting REST url fixed.
+ * Fix: SFW. Update percents fixed.
+ * Fix: DB. isTableExists method fixed.
+ * Fix. State. $errors field added.
+ * Fix: Server::getDomain(). Fixed regexp.
+ * Fix: skip log-in request wpstg.
+ * Fix: SFW. Work on hosting licenses fixed.
+ * Fix: set prefix_name for cleantalk-icons css.
+ * Fix: Helper. Hard use https for the curl requests.
+ * Fix: Helper. Home url slash added.
+ * Fix: SFW. Using direct updating if remote calls not working.
+ * Fix: Settings. Save button z-index added.
+ * Fix: Admin bar. Exclamation mark style fixed.
+ * Fix: Settings. Api key description on active IP license added.
+ * Fix: Sender info. Getting page_url on ajax/rest requests fixed.
 
 = 5.163.1 Oct 12 2021 =
  * Fix: Queue. Errors of each try fixed.

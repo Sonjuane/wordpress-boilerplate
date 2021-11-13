@@ -82,11 +82,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $results = array();
         $status  = 0;
 
-        //Skip if sfw not updated yet
-        if ( ! $this->apbct->stats['sfw']['last_update_time']) {
-            return $results;
-        }
-
         // Skip by cookie
         foreach ($this->ip_array as $current_ip) {
             if (strpos(Cookie::get('ct_sfw_pass_key'), md5($current_ip . $this->api_key)) === 0) {
@@ -415,7 +410,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             '_rest_url'                            => esc_url(get_rest_url()),
             '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
             'data__set_cookies'                    => $apbct->settings['data__set_cookies'],
-            'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+            'data__ajax_type'                      => $apbct->data['ajax_type'],
             'sfw__random_get'                      => $apbct->settings['sfw__random_get'] === '1' ||
                                                       ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists())
         );
@@ -750,11 +745,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $table_names = (array)$table_names;
 
         foreach ($table_names as $table_name) {
-            if ( ! $db->isTableExists($table_name)) {
-                return array('error' => 'DELETE TABLE: TABLE IS NOT EXISTS: ' . $table_name);
-            }
-
-            if ( ! $db->execute('DROP TABLE ' . $table_name . ';') ) {
+            if ( $db->isTableExists($table_name) && ! $db->execute('DROP TABLE ' . $table_name . ';') ) {
                 return array(
                     'error' => 'DELETE TABLE: FAILED TO DROP: ' . $table_name
                                . ' DB Error: ' . $db->getLastError()

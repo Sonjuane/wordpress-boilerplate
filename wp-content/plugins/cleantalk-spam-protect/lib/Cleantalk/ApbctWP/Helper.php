@@ -109,7 +109,7 @@ class Helper extends \Cleantalk\Common\Helper
         }
 
         static::httpRequest(
-            get_option('siteurl'),
+            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/',
             $request_params,
             $patterns
         );
@@ -135,7 +135,7 @@ class Helper extends \Cleantalk\Common\Helper
         }
 
         $result = static::httpRequest(
-            get_option('siteurl'),
+            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/',
             array_merge($request_params, array('test' => 'test')),
             $patterns
         );
@@ -147,7 +147,7 @@ class Helper extends \Cleantalk\Common\Helper
         } elseif ( ! empty($result['error'])) {
             $result = array('error' => 'WRONG_SITE_RESPONSE TEST ACTION: ' . $rc_action . ' ERROR: ' . $result['error']);
             // Expects 'OK' string as good response otherwise - error
-        } elseif ( ! preg_match('@^.*?OK$@', $result)) {
+        } elseif ( ( is_string($result) && ! preg_match('@^.*?OK$@', $result) ) || ! is_string($result) ) {
             $result = array(
                 'error' => 'WRONG_SITE_RESPONSE ACTION: ' .
                            $rc_action .

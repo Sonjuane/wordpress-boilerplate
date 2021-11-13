@@ -232,31 +232,28 @@ class Ai1wmse_Settings_Controller {
 		exit;
 	}
 
+	public static function init_cron() {
+		$model = new Ai1wmse_Settings;
+		return $model->init_cron();
+	}
+
 	public static function notify_ok_toggle() {
 		$model = new Ai1wmse_Settings;
-		if ( ( $notify_ok_toggle = $model->get_notify_ok_toggle() ) ) {
-			return $notify_ok_toggle;
-		}
+		return $model->get_notify_ok_toggle();
 	}
 
 	public static function notify_error_toggle() {
 		$model = new Ai1wmse_Settings;
-		if ( ( $notify_error_toggle = $model->get_notify_error_toggle() ) ) {
-			return $notify_error_toggle;
-		}
+		return $model->get_notify_error_toggle();
 	}
 
 	public static function notify_error_subject() {
 		$model = new Ai1wmse_Settings;
-		if ( ( $notify_error_subject = $model->get_notify_error_subject() ) ) {
-			return $notify_error_subject;
-		}
+		return $model->get_notify_error_subject();
 	}
 
 	public static function notify_email() {
 		$model = new Ai1wmse_Settings;
-		if ( ( $notify_email = $model->get_notify_email() ) ) {
-			return $notify_email;
-		}
+		return $model->get_notify_email();
 	}
 }

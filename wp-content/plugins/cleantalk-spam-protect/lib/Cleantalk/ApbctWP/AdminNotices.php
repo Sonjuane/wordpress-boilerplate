@@ -118,7 +118,7 @@ class AdminNotices
         if ( $this->apbct->notice_show && ! empty($this->apbct->errors['key_get']) && ! $this->apbct->white_label ) {
             $register_link =
                 'https://cleantalk.org/register?platform=wordpress&email=' . urlencode(ct_get_admin_email()) .
-                '&website=' . urlencode(get_option('siteurl'));
+                '&website=' . urlencode(get_option('home'));
             $content       =
                 sprintf(
                     __("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'),
@@ -140,7 +140,7 @@ class AdminNotices
     {
         if ( ( ! apbct_api_key__is_correct() && $this->apbct->moderate_ip == 0) && ! $this->apbct->white_label ) {
             $content = sprintf(
-                __("Please enter Access Key in %s settings to enable anti spam protection!", 'cleantalk-spam-protect'),
+                __("Please enter the Access Key in %s plugin to enable spam protection!", 'cleantalk-spam-protect'),
                 "<a href='{$this->settings_link}'>{$this->apbct->plugin_name}</a>"
             );
             $id      = 'cleantalk_' . __FUNCTION__;
@@ -290,11 +290,12 @@ class AdminNotices
      * @param string $after
      *
      * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function addAttentionMark($after)
     {
         if ( $this->apbct->notice_show ) {
-            return $after . '<i class="icon-attention-alt"></i>';
+            return $after . '<i class="apbct-icon-attention-alt"></i>';
         }
 
         return $after;

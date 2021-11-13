@@ -8,6 +8,7 @@ use Cleantalk\Common\Helper;
  *
  * @throws Exception
  * @psalm-suppress UnusedVariable
+ * @psalm-suppress RedundantCondition
  */
 function apbct_init()
 {
@@ -167,17 +168,9 @@ function apbct_init()
     // JetPack Contact form
     if ( defined('JETPACK__VERSION') ) {
         // Checking Jetpack contact form
-        if ( isset($_POST['action']) && $_POST['action'] === 'grunion-contact-form' ) {
-            if ( JETPACK__VERSION === '3.4-beta' ) {
-                add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
-            } elseif ( JETPACK__VERSION === '3.4-beta2' || JETPACK__VERSION >= '3.4' ) {
-                add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack', 50, 2);
-            } else {
-                add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
-            }
-        } else {
-            add_filter('grunion_contact_form_field_html', 'ct_grunion_contact_form_field_html', 10, 2);
-        }
+        add_filter('contact_form_is_spam', 'ct_contact_form_is_spam');
+        add_filter('jetpack_contact_form_is_spam', 'ct_contact_form_is_spam_jetpack', 50, 2);
+        add_filter('grunion_contact_form_field_html', 'ct_grunion_contact_form_field_html', 10, 2);
 
         // Checking Jetpack comments form
         $jetpack_active_modules = get_option('jetpack_active_modules');
@@ -203,7 +196,7 @@ function apbct_init()
     }
 
     // Formidable
-    add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 10, 2);
+    add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
     add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
     // BuddyPress
@@ -287,14 +280,6 @@ function apbct_init()
         }
     }
 
-    // WPForms
-    // Adding fields
-    add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
-    // Gathering data to validate
-    add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
-    // Do spam check
-    add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
-
     // QForms integration
     add_filter('quform_post_validate', 'ct_quform_post_validate', 10, 2);
 
@@ -323,6 +308,9 @@ function apbct_init()
 
         return $pmpro_required_user_fields;
     });
+
+    // UsersWP plugin integration
+    add_filter('uwp_validate_result', 'apbct_form__uwp_validate', 3, 10);
 
     //
     // Load JS code to website footer
@@ -387,7 +375,7 @@ function apbct_buffer__output()
         return;
     }
 
-    if ( apbct_is_plugin_active('flow-flow/flow-flow.php') ) {
+    if ( apbct_is_plugin_active('flow-flow/flow-flow.php') || apbct_is_theme_active('epico') ) {
         $output = apbct_buffer_modify_by_string();
     } else {
         $output = apbct_buffer_modify_by_dom();
@@ -401,7 +389,7 @@ function apbct_buffer_modify_by_string()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('siteurl');
+    $site_url   = get_option('home');
     $site__host = parse_url($site_url, PHP_URL_HOST);
 
     preg_match_all('/<form\s*.*>\s*.*<\/form>/', $apbct->buffer, $matches, PREG_SET_ORDER);
@@ -438,7 +426,7 @@ function apbct_buffer_modify_by_dom()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('siteurl');
+    $site_url   = get_option('home');
     $site__host = parse_url($site_url, PHP_URL_HOST);
 
     $dom = new DOMDocument();
@@ -519,7 +507,7 @@ function apbct_hook__wp_footer()
     if ( $apbct->settings['data__use_ajax'] ) {
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
-        if ( $apbct->settings['data__use_ajax__type'] == 0 ) {
+        if ( $apbct->data['ajax_type'] == 'rest' ) {
             $html =
                 "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
                 . ">				
@@ -535,7 +523,7 @@ function apbct_hook__wp_footer()
                     });								
                 </script>";
         } else {
-            $use_cleantalk_ajax = $apbct->settings['data__use_ajax__type'] == 1 ? 1 : 0;
+            $use_cleantalk_ajax = $apbct->data['ajax_type'] == 'custom_ajax' ? 'custom_ajax' : 'rest';
             $html =
                 "<script type=\"text/javascript\" " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '')
                 . ">				
@@ -544,7 +532,7 @@ function apbct_hook__wp_footer()
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 apbct_public_sendAJAX(
                                     { action: 'apbct_js_keys__get' },
-                                    { callback: apbct_js_keys__set_input_value, apbct_ajax: " . $use_cleantalk_ajax . " }
+                                    { callback: apbct_js_keys__set_input_value, apbct_ajax: '" . $use_cleantalk_ajax . "' }
                                 )
                             }
                         }," . $timeout . ")					    
@@ -597,7 +585,10 @@ function ct_add_hidden_fields(
                     else                                              elem.attachEvent(event, callback);
                 }
                 apbct_attach_event_handler__backend(window, 'load', function(){
-                    ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
+                    if (typeof ctSetCookie === \"function\")
+                        ctSetCookie('{$field_name}', '{$ct_checkjs_key}' );
+                    else 
+                        console.log('APBCT ERROR: apbct-public--functions is not loaded.');
                 });
 		    </script>";
         // Using AJAX to get key
@@ -1162,20 +1153,6 @@ function ct_enqueue_scripts_public($_hook)
                     'set_cookies_flag' => $apbct->settings['data__set_cookies'] ? false : true,
                 ));
             }
-
-            wp_enqueue_script(
-                'ct_nocache',
-                plugins_url('/cleantalk-spam-protect/js/cleantalk_nocache.min.js'),
-                array(),
-                APBCT_VERSION,
-                false /*in header*/
-            );
-            wp_localize_script('ct_nocache', 'ctNocache', array(
-                'ajaxurl'          => admin_url('admin-ajax.php', 'relative'),
-                'info_flag'        => $apbct->settings['misc__collect_details'] && $apbct->settings['data__set_cookies'],
-                'set_cookies_flag' => (bool)$apbct->settings['data__set_cookies'],
-                'blog_home'        => get_home_url() . '/',
-            ));
         }
 
         // GDPR script
@@ -1306,7 +1283,7 @@ function apbct_enqueue_and_localize_public_scripts()
         '_rest_url'                            => esc_url(apbct_get_rest_url()),
         '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
         'data__set_cookies'                    => $apbct->settings['data__set_cookies'],
-        'data__set_cookies__alt_sessions_type' => $apbct->settings['data__set_cookies__alt_sessions_type'],
+        'data__ajax_type'                      => $apbct->data['ajax_type'],
     ));
 
     wp_localize_script('ct_public', 'ctPublic', array(

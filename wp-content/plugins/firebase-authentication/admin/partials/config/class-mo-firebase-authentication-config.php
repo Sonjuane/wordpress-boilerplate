@@ -20,7 +20,7 @@ class Mo_Firebase_Authentication_Admin_Config {
 								</div>
 								<div style="display:inline"><div style="display:inline-block;padding:0px 10px 10px 0px"><h3>Enable Firebase Authentication</h3></div>
 								<span style="float: right; font-size: 14px; margin-top: 10px;">[
-								<a href="https://plugins.miniorange.com/login-into-wordpress-using-firebase-authentication" target="_blank">How to configure?</a> ]</span>
+								<a href="https://plugins.miniorange.com/login-into-wordpress-using-firebase-authentication" target="_blank" rel="noopener">How to configure?</a> ]</span>
 							</div>
 						</form>
 						<form action="" method="post" id="mo_firebase_auth_form" style="margin-top: 0px;">

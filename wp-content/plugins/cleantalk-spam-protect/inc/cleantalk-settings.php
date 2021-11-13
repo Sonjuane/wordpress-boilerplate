@@ -149,12 +149,15 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '<hr><br>'
                                 . '<span id="ct_adv_showhide">'
-                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__davanced_settings\');">'
+                                . '<a href="#" class="apbct_color--gray" onclick="event.preventDefault(); apbct_show_hide_elem(\'apbct_settings__advanced_settings\');">'
                                 . __('Advanced settings', 'cleantalk-spam-protect')
                                 . '</a>'
                                 . '</span>'
-                                . '<div id="apbct_settings__davanced_settings" style="display: none;">',
+                                . '<div id="apbct_settings__before_advanced_settings"></div>'
+                                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+                                . '<div id="apbct_settings__advanced_settings_inner">',
             'html_after'     => '',
+            'section'        => 'hidden_section',
             'fields'         => array(
                 'forms__registrations_test'             => array(
                     'title'       => __('Registration Forms', 'cleantalk-spam-protect'),
@@ -222,6 +225,7 @@ function apbct_settings__set_fileds()
         // Comments and Messages
         'wc'                    => array(
             'title'  => __('WooCommerce', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'forms__wc_checkout_test'       => array(
                     'title'           => __('WooCommerce checkout form', 'cleantalk-spam-protect'),
@@ -280,6 +284,7 @@ function apbct_settings__set_fileds()
         // Comments and Messages
         'comments_and_messages' => array(
             'title'  => __('Comments and Messages', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'comments__disable_comments__all'          => array(
                     'title'       => __('Disable all comments', 'cleantalk-spam-protect'),
@@ -357,6 +362,7 @@ function apbct_settings__set_fileds()
         // Data Processing
         'data_processing'       => array(
             'title'  => __('Data Processing', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'data__protect_logged_in'              => array(
                     'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
@@ -378,6 +384,11 @@ function apbct_settings__set_fileds()
                         'Options helps protect WordPress against spam with any caching plugins. Turn this option on to avoid issues with caching plugins. Turn off this option and SpamFireWall to be compatible with Accelerated mobile pages (AMP).',
                         'cleantalk-spam-protect'
                     ),
+                    'childrens'   => array('data__ajax_type_checking_js')
+                ),
+                'data__ajax_type_checking_js' => array(
+                    'display'    => $apbct->settings['data__use_ajax'] == 1,
+                    'callback' => 'apbct_settings__ajax_handler_type_notification'
                 ),
                 'data__use_static_js_key'              => array(
                     'title'       => __('Use static keys for JavaScript check', 'cleantalk-spam-protect'),
@@ -441,9 +452,9 @@ function apbct_settings__set_fileds()
                             'childrens_enable' => 1,
                         ),
                     ),
-                    'childrens'   => array('data__set_cookies__alt_sessions_type')
+                    'childrens'   => array('data__ajax_type')
                 ),
-                'data__set_cookies__alt_sessions_type' => array(
+                'data__ajax_type' => array(
                     'display'    => $apbct->settings['data__set_cookies'] == 2,
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
@@ -501,6 +512,7 @@ function apbct_settings__set_fileds()
         // Exclusions
         'exclusions'            => array(
             'title'  => __('Exclusions', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
             'fields' => array(
                 'exclusions__urls'               => array(
                     'type'        => 'textarea',
@@ -545,6 +557,7 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '',
             'html_after'     => '',
+            'section'        => 'hidden_section',
             'fields'         => array(
                 'admin_bar__show'             => array(
                     'title'       => __('Show statistics in admin bar', 'cleantalk-spam-protect'),
@@ -595,6 +608,7 @@ function apbct_settings__set_fileds()
             'description'    => '',
             'html_before'    => '',
             'html_after'     => '',
+            'section'        => 'hidden_section',
             'fields'         => array(
                 'sfw__random_get'             => array(
                     'type'        => 'radio',
@@ -654,7 +668,8 @@ function apbct_settings__set_fileds()
         // Misc
         'misc'                  => array(
             'title'      => __('Miscellaneous', 'cleantalk-spam-protect'),
-            'html_after' => '</div><br>',
+            'section'    => 'hidden_section',
+            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
             'fields'     => array(
                 'misc__collect_details'         => array(
                     'type'        => 'checkbox',
@@ -762,7 +777,7 @@ function apbct_settings__set_fileds__network($fields)
                                 . '</a>'
                                 . '</span>'
                                 . '<div id="apbct_settings__dwpms_settings" style="display: block;">',
-            'html_after'     => '</div><br>',
+            'html_after'     => '</div>',
             'fields'         => array(
                 'multisite__work_mode'                                          => array(
                     'type'             => 'select',
@@ -1022,10 +1037,9 @@ function apbct_settings__display()
             . '<br>';
         echo __('Plugin Homepage at', 'cleantalk-spam-protect') .
              ' <a href="https://cleantalk.org" target="_blank">cleantalk.org</a>.<br/>';
-        echo '<span id="apbct_gdpr_open_modal" style="text-decoration: underline;">' . __(
-            'GDPR compliance',
-            'cleantalk-spam-protect'
-        ) . '</span><br/>';
+        echo '<a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance" target="_blank">'
+             . __('GDPR compliance', 'cleantalk-spam-protect')
+             . '</a><br/>';
         echo __('Use s@cleantalk.org to test plugin in any WordPress form.', 'cleantalk-spam-protect') . '<br>';
         echo __('CleanTalk is registered Trademark. All rights reserved.', 'cleantalk-spam-protect') . '<br/>';
         if ( $apbct->key_is_ok ) {
@@ -1036,9 +1050,6 @@ function apbct_settings__display()
             ) . '</b><br />';
         }
         apbct_admin__badge__get_premium();
-        echo '<div id="gdpr_dialog" style="display: none; padding: 7px;">';
-        apbct_settings_show_gdpr_text('print');
-        echo '</div>';
         echo '</div>';
     }
 
@@ -1072,10 +1083,13 @@ function apbct_settings__display()
         }
     }
 
-    if ( apbct_api_key__is_correct() && ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site()) ) {
+    if (
+        (apbct_api_key__is_correct() || apbct__is_hosting_license()) &&
+        ($apbct->network_settings['multisite__work_mode'] != 2 || is_main_site())
+    ) {
         // Sync button
         echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="Synchronizing account status, SpamFireWall database, all kind of journals.">'
-             . '<i class="icon-upload-cloud"></i>&nbsp;&nbsp;'
+             . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
              . __('Synchronize with Cloud', 'cleantalk-spam-protect')
              . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . APBCT_URL_PATH . '/inc/images/preloader2.gif" />'
              . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . APBCT_URL_PATH . '/inc/images/yes.png" />'
@@ -1098,18 +1112,42 @@ function apbct_settings__display()
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
+    // Disabled save button if key empty
+    $disabled = '';
+    if (! $apbct->key_is_ok) {
+        $disabled = 'disabled';
+    }
+
+    $hidden_groups = '<ul>';
+    foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
+        if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
+            $hidden_groups .= '<li><a href="#apbct_setting_group__' . $group_name . '">' . $group['title'] . '</a></li>';
+        }
+    }
+    $hidden_groups .= '</ul>';
+    $hidden_groups .= '<div id="apbct_settings__button_section"><button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+                           . __('Save Changes')
+                           . '</button></div>';
+
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         echo ! empty($group['html_before']) ? $group['html_before'] : '';
-        echo ! empty($group['title']) ? '<h3 style="margin-left: 220px;">' . $group['title'] . '</h3>' : '';
+        echo ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . $group_name . '">' . $group['title'] . '</h3>' : '';
 
         do_settings_fields('cleantalk', 'apbct_section__' . $group_name);
+
+        if ( ! empty($group['html_after']) && strpos($group['html_after'], '{HIDDEN_SECTION_NAV}') !== false ) {
+            $group['html_after'] = str_replace('{HIDDEN_SECTION_NAV}', $hidden_groups, $group['html_after']);
+        }
 
         echo ! empty($group['html_after']) ? $group['html_after'] : '';
     }
 
+    echo '<div id="apbct_settings__after_advanced_settings"></div>';
+
+    echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" ' . $disabled . '>'
+         . __('Save Changes')
+         . '</button>';
     echo '<br>';
-    echo '<button name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes">' .
-         __('Save Changes') . '</button>';
 
     echo "</form>";
 
@@ -1177,6 +1215,7 @@ function apbct_settings__error__output($return = false)
                 'cleantalk-spam-protect'
             ),
             'api'               => __('Error occurred while executing API call. Error: ', 'cleantalk-spam-protect'),
+            'cron'              => __('Error occurred while executing CleantalkCron job. Error: ', 'cleantalk-spam-protect'),
             'sfw_outdated'        => __(
                 'Error occurred on last SpamFireWall check. Error: ',
                 'cleantalk-spam-protect'
@@ -1193,10 +1232,15 @@ function apbct_settings__error__output($return = false)
 
         $errors_out = array();
 
+        $errors = apbct_settings__prepare_errors((array)$errors);
+
         foreach ( $errors as $type => $error ) {
             if ( ! empty($error) ) {
-                if ( is_array(current($error)) ) {
+                if ( count($error) > 2 || ( ! isset($error['error'], $error['error_time']) ) ) {
                     foreach ( $error as $sub_type => $sub_error ) {
+                        if ( $sub_type === 'error' || $sub_type === 'error_time' ) {
+                            continue;
+                        }
                         if ( isset($sub_error['error']) && strpos($sub_error['error'], 'SFW_IS_DISABLED') !== false ) {
                             continue;
                         }
@@ -1208,7 +1252,6 @@ function apbct_settings__error__output($return = false)
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
                         $errors_out[$sub_type] .= (isset($error_texts[$sub_type]) ? $error_texts[$sub_type] : ( $error_texts['unknown'] . $sub_type . ' ' . __('Error: ', 'cleantalk-spam-protect') ) . ' ' . $sub_error['error'] );
                     }
-                    continue;
                 }
 
                 if (
@@ -1255,6 +1298,34 @@ function apbct_settings__error__output($return = false)
     } else {
         echo $out;
     }
+}
+
+/**
+ * Get only last error from each error types from errors array
+ *
+ * @param array $errors
+ *
+ * @return array
+ */
+function apbct_settings__prepare_errors($errors)
+{
+    $prepared_errors = array();
+
+    if ( is_array($errors) ) {
+        foreach ( $errors as $type => $error ) {
+            if ( is_array($error) ) {
+                foreach ( $error as $key => $error_info ) {
+                    if ( is_string($key) ) {
+                        $prepared_errors[$type][$key] =  end($error_info);
+                    } else {
+                        $prepared_errors[$type] =  $error_info;
+                    }
+                }
+            }
+        }
+    }
+
+    return $prepared_errors;
 }
 
 function apbct_settings__field__debug()
@@ -1393,6 +1464,9 @@ function apbct_settings__field__state()
     }
     if ( $apbct->moderate_ip ) {
         print "<br /><br />The anti-spam service is paid by your hosting provider. License #" . $apbct->data['ip_license'] . ".<br />";
+        if ( $apbct->api_key ) {
+            print esc_html__('The access key is not required.', 'cleantalk-spam-protect');
+        }
     }
 
     print "</div>";
@@ -1469,11 +1543,14 @@ function apbct_settings__field__apikey()
         // Warnings and GDPR
         printf(
             __(
-                'Admin e-mail (%s) will be used for registration, if you want to use other email please %sGet Access Key Manually%s.',
+                'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
                 'cleantalk-spam-protect'
             ),
-            ct_get_admin_email(),
-            '<a class="apbct_color--gray" target="__blank" href="'
+            '<span id="apbct-account-email">'
+                . ct_get_admin_email() .
+            '</span>',
+            apbct_settings__btn_change_account_email_html(),
+            '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
                 'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
                 urlencode(ct_get_admin_email()),
@@ -1564,6 +1641,10 @@ function apbct_settings__field__action_buttons()
             echo $link . '&nbsp;&nbsp;&nbsp;&nbsp;';
         }
         echo '</div>';
+    } elseif ( apbct__is_hosting_license() ) {
+        echo '<a href="#" class="ct_support_link" onclick="apbct_show_hide_elem(\'apbct_statistics\')">'
+             . __('Statistics & Reports', 'cleantalk-spam-protect')
+             . '</a>';
     }
 
     echo '</div>';
@@ -1769,7 +1850,7 @@ function apbct_settings__field__draw($params = array())
                  . $params['title']
                  . '</label>';
             echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show icon-help-circled"></i>'
+                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
                 : '';
             echo '<div class="apbct_settings-field_description">'
                  . $params['description']
@@ -1785,7 +1866,7 @@ function apbct_settings__field__draw($params = array())
 
             // Popup description
             echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show icon-help-circled"></i>'
+                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
                 : '';
 
             echo '<div class="apbct_settings-field_content apbct_settings-field_content--' . $params['type'] . '">';
@@ -1852,7 +1933,7 @@ function apbct_settings__field__draw($params = array())
 
             echo '</select>';
             echo isset($params['long_description'])
-                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show icon-help-circled"></i>'
+                ? '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
                 : '';
             echo isset($params['description'])
                 ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
@@ -1941,8 +2022,9 @@ function apbct_settings__validate($settings)
     unset($setting, $value);
 
     // Set missing network settings.
+    $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
     foreach ( $apbct->def_network_settings as $setting => $value ) {
-        if ( ! isset($settings[$setting]) ) {
+        if ( ! isset($settings[$setting]) && ! array_key_exists($setting, $stored_network_options) ) {
             $settings[$setting] = $value;
             settype($settings[$setting], gettype($value));
         }
@@ -2061,6 +2143,22 @@ function apbct_settings__validate($settings)
         return $settings;
     }
 
+    // Ajax type
+    $available_ajax_type = apbct_settings__get_ajax_type();
+    $apbct->data['ajax_type'] = $available_ajax_type;
+
+    if (
+        (isset($settings['data__set_cookies']) && $settings['data__set_cookies'] == 2) ||
+        (isset($settings['data__use_ajax']) && $settings['data__use_ajax'] == 1)
+    ) {
+        if ( $available_ajax_type === false ) {
+            // There is no available alt cookies types. Cookies will be disabled.
+            // There is no available ajax types. AJAX js will be disabled.
+            $settings['data__set_cookies'] = 0;
+            $settings['data__use_ajax'] = 0;
+        }
+    }
+
     $apbct->save('data');
 
     // WPMS Logic.
@@ -2093,32 +2191,6 @@ function apbct_settings__validate($settings)
     // Alt sessions table clearing
     if ( $settings['data__set_cookies'] != 2 ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
-    }
-
-    // @ToDo combine selecting of the ajax handler type
-    // Set type of the alt cookies
-    $settings['data__set_cookies__alt_sessions_type'] = $apbct->settings['data__set_cookies__alt_sessions_type'];
-    if ( $apbct->settings['data__set_cookies'] != 2 && $settings['data__set_cookies'] == 2 ) {
-        $alt_cookies_type = apbct_settings__get_alt_cookies_type();
-        if ( $alt_cookies_type === false ) {
-            // There is no available alt cookies types. Cookies will be disabled.
-            $settings['data__set_cookies'] = 0;
-        } else {
-            $settings['data__set_cookies__alt_sessions_type'] = $alt_cookies_type;
-        }
-    }
-
-    // @ToDo combine selecting of the ajax handler type
-    // Set type of the AJAX getting of js
-    $settings['data__use_ajax__type'] = $apbct->settings['data__use_ajax__type'];
-    if ( $apbct->settings['data__use_ajax'] != 1 && $settings['data__use_ajax'] == 1 ) {
-        $ajax_type = apbct_settings__get_alt_cookies_type();
-        if ( $ajax_type === false ) {
-            // There is no available ajax types. AJAX js will be disabled.
-            $settings['data__use_ajax'] = 0;
-        } else {
-            $settings['data__use_ajax__type'] = $ajax_type;
-        }
     }
 
     return $settings;
@@ -2239,6 +2311,12 @@ function apbct_settings__sync($direct_call = false)
     die(json_encode($out));
 }
 
+/**
+ * @param bool $direct_call
+ *
+ * @return array|bool|false[]|mixed|string|string[]|void
+ * @psalm-suppress RedundantCondition
+ */
 function apbct_settings__get_key_auto($direct_call = false)
 {
     if ( ! $direct_call ) {
@@ -2247,7 +2325,7 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     global $apbct;
 
-    $website        = parse_url(get_option('siteurl'), PHP_URL_HOST) . parse_url(get_option('siteurl'), PHP_URL_PATH);
+    $website        = parse_url(get_option('home'), PHP_URL_HOST) . parse_url(get_option('home'), PHP_URL_PATH);
     $platform       = 'wordpress';
     $user_ip        = \Cleantalk\ApbctWP\Helper::ipGet('real', false);
     $timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
@@ -2255,12 +2333,8 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = $apbct->network_settings['multisite__work_mode'] == 1 ? get_site_option(
-        'admin_email'
-    ) : get_option('admin_email');
-    if ( function_exists('is_multisite') && is_multisite() && $apbct->white_label ) {
-        $admin_email = get_site_option('admin_email');
-    }
+    $admin_email    = ct_get_admin_email();
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
         $admin_email,
@@ -2322,6 +2396,65 @@ function apbct_settings__get_key_auto($direct_call = false)
     } else {
         die(json_encode($out));
     }
+}
+
+function apbct_settings__update_account_email()
+{
+    global $apbct;
+
+    $account_email = Post::get('accountEmail');
+
+    // not valid email
+    if (!$account_email || !filter_var($_POST['accountEmail'], FILTER_VALIDATE_EMAIL)) {
+        die(
+            json_encode(
+                array(
+                    'error' => 'Please, enter valid email.'
+                )
+            )
+        );
+    }
+
+    // protection against accidental request from a child site in the shared account mode
+    if (!is_main_site() && isset($apbct->network_settings['multisite__work_mode']) && $apbct->network_settings['multisite__work_mode'] != 3) {
+        die(
+            json_encode(
+                array(
+                    'error' => 'Please, enter valid email.'
+                )
+            )
+        );
+    }
+
+    // email not changed
+    if (isset($apbct->data['account_email']) && $account_email === $apbct->data['account_email']) {
+        die(
+            json_encode(
+                array(
+                    'success' => 'ok'
+                )
+            )
+        );
+    }
+
+    $apbct->data['account_email'] = $account_email;
+    $apbct->saveData();
+
+    // Link GET ACCESS KEY MANUALLY
+    $manually_link = sprintf(
+        'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+        urlencode(ct_get_admin_email()),
+        urlencode(get_bloginfo('url'))
+    );
+
+    die(
+        json_encode(
+            array(
+                'success' => 'ok',
+                'manuallyLink' => $manually_link
+            )
+        )
+    );
 }
 
 function apbct_update_blogs_options($settings)
@@ -2386,31 +2519,6 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false)
     }
 }
 
-function apbct_settings_show_gdpr_text($print = false)
-{
-    $out = wpautop('The notice requirements remain and are expanded. They must include the retention time for personal data, and contact information for data controller and data protection officer has to be provided.
-	Automated individual decision-making, including profiling (Article 22) is contestable, similarly to the Data Protection Directive (Article 15). Citizens have rights to question and fight significant decisions that affect them that have been made on a solely-algorithmic basis. Many media outlets have commented on the introduction of a "right to explanation" of algorithmic decisions, but legal scholars have since argued that the existence of such a right is highly unclear without judicial tests and is limited at best.
-	To be able to demonstrate compliance with the GDPR, the data controller should implement measures, which meet the principles of data protection by design and data protection by default. Privacy by design and by default (Article 25) require data protection measures to be designed into the development of business processes for products and services. Such measures include pseudonymising personal data, by the controller, as soon as possible (Recital 78).
-	It is the responsibility and the liability of the data controller to implement effective measures and be able to demonstrate the compliance of processing activities even if the processing is carried out by a data processor on behalf of the controller (Recital 74).
-	Data Protection Impact Assessments (Article 35) have to be conducted when specific risks occur to the rights and freedoms of data subjects. Risk assessment and mitigation is required and prior approval of the national data protection authorities (DPAs) is required for high risks. Data protection officers (Articles 37–39) are required to ensure compliance within organisations.
-	They have to be appointed:')
-    . '<ul style="padding: 0px 25px; list-style: disc;">'
-    . '<li>for all public authorities, except for courts acting in their judicial capacity</li>'
-    . '<li>if the core activities of the controller or the processor are:</li>'
-    . '<ul style="padding: 0px 25px; list-style: disc;">'
-    . '<li>processing operations, which, by virtue of their nature, their scope and/or their purposes, require regular and systematic monitoring of data subjects on a large scale</li>'
-    . '<li>processing on a large scale of special categories of data pursuant to Article 9 and personal data relating to criminal convictions and offences referred to in Article 10;</li>'
-    . '</ul>'
-    . '</li>'
-    . '</ul>';
-
-    if ( $print ) {
-        echo $out;
-    } else {
-        return $out;
-    }
-}
-
 function apbct_settings__get__long_description()
 {
     check_ajax_referer('ct_secret_nonce');
@@ -2456,28 +2564,28 @@ function apbct_settings__check_renew_banner()
 }
 
 /**
- * Checking availability of the handlers and return alt cookies type
+ * Checking availability of the handlers and return ajax type
  *
- * @return int|false
+ * @return string|false
  */
-function apbct_settings__get_alt_cookies_type()
+function apbct_settings__get_ajax_type()
 {
-    // Check custom ajax availability
+    // Check custom ajax availability - 1
     $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
     if ( $res_custom_ajax == 400 ) {
-        return 1;
+        return 'custom_ajax';
     }
 
-    // Check rest availability
+    // Check rest availability - 0
     $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
     if ( $res_rest == 200 ) {
-        return 0;
+        return 'rest';
     }
 
-    // Check WP ajax availability
+    // Check WP ajax availability - 2
     $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
     if ( $res_ajax == 400 ) {
-        return 2;
+        return 'admin_ajax';
     }
 
     return false;
@@ -2487,14 +2595,14 @@ function apbct_settings__check_alt_cookies_types()
 {
     global $apbct;
 
-    switch ( $apbct->settings['data__set_cookies__alt_sessions_type'] ) {
-        case '0':
+    switch ( $apbct->data['ajax_type'] ) {
+        case 'rest':
             $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
             break;
-        case '1':
+        case 'custom_ajax':
             $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
             break;
-        case '2':
+        case 'admin_ajax':
             $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
             break;
         default:
@@ -2509,4 +2617,59 @@ function apbct_settings__check_alt_cookies_types()
     );
 
     echo '</div>';
+}
+
+function apbct_settings__ajax_handler_type_notification()
+{
+    global $apbct;
+
+    switch ( $apbct->data['ajax_type'] ) {
+        case 'rest':
+            $alt_cookies_type = esc_html__('REST API', 'cleantalk-spam-protect');
+            break;
+        case 'custom_ajax':
+            $alt_cookies_type = esc_html__('CleanTalk AJAX handler', 'cleantalk-spam-protect');
+            break;
+        case 'admin_ajax':
+            $alt_cookies_type = esc_html__('WP AJAX handler', 'cleantalk-spam-protect');
+            break;
+        default:
+            $alt_cookies_type = esc_html__('UNKNOWN', 'cleantalk-spam-protect');
+            break;
+    }
+
+    echo '<div class="apbct_settings-field_wrapper apbct_settings-field_wrapper--sub">';
+    echo sprintf(
+        esc_html__('JavaScript check was set on %s', 'cleantalk-spam-protect'),
+        '<strong>' . $alt_cookies_type . '</strong><br>'
+    );
+
+    echo '</div>';
+}
+
+/**
+ * Show button for changed account email
+ */
+function apbct_settings__btn_change_account_email_html()
+{
+    global $apbct;
+
+    if (
+        ! is_main_site() &&
+        isset($apbct->network_settings['multisite__work_mode']) &&
+        $apbct->network_settings['multisite__work_mode'] == 1) {
+        return '';
+    }
+
+    return '(<button type="button"
+                id="apbct-change-account-email"
+                class="apbct-btn-as-link"
+                data-default-text="'
+                    . __('change email', 'cleantalk-spam-protect') .
+                    '"
+                data-save-text="'
+                    . __('save', 'cleantalk-spam-protect') .
+                    '">'
+                . __('change email', 'cleantalk-spam-protect') .
+            '</button>)';
 }

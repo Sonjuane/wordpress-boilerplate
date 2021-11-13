@@ -456,7 +456,7 @@ function apbct_get_sender_info()
         'remote_addr'            => \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
         'REFFERRER'              => apbct_get_server_variable('HTTP_REFERER'),
         'USER_AGENT'             => apbct_get_server_variable('HTTP_USER_AGENT'),
-        'page_url'               => apbct_get_server_variable('SERVER_NAME') . apbct_get_server_variable('REQUEST_URI'),
+        'page_url'               => apbct_sender_info___get_page_url(),
         'cms_lang'               => substr(get_locale(), 0, 2),
         'ct_options'             => json_encode($apbct->settings),
         'fields_number'          => sizeof($_POST),
@@ -495,15 +495,25 @@ function apbct_get_sender_info()
         'headers_sent'           => ! empty($apbct->headers_sent) ? $apbct->headers_sent : false,
         'headers_sent__hook'     => ! empty($apbct->headers_sent__hook) ? $apbct->headers_sent__hook : 'no_hook',
         'headers_sent__where'    => ! empty($apbct->headers_sent__where) ? $apbct->headers_sent__where : false,
-        'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ? apbct_get_server_variable(
-            'REQUEST_METHOD'
-        ) : 'UNKNOWN',
+        'request_type'           => apbct_get_server_variable('REQUEST_METHOD') ?: 'UNKNOWN',
         'email_check'            => Cookie::get('ct_checked_emails') ? json_encode(
             Cookie::get('ct_checked_emails')
         ) : null,
         'screen_info'            => Cookie::get('ct_screen_info') ? json_encode(Cookie::get('ct_screen_info')) : null,
         'has_scrolled'           => Cookie::get('ct_has_scrolled') ? json_encode(Cookie::get('ct_has_scrolled')) : null,
+        'mouse_moved'            => Cookie::get('ct_mouse_moved') ? json_encode(Cookie::get('ct_mouse_moved')) : null,
     );
+}
+
+function apbct_sender_info___get_page_url()
+{
+    if (
+        ( apbct_is_ajax() || apbct_is_rest() )
+        && Server::get('HTTP_REFERER')
+    ) {
+        return Server::get('HTTP_REFERER');
+    }
+    return  Server::get('SERVER_NAME') . Server::get('REQUEST_URI');
 }
 
 /**
@@ -678,7 +688,20 @@ function apbct_is_cache_plugins_exists()
  */
 function ct_get_admin_email()
 {
-    return get_option('admin_email');
+    global $apbct;
+
+    // Not WPMS
+    if (!is_multisite()) {
+        return $apbct->data['account_email'] ?: get_option('admin_email');
+    }
+
+    // Main site, common account
+    if (is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
+        return $apbct->data['account_email'] ?: get_site_option('admin_email');
+    }
+
+    // Individual account, individual key
+    return $apbct->data['account_email'] ?: get_blog_option(get_current_blog_id(), 'admin_email');
 }
 
 /**
@@ -964,6 +987,13 @@ function apbct_api_key__is_correct($api_key = null)
     return $api_key && preg_match('/^[a-z\d]{3,15}$/', $api_key) ? true : false;
 }
 
+function apbct__is_hosting_license()
+{
+    global $apbct;
+
+    return $apbct->data['moderate_ip'] && $apbct->data['ip_license'];
+}
+
 function apbct_add_async_attribute($tag, $handle)
 {
     global $apbct;
@@ -1088,7 +1118,7 @@ function apbct__styles_if_website_hidden()
     if ( $apbct->settings['forms__wc_honeypot'] ) {
         $styles = "
 		<style>
-		.apbct_wc_honeypot {
+		.wc_apbct_email_id {
 			display: none !important;
 		}
 		</style>";
@@ -1106,13 +1136,13 @@ function apbct__wc_add_honeypot_field($fields)
     global $apbct;
 
     if ( $apbct->settings['forms__wc_honeypot'] ) {
-        $fields['billing']['apbct_wc_honeypot'] = array(
-            'id'            => 'apbct_wc_honeypot',
+        $fields['billing']['wc_apbct_email_id'] = array(
+            'id'            => 'wc_apbct_email_id',
             'type'          => 'text',
             'label'         => '',
             'placeholder'   => '',
             'required'      => false,
-            'class'         => array('form-row-wide', 'apbct_wc_honeypot'),
+            'class'         => array('form-row-wide', 'wc_apbct_email_id'),
             'clear'         => true,
             'autocomplete'  => 'off'
         );

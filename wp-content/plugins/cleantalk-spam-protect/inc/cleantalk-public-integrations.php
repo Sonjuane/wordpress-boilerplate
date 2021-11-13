@@ -489,7 +489,7 @@ function ct_woocommerce_checkout_check()
     if ( $apbct->settings['forms__wc_honeypot'] ) {
         $honeypot_field = 1;
 
-        if ( Post::get('apbct_wc_honeypot') ) {
+        if ( Post::get('wc_apbct_email_id') ) {
             $honeypot_field = 0;
         }
 
@@ -1086,7 +1086,7 @@ function ct_preprocess_comment($comment)
     }
 
     // Change comment flow only for new authors
-    if ( ! empty($new_user) || $ct_result->stop_words !== null || $ct_result->spam == 1 ) {
+    if ( ! empty($new_user) || empty($base_call_data['post_info']['post_url']) ) {
         add_action('comment_post', 'ct_set_meta', 10, 2);
     }
 
@@ -1338,7 +1338,7 @@ function ct_test_registration($nickname, $email, $ip = null)
         true
     );
     $ct_result        = $base_call_result['ct_result'];
-
+    ct_hash($ct_result->id);
     $result = array(
         'allow'   => $ct_result->allow,
         'comment' => $ct_result->comment,
@@ -1449,7 +1449,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         true
     );
     $ct_result        = $base_call_result['ct_result'];
-
+    ct_hash($ct_result->id);
     // Change mail notification if license is out of date
     if ( $apbct->data['moderate'] == 0 &&
          ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
@@ -1654,18 +1654,9 @@ function ct_check_registration_erros($errors, $_sanitized_user_login = null, $_u
  */
 function apbct_user_register($user_id)
 {
-    global $apbct_cookie_request_id_label, $apbct_cookie_request_id;
-
-    if ( ! empty($apbct_cookie_request_id) ) {
-        update_user_meta($user_id, 'ct_hash', $apbct_cookie_request_id);
-
-        return;
-    }
-
-    if ( isset($_COOKIE[$apbct_cookie_request_id_label]) ) {
-        if ( update_user_meta($user_id, 'ct_hash', $_COOKIE[$apbct_cookie_request_id_label]) ) {
-            Cookie::set($apbct_cookie_request_id_label, '0', 1, '/');
-        }
+    $hash = ct_hash();
+    if ( ! empty($hash) ) {
+        update_user_meta($user_id, 'ct_hash', $hash);
     }
 }
 
@@ -3186,4 +3177,19 @@ function apbct_custom_forms_trappings()
     }
 
     return false;
+}
+
+/**
+ * UsersWP plugin integration
+ */
+function apbct_form__uwp_validate($result, $_type, $data)
+{
+    if ( isset($data['username'], $data['email']) ) {
+        $check = ct_test_registration($data['username'], $data['email'], Helper::ipGet());
+        if ( $check['allow'] == 0 ) {
+            return new WP_Error('invalid_email', $check['comment']);
+        }
+    }
+
+    return $result;
 }

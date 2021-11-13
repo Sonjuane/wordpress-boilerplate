@@ -622,7 +622,9 @@ class Helper
     {
         $url .= (parse_url($url, PHP_URL_QUERY) ? '&' : '?') . 'cleantalk_no_cache=' . rand(0, getrandmax());
 
-        $url = str_replace('http:', 'https:', $url);
+        if ( method_exists(Server::class, 'isSSL') && Server::isSSL() ) {
+            $url = str_replace('http:', 'https:', $url);
+        }
 
         if (function_exists('curl_init')) {
             $ch = curl_init();

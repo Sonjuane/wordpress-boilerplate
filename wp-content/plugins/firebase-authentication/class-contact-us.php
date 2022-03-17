@@ -29,7 +29,7 @@ class MO_Firebase_contact_us{
 		$args = array(
 			'method'          =>'POST',
 			'body'            => $field_string,
-			'timeout'         => '5',
+			'timeout'         => '15',
 			'redirection'     => '5',
 			'httpversion'     => '1.0',
 			'blocking'        => true,
@@ -45,6 +45,66 @@ class MO_Firebase_contact_us{
 		
 		return true;
 	}
+
+	function mo_firebase_auth_demo_request_mail( $email, $message, $subject ) {
+
+		if( ! $this->check_internet_connection() )
+			return;
+
+		$url                 = get_option( 'host_name' ) . '/moas/api/notify/send';
+		$customerKey         = $this->defaultCustomerKey;
+		$apiKey              = $this->defaultApiKey;
+		$currentTimeInMillis = self::get_timestamp();
+		$stringToHash 		 = $customerKey .  $currentTimeInMillis . $apiKey;
+		$hashValue 			 = hash("sha512", $stringToHash);
+		$customerKeyHeader 	 = "Customer-Key: " . $customerKey;
+		$timestampHeader 	 = "Timestamp: " .  $currentTimeInMillis;
+		$authorizationHeader = "Authorization: " . $hashValue;
+		$fromEmail 			 = $email;
+
+		global $user;
+		$user         = wp_get_current_user();
+
+		$content = '<div >Hello, <br><br><b>Customer</b>: <a href="mailto:'.$fromEmail.'" target="_blank">'.$fromEmail.'</a><br>'.$message.'<br><br>Thanks<br>miniOrange Inc</div>';
+
+		$fields = array(
+			'customerKey'	=> $customerKey,
+			'sendEmail' 	=> true,
+			'email' 		=> array(
+				'customerKey' 	=> $customerKey,
+				'fromEmail' 	=> $fromEmail,
+				'bccEmail' 		=> 'oauthsupport@xecurify.com',
+				'fromName' 		=> 'miniOrange',
+				'toEmail' 		=> 'oauthsupport@xecurify.com',
+				'toName' 		=> 'oauthsupport@xecurify.com',
+				'subject' 		=> $subject,
+				'content' 		=> $content
+			),
+		);
+		$field_string             = json_encode($fields);
+		$headers                  = array( 'Content-Type' => 'application/json');
+		$headers['Customer-Key']  = $customerKey;
+		$headers['Timestamp']     = $currentTimeInMillis;
+		$headers['Authorization'] = $hashValue;
+		
+		$args = array(
+			'method'      =>'POST',
+			'body'        => $field_string,
+			'timeout'     => '15',
+			'redirection' => '5',
+			'httpversion' => '1.0',
+			'blocking'    => true,
+			'headers'     => $headers,
+		);
+
+		$response = wp_remote_post( $url, $args );
+		
+		if ( is_wp_error( $response ) ) {
+			$error_message = $response->get_error_message();
+			return false;
+		}
+		return true;
+	}	
 
 	function mo_firebase_auth_send_email_alert( $email, $message, $subject ) {
 
@@ -93,7 +153,7 @@ class MO_Firebase_contact_us{
 		$args = array(
 			'method'      =>'POST',
 			'body'        => $field_string,
-			'timeout'     => '5',
+			'timeout'     => '15',
 			'redirection' => '5',
 			'httpversion' => '1.0',
 			'blocking'    => true,
@@ -108,6 +168,7 @@ class MO_Firebase_contact_us{
 			exit();
 		}
 	}
+
 	function check_internet_connection() {
 		return (bool) @fsockopen('login.xecurify.com', 443, $iErrno, $sErrStr, 5);
 	}

@@ -4,7 +4,7 @@ Tags: coming soon page, under construction mode, under construction, under const
 Requires at least: 4.0
 Requires PHP: 5.2
 Tested up to: 5.8
-Stable tag: 3.89
+Stable tag: 3.92
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,12 +17,13 @@ Create an Under Construction Page, Maintenance Mode Page, Coming Soon Page or a 
 
 [youtube https://www.youtube.com/watch?v=fqqWrQENSDc]
 
-> **PRO** version offers more than 50 extra features and options including the drag&drop builder, over a million hi-res searchable images, 200+ templates, affiliate&traffic tracking, advanced access control, MailChimp, Zapier & universal autoresponder integration, white-label license mode and priority support. Find out more on the <a href="https://underconstructionpage.com/">official plugin site</a>.
+> **PRO** version offers more than 50 extra features and options including the drag&drop builder, over a million hi-res searchable images, 300+ templates, affiliate&traffic tracking, advanced access control, MailChimp, Zapier & universal autoresponder integration, white-label license mode and priority support. Find out more on the <a href="https://underconstructionpage.com/">official plugin site</a>.
 
 A simple, no-nonsense under construction plugin for all those situations when you have to hide the site behind an Under Construction page for a while. Live examples are available on the <a href="https://underconstructionpage.com/">Under Construction website</a>. Give us a shout on Twitter <a href="http://twitter.com/WebFactoryLtd">@WebFactoryLtd</a> or check out the <a href="https://youtu.be/fqqWrQENSDc">video</a>.
 
 Thanks to our partnership with <a href="https://wordpress.org/plugins/weglot/">Weglot</a>, UCP is fully multilanguage ready and you can instantly translate your under construction page to 100+ languages with one click.
 
+If you're having problems with SSL or HTTPS try our free <a href="https://wordpress.org/plugins/wp-force-ssl/">WP Force SSL</a> plugin. It's a great plugin to enable SSL and fix SSL problems.
 
 **Options**
 
@@ -133,6 +134,20 @@ Or if needed, upload manually;
 
 
 == Changelog ==
+
+= 3.92 =
+* 2022/01/13
+* Google Analytics fix
+* sorry for the multiple updates :(
+
+= 3.91 =
+* 2022/01/12
+* fix for Weglot integration
+
+= 3.90 =
+* 2022/01/05
+* security fixes
+* added ad for our WP Force SSL plugin
 
 = 3.89 =
 * 2021/07/23

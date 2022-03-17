@@ -1,10 +1,10 @@
-=== WP Reset - Most Advanced Reset Tool ===
+=== WP Reset - Most Advanced Reset Tool for WordPress ===
 Tags: wordpress reset, reset database, reset wordpress database, reset, advanced wordpress reset, restart wordpress, clean wordpress, default wp, default wordpress, reset wp, wp reset, developer, wp-cli, backup, database backup
 Contributors: WebFactory
 Requires at least: 4.0
 Requires PHP: 5.2
 Tested up to: 5.8
-Stable tag: 1.93
+Stable tag: 1.95
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ WP Reset resets the entire site or selected parts using advanced reset options t
 
 == Description ==
 
-<a href="https://wpreset.com/">WP Reset</a> quickly resets the site's database to the default installation values without modifying any files. It deletes all customizations and content, or just chosen parts like theme settings. WP Reset is fast and safe to use thanks to the built-in snapshots which provide 1-click restore functionality. It has multiple fail-safe mechanisms so you can never accidentally lose data. WP Reset is extremely helpful for plugin and theme developers. It **speeds up testing & debugging** by providing a quick way to reset settings and re-test code. It's the only WP development tool for non-developers.
+<a href="https://wpreset.com/">WP Reset</a> quickly resets the site's database to the default installation values without modifying any files. It deletes all customizations and content, or just chosen parts like theme settings. WP Reset is fast and safe to use thanks to the built-in snapshots which provide 1-click restore functionality. It has multiple fail-safe mechanisms so you can never accidentally lose data. WP Reset is extremely helpful for plugin and theme developers. It **speeds up testing & debugging** by providing a quick way to reset settings and re-test code. It's the only WP development tool for non-developers that enables advanced reset.
 
 https://youtu.be/qMnkCW2PFoI?rel=0
 
@@ -87,6 +87,7 @@ WP Reset has yet to be completely tested with multisite! Please be careful when 
 
 * French - <a href="https://www.infrenchtranslation.com/">Jeff Inho</a>
 
+If you're having problems with SSL or HTTPS try our free <a href="https://wordpress.org/plugins/wp-force-ssl/">WP Force SSL</a> plugin. It's a great plugin to enable SSL or install SSL.
 
 == Installation ==
 
@@ -114,6 +115,12 @@ Or if needed, upload manually;
 5. Use our 1-click backup feature before running any reset tools
 
 == Changelog ==
+
+= v1.95 =
+* 2022/01/06
+* security fixes
+* fixed a CLI bug
+* added ad for our WP Force SSL plugin
 
 = v1.93 =
 * 2021/08/01

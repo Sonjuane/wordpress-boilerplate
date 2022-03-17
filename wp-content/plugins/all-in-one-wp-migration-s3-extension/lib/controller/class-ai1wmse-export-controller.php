@@ -104,14 +104,17 @@ class Ai1wmse_Export_Controller {
 
 			// Loop over content directory
 			foreach ( $iterator as $item ) {
-				$files[] = array(
-					'name'    => $iterator->getFilename(),
-					'path'    => substr_replace( $iterator->getPathname(), '', 0, strlen( WP_CONTENT_DIR ) + 1 ),
-					'toggled' => false,
-					'checked' => false,
-					'folder'  => $item->isDir(),
-					'date'    => human_time_diff( $iterator->getMTime() ),
-				);
+				try {
+					$files[] = array(
+						'name'    => $iterator->getFilename(),
+						'path'    => substr_replace( $iterator->getPathname(), '', 0, strlen( WP_CONTENT_DIR ) + 1 ),
+						'toggled' => false,
+						'checked' => false,
+						'folder'  => $item->isDir(),
+						'date'    => human_time_diff( $iterator->getMTime() ),
+					);
+				} catch ( Exception $e ) {
+				}
 			}
 
 			$types = $names = array();

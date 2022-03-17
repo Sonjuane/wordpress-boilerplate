@@ -9,10 +9,15 @@ function ct_contact_form_validate()
 {
     global $pagenow, $apbct, $ct_checkjs_frm;
 
+    // Exclude the XML-RPC requests
+    if ( defined('XMLRPC_REQUEST') ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return null;
+    }
+
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
         return null;
     }
 
@@ -79,7 +84,6 @@ function ct_contact_form_validate()
          (isset($_POST['password']) && ! apbct_custom_forms_trappings()) || // Exception for login form. From Analysis uid=406596
          (isset($_POST['action']) && $_POST['action'] == 'wilcity_reset_password') || // Exception for reset password form. From Analysis uid=430898
          (isset($_POST['action']) && $_POST['action'] == 'wilcity_login') || // Exception for login form. From Analysis uid=430898
-         (isset($_POST['qcfsubmit'])) || //Exception for submit quick forms - duplicates with qcfvalidate
          apbct_is_in_uri('tin-canny-learndash-reporting/src/h5p-xapi/process-xapi-statement.php?v=asd') || //Skip Tin Canny plugin
          (isset($_POST['na'], $_POST['ts'], $_POST['nhr']) && ! apbct_is_in_uri('?na=s')) ||  // The Newsletter Plugin double requests fix. Ticket #14772
          (isset($_POST['spl_action']) && $_POST['spl_action'] == 'register') || //Skip interal action with empty params
@@ -173,6 +177,20 @@ function ct_contact_form_validate()
         return false;
     }
 
+    // Skip CalculatedFieldsForm
+    if (
+        apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf.php') ||
+        apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf_free.php')
+    ) {
+        foreach ( $_POST as $key => $value ) {
+            if ( strpos($key, 'calculatedfields') !== false ) {
+                do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+                return null;
+            }
+        }
+    }
+
     $post_info['comment_type'] = 'feedback_general_contact_form';
 
     /**
@@ -192,7 +210,7 @@ function ct_contact_form_validate()
     }
 
     // Skip submission if no data found
-    if ( $sender_email === '' || ! $contact_form ) {
+    if ( ! $contact_form ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return false;
@@ -437,6 +455,11 @@ add_filter('apbct__filter_post', 'apbct__filter_form_data', 10);
 function apbct__filter_form_data($form_data)
 {
     global $apbct;
+
+    // It is a service field. Need to be deleted before the processing.
+    if ( isset($form_data['apbct_visible_fields']) ) {
+        unset($form_data['apbct_visible_fields']);
+    }
 
     if ($apbct->settings['exclusions__fields']) {
         // regular expression exception

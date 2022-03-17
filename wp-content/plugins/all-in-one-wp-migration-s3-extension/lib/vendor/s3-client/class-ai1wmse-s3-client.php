@@ -148,10 +148,11 @@ class Ai1wmse_S3_Client {
 			'us-east-2'      => 'US East (Ohio)',
 			'us-west-1'      => 'US West (N. California)',
 			'us-west-2'      => 'US West (Oregon)',
-			'af-south-1'     => 'Africa (Cape Town)',
+			'af-south-1'     => 'Africa (Cape Town)',
 			'ap-east-1'      => 'Asia Pacific (Hong Kong)',
+			'ap-southeast-3' => 'Asia Pacific (Jakarta)',
 			'ap-south-1'     => 'Asia Pacific (Mumbai)',
-			'ap-northeast-3' => 'Asia Pacific (Osaka)',
+			'ap-northeast-3' => 'Asia Pacific (Osaka)',
 			'ap-northeast-2' => 'Asia Pacific (Seoul)',
 			'ap-southeast-1' => 'Asia Pacific (Singapore)',
 			'ap-southeast-2' => 'Asia Pacific (Sydney)',
@@ -160,7 +161,7 @@ class Ai1wmse_S3_Client {
 			'eu-central-1'   => 'Europe (Frankfurt)',
 			'eu-west-1'      => 'Europe (Ireland)',
 			'eu-west-2'      => 'Europe (London)',
-			'eu-south-1'     => 'Europe (Milan)',
+			'eu-south-1'     => 'Europe (Milan)',
 			'eu-west-3'      => 'Europe (Paris)',
 			'eu-north-1'     => 'Europe (Stockholm)',
 			'me-south-1'     => 'Middle East (Bahrain)',
@@ -452,6 +453,7 @@ class Ai1wmse_S3_Client {
 		$api->set_option( CURLOPT_POSTFIELDS, $file_chunk_data );
 		$api->set_option( CURLOPT_HEADER, true );
 		$api->set_header( 'Content-Type', 'application/octet-stream' );
+		$api->set_header( 'Content-MD5', base64_encode( md5( $file_chunk_data, true ) ) );
 
 		// Set Base URL
 		if ( $region_name ) {

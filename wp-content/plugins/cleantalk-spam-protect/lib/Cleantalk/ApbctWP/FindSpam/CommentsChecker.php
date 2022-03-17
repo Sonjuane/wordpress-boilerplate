@@ -17,6 +17,15 @@ class CommentsChecker extends Checker
         // Preparing data
         if ( ! empty($_COOKIE['ct_paused_comments_check']) ) {
             $prev_check = json_decode(stripslashes($_COOKIE['ct_paused_comments_check']), true);
+            $prev_check_from = $prev_check_till = '';
+            if (
+                ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $prev_check['from']) &&
+                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $prev_check['till'])
+            ) {
+                $prev_check_from = $prev_check['from'];
+                $prev_check_till = $prev_check['till'];
+            }
         }
 
         wp_enqueue_script(
@@ -28,8 +37,8 @@ class CommentsChecker extends Checker
         wp_localize_script('ct_comments_checkspam', 'ctCommentsCheck', array(
             'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
-            'ct_prev_from'             => ! empty($prev_check['from']) ? $prev_check['from'] : false,
-            'ct_prev_till'             => ! empty($prev_check['till']) ? $prev_check['till'] : false,
+            'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
+            'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
             'ct_timeout_confirm'       => __(
                 'Failed from timeout. Going to check comments again.',
                 'cleantalk-spam-protect'
@@ -119,13 +128,14 @@ class CommentsChecker extends Checker
         check_ajax_referer('ct_secret_nonce', 'security');
 
         global $wpdb, $apbct;
-        $sql_where = '';
 
+        $sql_where = "WHERE NOT comment_approved = 'spam'";
+        $sql_where .= " AND comment_type = 'comment'";
         if ( isset($_POST['from'], $_POST['till']) ) {
             $from_date = date('Y-m-d', intval(strtotime($_POST['from'])));
             $till_date = date('Y-m-d', intval(strtotime($_POST['till'])));
 
-            $sql_where = "WHERE comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
+            $sql_where = " AND comment_date_gmt > '$from_date 00:00:00' AND comment_date_gmt < '$till_date 23:59:59'";
         }
 
         $offset = $_COOKIE['apbct_check_comments_offset'] ?: 0;
@@ -143,7 +153,8 @@ class CommentsChecker extends Checker
             'checked' => 0,
             'spam'    => 0,
             'bad'     => 0,
-            'error'   => 0
+            'error'   => 0,
+            'total'   => wp_count_comments()->total_comments,
         );
 
         if ( count($c) > 0 ) {
@@ -279,7 +290,8 @@ class CommentsChecker extends Checker
         $cnt_checked      = $apbct->data['count_checked_comments'];
 
         // Spam comments
-        $params_spam   = array(
+        $params_spam = array(
+            'count'   => true,
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
@@ -289,8 +301,7 @@ class CommentsChecker extends Checker
                 )
             ),
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        $cnt_spam      = count($spam_comments->get_comments());
+        $cnt_spam = get_comments($params_spam);
 
         // Bad comments (without IP and Email)
         $cnt_bad      = $apbct->data['count_bad_comments'];
@@ -381,21 +392,21 @@ class CommentsChecker extends Checker
 
         $cnt_checked   = $apbct->data['count_checked_comments'];
 
-        // Spam users
-        $params_spam   = array(
+        // Spam comments
+        $params_spam = array(
+            'count'   => true,
             'meta_query' => array(
                 'relation' => 'AND',
                 array(
                     'key'     => 'ct_marked_as_spam',
                     'compare' => '=',
                     'value'   => 1
-                ),
+                )
             ),
         );
-        $spam_comments = new \WP_Comment_Query($params_spam);
-        $cnt_spam      = count($spam_comments->get_comments());
+        $cnt_spam = get_comments($params_spam);
 
-        $cnt_bad       = $apbct->data['count_bad_comments'];
+        $cnt_bad = $apbct->data['count_bad_comments'];
 
         return array(
             'spam'    => $cnt_spam,

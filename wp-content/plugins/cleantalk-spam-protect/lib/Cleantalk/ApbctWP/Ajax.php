@@ -69,20 +69,23 @@ class Ajax
             case 'apbct_js_keys__get':
                 apbct_js_keys__get();
                 break;
+            case 'apbct_get_pixel_url':
+                apbct_get_pixel_url();
+                break;
             case 'apbct_email_check_before_post':
                 if ( $apbct->settings['data__email_check_before_post'] ) {
-                    apbct_email_check_before_post();
+                    apbct_email_check_before_post_from_custom_ajax();
                 }
                 break;
             case 'apbct_alt_session__save__AJAX':
                 // Using alternative sessions with ajax
-                if ( $apbct->settings['data__set_cookies'] == 2 && $apbct->data['ajax_type'] === 'custom_ajax' ) {
+                if ( $apbct->data['cookies_type'] === 'alternative' && $apbct->data['ajax_type'] === 'custom_ajax' ) {
                     apbct_alt_session__save__AJAX();
                 }
                 break;
             case 'apbct_alt_session__get__AJAX':
                 // Using alternative sessions with ajax
-                if ( $apbct->settings['data__set_cookies'] == 2 && $apbct->data['ajax_type'] === 'custom_ajax' ) {
+                if ( $apbct->data['cookies_type'] === 'alternative' && $apbct->data['ajax_type'] === 'custom_ajax' ) {
                     apbct_alt_session__get__AJAX();
                 }
                 break;
@@ -170,7 +173,12 @@ class Ajax
      */
     private function wpNonceTick()
     {
-        $nonce_life = apply_filters('nonce_life', DAY_IN_SECONDS);
+        if ( defined('CLEANTALK_NONCE_LIFETIME') && is_int(CLEANTALK_NONCE_LIFETIME) ) {
+            $nonce_lifetime = CLEANTALK_NONCE_LIFETIME;
+        } else {
+            $nonce_lifetime = DAY_IN_SECONDS;
+        }
+        $nonce_life = apply_filters('nonce_life', $nonce_lifetime);
 
         return ceil(time() / ($nonce_life / 2));
     }

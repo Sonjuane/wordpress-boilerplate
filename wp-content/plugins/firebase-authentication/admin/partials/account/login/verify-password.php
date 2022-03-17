@@ -21,7 +21,7 @@ function mo_firebase_auth_verify_password_ui() {
 					<tr>
 						<td><strong><font color="#FF0000">*</font>Password:</strong></td>
 						<td><input class="mo_table_textbox3" required type="password"
-							name="password" placeholder="Choose your password" /></td>
+							name="password" placeholder="Enter your password" /></td>
 					</tr>
 					<tr>
 						<td>&nbsp;&nbsp;</td>

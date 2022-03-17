@@ -49,9 +49,9 @@
 					    <div class="moc-licensing-plan-feature-list">
 					        <ul>
 					        	<li>Allow login with Firebase and WordPress</li>
-					        	<li>Attribute mapping</li>
+					        	<li>Sync Firebase UID to WordPress</li>
 					            <li>Auto register users in Firebase as well as WordPress</li>
-					            <li>Login & Registeration Form Integration (WooCommerce, BuddyPress)</li>
+					            <li>Login & Registration Form Integration (WooCommerce, BuddyPress)</li>
 					            <li>Custom redirect URL after Login and Logout</li>
 					            <li>WP hooks to integrate your Custom/Third party Login and Registration forms</li>
 					        </ul>
@@ -72,9 +72,9 @@
 					    <div class="moc-licensing-plan-feature-list">
 					        <ul>
 					        	<li>Allow login with Firebase and WordPress</li>
-					        	<li>Attribute mapping</li>
+					        	<li>Sync Firebase UID to WordPress</li>
 					            <li>Auto register users in Firebase as well as WordPress</li>
-					            <li>Login & Registeration Form Integration (WooCommerce, BuddyPress)</li>
+					            <li>Login & Registration Form Integration (WooCommerce, BuddyPress)</li>
 					            <li>Custom redirect URL after Login and Logout</li>
 					            <li>WP hooks to integrate Custom/Third party Login/Registration forms, to read Firebase token, login event and extend plugin functionality</li>
 					            <li>Shortcodes to add Firebase Login and Registration Form</li>

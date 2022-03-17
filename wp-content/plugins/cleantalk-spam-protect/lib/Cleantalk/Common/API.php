@@ -76,6 +76,7 @@ class API
         $wpms = false,
         $white_label = false,
         $hoster_api_key = '',
+        $email_filtered = false,
         $do_check = true
     ) {
         $request = array(
@@ -90,6 +91,7 @@ class API
             'wpms_setup'           => $wpms,
             'hoster_whitelabel'    => $white_label,
             'hoster_api_key'       => $hoster_api_key,
+            'email_filtered'       => $email_filtered
         );
 
         $result = static::sendRequest($request);
@@ -848,6 +850,33 @@ class API
         return $result;
     }
 
+    /**
+     * Sending of local settings API method wrapper
+     *
+     * @param string $api_key
+     * @param string $hostname
+     * @param string $settings
+     *
+     * @return array|bool|mixed
+     *
+     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public static function methodSendLocalSettings(
+        $api_key,
+        $hostname,
+        $settings
+    ) {
+        $request = array(
+            'method_name' => 'service_update_local_settings',
+            'auth_key' => $api_key,
+            'hostname' => $hostname,
+            'settings' => $settings
+        );
+
+        return static::sendRequest($request, self::URL, 0);
+    }
+
     private static function getProductId($product_name)
     {
         $product_id = null;
@@ -913,10 +942,21 @@ class API
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             }
 
+            // Make an asynchronous request, don't wait for an answer
+            if ( $timeout == 0 ) {
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 2000);
+                curl_setopt($ch, CURLOPT_TIMEOUT_MS, 2000);
+            }
+
             // Make a request
             $result = curl_exec($ch);
             $errors = curl_error($ch);
             curl_close($ch);
+
+            // RETURN if async request
+            if ( $timeout == 0 ) {
+                return array('data' => 'Async request was sent.');
+            }
         } else {
             $errors = 'CURL_NOT_INSTALLED';
         }

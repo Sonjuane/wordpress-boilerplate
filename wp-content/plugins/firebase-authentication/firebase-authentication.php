@@ -11,7 +11,7 @@
  * Plugin Name:       Firebase Authentication
  * Plugin URI:        firebase-authentication
  * Description:       This plugin allows login into Wordpress using Firebase as Identity provider.
- * Version:           1.5.1
+ * Version:           1.5.4
  * Author:            miniOrange
  * Author URI:        https://miniorange.com
  * License:           MIT/Expat
@@ -28,7 +28,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MO_FIREBASE_AUTHENTICATION_VERSION', '1.5.1' );
+define( 'MO_FIREBASE_AUTHENTICATION_VERSION', '1.5.4' );
 
 /**
  * The code that runs during plugin activation.
@@ -214,11 +214,11 @@ class mo_firebase_authentication_login {
 	}
 
 
-	function mo_firebase_auth( $user, $username, $password ) {
+	function mo_firebase_auth( $default_user, $username, $password ) {
 
 		if( "POST" !== sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) {
 			add_filter( 'wp_login_errors', array( $this, 'mo_fb_clear_wp_login_errors' ), 0, 2 );
-			return $user;
+			return $default_user;
 		}
 		
 		if ( empty( $username ) || empty ( $password ) ) {
@@ -244,6 +244,7 @@ class mo_firebase_authentication_login {
 			$response = $mo_firebase_config_obj->mo_fb_login_user($fb_user['idToken']);
 		}
 		else{
+			
 			$error_message = $fb_user['error']['message'];
 			if($error_message == 'INVALID_EMAIL' || $error_message == 'EMAIL_NOT_FOUND'){
 				if ( get_option( 'mo_firebase_auth_disable_wordpress_login' )  == false ) {
@@ -258,12 +259,13 @@ class mo_firebase_authentication_login {
 				else if ( get_option( 'mo_firebase_auth_enable_admin_wp_login' ) ) {
 		            $user = get_user_by( "login", $username );
 	    	        if ( !$user ) {
-						$user = get_user_by( "email", $username );
-					}
-		            if ( $user && $this->is_administrator_user( $user ) ) {
-		                if ( wp_check_password( $password, $user->data->user_pass, $user->ID ) ) {
-	    	                return $user;
+							$user = get_user_by( "email", $username );
 						}
+		            if ( $user && $this->is_administrator_user( $user ) ) {
+
+		            	if ( wp_check_password( $password, $user->data->user_pass, $user->ID ) ) {
+		            		return $user;
+		            	}
 	    	        }
 		        }
 	    	}else{
@@ -275,6 +277,7 @@ class mo_firebase_authentication_login {
 		    	return $error;
 	    	}
 		}
+		return $default_user;
 	}
 
 	function mo_firebase_auth_success_message() {
@@ -480,6 +483,33 @@ class mo_firebase_authentication_login {
 				} else {
 					update_option( 'mo_firebase_auth_message', 'Please Select one of the reasons ,if your reason is not mentioned please select Other Reasons' );
 					$this->mo_firebase_auth_show_error_message();
+				}
+			} else if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == 'mo_fb_demo_request_form' && isset($_REQUEST['mo_fb_demo_request_field']) && wp_verify_nonce( $_REQUEST['mo_fb_demo_request_field'], 'mo_fb_demo_request_form' ) ) {
+
+				if( current_user_can( 'administrator' ) ){
+
+					$email = sanitize_email( $_POST['mo_fb_demo_request_email'] );
+					$demo_plan = isset($_POST['mo_fb_demo_request_plan']) ? stripslashes( $_POST['mo_fb_demo_request_plan'] ) : '';
+					$query = stripslashes( $_POST['mo_fb_demo_request_usecase'] );
+
+					if( $this->mo_firebase_authentication_check_empty_or_null( $email ) || $this->mo_firebase_authentication_check_empty_or_null( $demo_plan ) || $this->mo_firebase_authentication_check_empty_or_null( $query ) ){
+
+						update_option( 'mo_firebase_auth_message', 'Please fill up usecase, email field and select a demo plan to submit your query.' );
+						$this->mo_firebase_auth_show_error_message();
+					}else{
+						$contact_us = new MO_Firebase_contact_us();
+						$message = '<b>Demo plan:</b> '.$demo_plan.'<br><b>Use-case:</b> '.$query;
+						$submited   = $contact_us->mo_firebase_auth_demo_request_mail( $email, $message, 'Demo Request | Firebase Authentication for WP' );
+						if ( $submited == false ) {
+							update_option( 'mo_firebase_auth_message', 'Your query could not be submitted. Please try again.' );
+							$this->mo_firebase_auth_show_error_message();
+						} else {
+							update_option( 'mo_firebase_auth_message', 'Thanks for getting in touch! We shall get back to you shortly.' );
+							$this->mo_firebase_auth_show_success_message();
+						}
+					
+					}
+
 				}
 			}
 		}

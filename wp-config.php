@@ -18,7 +18,10 @@
  * @package WordPress
  */
 // enable debug
-define('WP_DEBUG', false);
+// CONDITIONAL DEBUG WILL ONLY SHOW IF ?debug=true exists in URL
+if ( isset($_GET['debug']) && $_GET['debug'] == 'true')
+    define('WP_DEBUG', true);
+
 
 // ** MySQL settings ** //
 /** The name of the database for WordPress */

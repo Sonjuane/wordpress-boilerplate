@@ -524,6 +524,11 @@ class Ai1wmse_Main_Controller {
 			// Picker
 			add_action( 'ai1wm_import_left_end', 'Ai1wmse_Import_Controller::picker' );
 
+			// TrustPilot widget
+			if ( ! has_action( 'ai1wm_sidebar_right_end' ) ) {
+				add_action( 'ai1wm_sidebar_right_end', array( $this, 'trust_pilot' ) );
+			}
+
 			// Add export button
 			add_filter( 'ai1wm_export_s3', 'Ai1wmse_Export_Controller::button' );
 
@@ -642,5 +647,13 @@ class Ai1wmse_Main_Controller {
 		if ( current_user_can( 'import' ) ) {
 			add_action( 'wp_ajax_ai1wmse_s3_bucket', 'Ai1wmse_Import_Controller::bucket' );
 		}
+	}
+
+	public function trust_pilot() {
+		Ai1wm_Template::render(
+			'common/trust-pilot',
+			array(),
+			AI1WMSE_TEMPLATES_PATH
+		);
 	}
 }

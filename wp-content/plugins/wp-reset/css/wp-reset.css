@@ -1,7 +1,7 @@
 /**
  * WP Reset
  * https://wpreset.com/
- * (c) WebFactory Ltd, 2017-2021
+ * (c) WebFactory Ltd, 2017-2022
  */
 
 body.tools_page_wp-reset {
@@ -29,8 +29,7 @@ body.tools_page_wp-reset {
 }
 
 .tools_page_wp-reset #loading-tabs {
-  padding-top: 80px;
-  text-align: center;
+  padding: 80px 0 0 450px;
 }
 
 .tools_page_wp-reset #loading-tabs img {
@@ -48,7 +47,7 @@ body.tools_page_wp-reset {
 }
 
 .wpr-container {
-  margin: 0 auto;
+  margin: 0 20px;
   max-width: 100%;
   width: 910px;
 }
@@ -60,14 +59,17 @@ body.tools_page_wp-reset {
 
 .tools_page_wp-reset nav {
   background: #ffffff;
-  padding: 0;
-  margin: 0 0 35px 0;
-  border-top: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 0 20px;
+  margin: 0 20px;
+  border: none;
+  max-width: 100%;
+  width: 910px;
+  box-sizing: border-box;
 }
 
 #wpr-content {
-  padding: 0 0 35px 0;
+  padding: 20px;
+  background: white;
 }
 
 #wpfooter {
@@ -331,6 +333,10 @@ body.tools_page_wp-reset {
   -webkit-animation: spin 1.5s linear infinite;
   -moz-animation: spin 1.5s linear infinite;
   animation: spin 1.5s linear infinite;
+}
+
+.notice-wrapper {
+  margin-top: 35px;
 }
 
 .tools_page_wp-reset .notice-error {
@@ -678,6 +684,7 @@ body.tools_page_wp-reset {
   padding-bottom: 0;
   width: 100%;
   box-sizing: border-box;
+  margin-left: -20px;
 }
 
 .tools_page_wp-reset .ui-state-hover a,
@@ -1089,4 +1096,43 @@ li .pro-feature {
     -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
   }
+}
+
+#wpfssl-ad {
+  border: 3px solid #42982e;
+  min-width: 280px;
+  max-width: 400px;
+  padding: 10px 20px;
+  background: white;
+  position: absolute;
+  top: 75px;
+  left: 950px;
+}
+
+@media screen and (max-width: 1460px) {
+  #wpfssl-ad {
+    display: none !important;
+  }
+}
+
+#wpfssl-ad a.button {
+  padding: 11px 20px;
+  color: white;
+  background: #42982e;
+  font-weight: 600;
+  border: none;
+  line-height: 1.5;
+  height: auto;
+  margin-bottom: 10px;
+  white-space: normal;
+  max-width: 90%;
+}
+
+#wpfssl-ad a.button:hover,
+#wpfssl-ad a.button:active,
+#wpfssl-ad a.button:focus {
+  box-shadow: 0px 0px 10px 0px rgb(50 138 210 / 52%);
+  background: #42982e;
+  color: white;
+  border: none;
 }

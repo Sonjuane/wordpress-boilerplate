@@ -13,6 +13,7 @@ $config['custom_css'] = '#wf-flyout .ucp-icon .wff-icon img { max-width: 70%; } 
 
 $config['menu_items'] = array(
   array('href' => 'https://wpreset.com/?ref=wff-wp-reset', 'target' => '_blank', 'label' => 'Get WP Reset PRO with 50% off', 'icon' => 'wp-reset.png'),
+  array('href' => 'https://wpforcessl.com/?ref=wff-wp-reset', 'label' => 'Fix all SSL problems &amp; monitor site in real-time', 'icon' => 'wp-ssl.png', 'class' => 'wpfssl-icon'),
   array('href' => 'https://wp301redirects.com/?ref=wff-wp-reset&coupon=50off', 'label' => 'Get WP 301 Redirects PRO with 50% off', 'icon' => '301-logo.png', 'class' => 'wp301-icon'),
   array('href' => 'https://underconstructionpage.com/?ref=wff-wp-reset&coupon=welcome', 'target' => '_blank', 'label' => 'Create the perfect Under Construction Page', 'icon' => 'ucp.png', 'class' => 'ucp-icon'),
   array('href' => 'https://wpsticky.com/?ref=wff-wp-reset', 'target' => '_blank', 'label' => 'Make any element sticky with WP Sticky', 'icon' => 'dashicons-admin-post'),

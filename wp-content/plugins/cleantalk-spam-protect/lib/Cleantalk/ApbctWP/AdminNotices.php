@@ -18,7 +18,6 @@ class AdminNotices
      * @var array
      */
     const NOTICES = array(
-        'notice_get_key_error',
         'notice_key_is_incorrect',
         'notice_trial',
         'notice_renew',
@@ -122,7 +121,7 @@ class AdminNotices
             $content       =
                 sprintf(
                     __("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'),
-                    $this->apbct->errors['key_get']['error']
+                    end($this->apbct->errors['key_get'])['error']
                 ) .
                 '<a target="_blank" style="margin-left: 10px" href="' . $register_link . '">' .
                 esc_html__('Get the Access key', 'cleantalk-spam-protect') .
@@ -210,10 +209,14 @@ class AdminNotices
      */
     public function notice_incompatibility() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
         if ( ! empty($this->apbct->data['notice_incompatibility']) && $this->is_cleantalk_page && $this->apbct->settings['sfw__enabled'] ) {
             foreach ( $this->apbct->data['notice_incompatibility'] as $notice ) {
                 $this->generateNoticeHtml($notice);
             }
+        } else {
+            $apbct->data['notice_incompatibility'] = array();
+            $apbct->saveData();
         }
     }
 

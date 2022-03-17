@@ -52,8 +52,6 @@ class State extends \Cleantalk\Common\State
         'forms__wc_register_from_order'            => 1,
         // Woocommerce registration during checkout
         'forms__wc_add_to_cart'                    => 0,
-        // Woocommerce honeypot
-        'forms__wc_honeypot'                       => 1,
         // Woocommerce add to cart
         'forms__search_test'                       => 1,
         // Test default Wordpress form
@@ -87,14 +85,17 @@ class State extends \Cleantalk\Common\State
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
-        'data__set_cookies'                        => 1,
-        // Alternative cookies handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
+        'data__set_cookies'                        => 3,
+        // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
         'data__ssl_on'                             => 0,
         // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
+        'data__honeypot_field'                     => 0,
 
         // Exclusions
+        // Send to the cloud some excepted requests
+        'exclusions__log_excluded_requests'        => 0,
         'exclusions__urls'                         => '',
         'exclusions__urls__use_regexp'             => 0,
         'exclusions__fields'                       => '',
@@ -112,9 +113,7 @@ class State extends \Cleantalk\Common\State
         'gdpr__enabled'                            => 0,
         'gdpr__text'                               => 'By using this form you agree with the storage and processing of your data by using the Privacy Policy on this website.',
 
-        // Msic
-        'misc__collect_details'                    => 0,
-        // Collect details about browser of the visitor.
+        // Misc
         'misc__send_connection_reports'            => 0,
         // Send connection reports to Cleantalk servers
         'misc__async_js'                           => 0,
@@ -142,6 +141,7 @@ class State extends \Cleantalk\Common\State
         'current_settings_template_id'   => null,  // Loaded settings template id
         'current_settings_template_name' => null,  // Loaded settings template name
         'ajax_type'                      => false, // Ajax type
+        'cookies_type'                   => 'native', // Native / Alternative / None
 
         // Antispam
         'spam_store_days'                => 15, // Days before delete comments from folder Spam
@@ -260,6 +260,9 @@ class State extends \Cleantalk\Common\State
         // debug
         'debug'              => array('last_call' => 0, 'cooldown' => 0),
         'debug_sfw'          => array('last_call' => 0, 'cooldown' => 0),
+
+        // cron update
+        'cron_update_task'   => array('last_call' => 0),
     );
 
     public $def_stats = array(
@@ -389,10 +392,6 @@ class State extends \Cleantalk\Common\State
 
             // Setting default options
             if ($this->option_prefix . '_' . $option_name === 'cleantalk_settings') {
-                if ( ! $option) {
-                    //Set alt cookies if sg optimizer is installed
-                    $this->def_settings['data__set_cookies'] = defined('SiteGround_Optimizer\VERSION') ? 2 : 1;
-                }
                 $option = is_array($option) ? array_merge($this->def_settings, $option) : $this->def_settings;
             }
 
@@ -435,6 +434,17 @@ class State extends \Cleantalk\Common\State
         $this->api_key        = $this->settings['apikey'];
         $this->dashboard_link = 'https://cleantalk.org/my/' . ($this->user_token ? '?user_token=' . $this->user_token : '');
         $this->notice_show    = $this->data['notice_trial'] || $this->data['notice_renew'] || $this->data['notice_incompatibility'] || $this->isHaveErrors();
+
+        // Set cookies type to the DATA
+        if ( $this->settings['data__set_cookies'] ) {
+            $this->data['cookies_type'] =
+                ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
+                $this->settings['data__set_cookies'] == 2
+                    ? 'alternative'
+                    : 'native';
+        } else {
+            $this->data['cookies_type'] = 'none';
+        }
 
         // Network with Mutual key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
@@ -578,7 +588,7 @@ class State extends \Cleantalk\Common\State
             // Remove subtype errors from processing.
             // No need to array_shift for these
             $sub_errors = array();
-            if ( is_array($this->errors[$type]) ) {
+            if ( isset($this->errors[$type]) && is_array($this->errors[$type]) ) {
                 foreach ( $this->errors[$type] as $key => $sub_error ) {
                     if ( is_string($key) ) {
                         $sub_errors[$key] = $sub_error;
@@ -588,7 +598,7 @@ class State extends \Cleantalk\Common\State
             }
 
             // Drop first element if errors array length is more than 5
-            if ( is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
+            if ( isset($this->errors[$type]) && is_array($this->errors[$type]) && count($this->errors[$type]) >= 5 ) {
                 array_shift($this->errors[$type]);
             }
 
@@ -756,5 +766,13 @@ class State extends \Cleantalk\Common\State
     public function __unset($name)
     {
         unset($this->storage[$name]);
+    }
+
+    private function isServerCacheDetected()
+    {
+        $headers = Helper::httpGetHeaders();
+        return
+            isset($headers['X-Varnish']) || //Set alt cookies if varnish is installed
+            defined('SiteGround_Optimizer\VERSION'); //Set alt cookies if sg optimizer is installed
     }
 }

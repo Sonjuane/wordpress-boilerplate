@@ -6,6 +6,8 @@
 
 global $apbct;
 
+use Cleantalk\Variables\Post;
+
 // If this file is called directly, abort.
 if ( ! defined('DOING_AJAX') ) {
     http_response_code(403);
@@ -35,18 +37,13 @@ function apbct_js_keys__get()
     apbct_js_keys__get__ajax();
 }
 
-function apbct_email_check_before_post()
+function apbct_get_pixel_url()
 {
-    if ( count($_POST) && isset($_POST['data']['email']) && ! empty($_POST['data']['email']) ) {
-        $email  = trim($_POST['data']['email']);
-        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
-        if ( isset($result['data']) ) {
-            die(json_encode(array('result' => $result['data'])));
-        }
-        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
-    }
-    die(json_encode(array('error' => 'EMPTY_DATA')));
+    require_once(__DIR__ . '/cleantalk-common.php');
+    require_once(__DIR__ . '/cleantalk-pluggable.php');
+    apbct_get_pixel_url__ajax();
 }
+
 
 function apbct_alt_session__save__AJAX()
 {
@@ -56,4 +53,21 @@ function apbct_alt_session__save__AJAX()
 function apbct_alt_session__get__AJAX()
 {
     Cleantalk\ApbctWP\Variables\AltSessions::getFromRemote();
+}
+
+/**
+ * Checking email before POST from Ajax.php
+ */
+function apbct_email_check_before_post_from_custom_ajax()
+{
+    $email = trim(Post::get('email'));
+
+    if ( $email ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( isset($result['data']) ) {
+            die(json_encode(array('result' => $result['data'])));
+        }
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
 }

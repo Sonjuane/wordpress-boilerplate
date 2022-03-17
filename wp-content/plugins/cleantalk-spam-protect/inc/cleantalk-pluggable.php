@@ -1,5 +1,7 @@
 <?php
 
+use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
@@ -108,6 +110,37 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
     } else {
         return false;
     }
+}
+
+/**
+ * Checks if the user is a super admin
+ *
+ * @return boolean
+ */
+function apbct_is_super_admin($user_id = false)
+{
+    if (! $user_id) {
+        $user = apbct_wp_get_current_user();
+    } else {
+        $user = get_userdata($user_id);
+    }
+
+    if (! $user || ! $user->exists()) {
+        return false;
+    }
+
+    if (is_multisite()) {
+        $super_admins = get_super_admins();
+        if (is_array($super_admins) && in_array($user->user_login, $super_admins, true)) {
+            return true;
+        }
+    } else {
+        if ($user->has_cap('delete_users')) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -452,6 +485,36 @@ function apbct_is_customize_preview()
     return $uri && isset($uri['query']) && strpos($uri['query'], 'customize_changeset_uuid') !== false;
 }
 
+/**
+ * Check if the request is a direct trackback (like url_to_a_post/trackback/)
+ *
+ * @return bool
+ */
+function apbct_is_direct_trackback()
+{
+    return
+        Server::hasString('REQUEST_URI', '/trackback') &&
+        isset($_POST) &&
+        isset($_POST['url']) && ! empty($_POST['url']) &&
+        isset($_POST['title']) && ! empty($_POST['title']);
+}
+
+/**
+ * Determines whether the query is for a trackback endpoint call.
+ * @see is_trackback()
+ *
+ * @return bool
+ */
+function apbct_is_trackback()
+{
+    global $wp_query;
+
+    if ( ! isset($wp_query) ) {
+        return false;
+    }
+
+    return $wp_query->is_trackback();
+}
 
 /**
  * Checking if the request must be skipped.
@@ -464,6 +527,16 @@ function apbct_is_skip_request($ajax = false)
 {
     /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
     //@ToDo Implement direct integration checking - if have the direct integration will be returned false
+
+    global $apbct;
+
+    if ( RemoteCalls::check() ) {
+        return 'CleanTalk RemoteCall request.';
+    }
+
+    if ( is_admin() && ! $ajax ) {
+        return 'Admin side request.';
+    }
 
     if ( $ajax ) {
         /*****************************************/
@@ -579,9 +652,14 @@ function apbct_is_skip_request($ajax = false)
              Post::get('action') === 'fusion_options_ajax_save' ) {
             return 'Avada_theme_saving_settings';
         }
-        // Formidable skip - this is the durect integration
+        // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
-             Post::get('action') === 'frm_entries_update' ) {
+            (Post::get('frm_action') === 'update' ||
+            (Post::get('frm_action') === 'create' &&
+            $apbct->settings['forms__contact_forms_test'] == 1 &&
+            Post::get('form_id') !== '' &&
+            Post::get('form_key') !== ''))
+        ) {
             return 'formidable_skip';
         }
         // Artbees Jupiter theme saving settings
@@ -601,8 +679,8 @@ function apbct_is_skip_request($ajax = false)
         }
         // WPForms check restricted email skipped
         if (
-            (apbct_is_plugin_active('wpforms/wpforms.php')) &&
-            (Post::get('action') === 'wpforms_restricted_email' && Post::get('token') !== '')
+            apbct_is_plugin_active('wpforms/wpforms.php') &&
+            Post::get('action') === 'wpforms_restricted_email'
         ) {
             return 'wpforms_check_restricted_email';
         }
@@ -646,6 +724,93 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Classified checkemail';
         }
+        if (
+            (apbct_is_plugin_active('uncanny-toolkit-pro/uncanny-toolkit-pro.php') || apbct_is_plugin_active('uncanny-learndash-toolkit'))
+            && Post::get('action') === 'ult-forgot-password'
+        ) {
+            return 'Uncanny Toolkit';
+        }
+        if (
+            apbct_is_plugin_active('popup-builder/popup-builder.php') &&
+            Post::get('action') === 'sgpb_send_to_open_counter'
+        ) {
+            return 'Popup builder service actions';
+        }
+        if (
+            apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
+            Post::get('action') === 'spbc_get_authorized_users'
+        ) {
+            return 'SPBCT service actions';
+        }
+        // APBCT service actions
+        if (
+            apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
+            ( Post::get('action') === 'apbct_get_pixel_url' && wp_verify_nonce(Post::get('_ajax_nonce'), 'ct_secret_stuff') )
+        ) {
+            return 'APBCT service actions';
+        }
+        // Elementor pro forms has a direct integration
+        if (
+            apbct_is_plugin_active('elementor-pro/elementor-pro.php') &&
+            Post::get('action') === 'elementor_pro_forms_send_form' &&
+            Post::get('post_id') !== '' &&
+            Post::get('form_id') !== '' &&
+            Post::get('cfajax') === ''
+        ) {
+            return 'Elementor pro forms';
+        }
+        // Entry Views plugin service requests
+        if (
+            apbct_is_plugin_active('entry-views/entry-views.php') &&
+            Post::get('action') === 'entry_views' &&
+            Post::get('post_id') !== ''
+        ) {
+            return 'Entry Views service actions';
+        }
+        // Woo Gift Wrapper plugin service requests
+        if (
+            apbct_is_plugin_active('woocommerce-gift-wrapper/woocommerce-gift-wrapper.php') &&
+            Post::get('action') === 'wcgwp_remove_from_cart'
+        ) {
+            return 'Woo Gift Wrapper service actions';
+        }
+        // iThemes Security plugin service requests
+        if (
+            apbct_is_plugin_active('better-wp-security/better-wp-security.php') &&
+            Post::get('action') === 'itsec-login-interstitial-ajax'
+        ) {
+            return 'iThemes Security service actions';
+        }
+        // Microsoft Azure Storage plugin service requests
+        if (
+            apbct_is_plugin_active('windows-azure-storage/windows-azure-storage.php') &&
+            Post::get('action') === 'get-azure-progress'
+        ) {
+            return 'Microsoft Azure Storage service actions';
+        }
+        // AdRotate plugin service requests
+        if (
+            apbct_is_plugin_active('adrotate/adrotate.php') &&
+            Post::get('action') === 'adrotate_impression' &&
+            Post::get('track') !== ''
+        ) {
+            return 'AdRotate service actions';
+        }
+        // WP Booking System Premium
+        if (
+            (apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
+            Post::get('action') === 'wpbs_calculate_pricing') ||
+            Post::get('action') === 'wpbs_validate_date_selection'
+        ) {
+            return 'WP Booking System Premium';
+        }
+        // GiveWP - having the direct integration
+        if (
+            (apbct_is_plugin_active('give/give.php') &&
+            Post::get('action') === 'give_process_donation')
+        ) {
+            return 'GiveWP';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -678,7 +843,9 @@ function apbct_is_skip_request($ajax = false)
         // HappyForms skip every requests. HappyForms have the direct integration
         if ( (apbct_is_plugin_active('happyforms-upgrade/happyforms-upgrade.php') ||
               apbct_is_plugin_active('happyforms/happyforms.php')) &&
-             (Post::get('happyforms_message_nonce') !== '') ) {
+             (Post::get('happyforms_message_nonce') !== '') ||
+             (Post::get('action') === 'happyforms_message' && Post::get('happyforms_form_id') !== '')
+        ) {
             return 'happyform_skipped';
         }
         // Essentials addons for elementor - light and pro
@@ -699,9 +866,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'wp_forms';
         }
-        // Formidable skip - this is the durect integration
+        // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
-             Post::get('frm_action') === 'update' ) {
+             (Post::get('frm_action') === 'update' ||
+             (Post::get('frm_action') === 'create' &&
+             $apbct->settings['forms__contact_forms_test'] == 1 &&
+             Post::get('form_id') !== '' &&
+             Post::get('form_key') !== ''))
+        ) {
             return 'formidable_skip';
         }
         // WC payment APIs
@@ -709,6 +881,84 @@ function apbct_is_skip_request($ajax = false)
              apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ) {
             return 'cartflows_save_cart';
         }
+        // Vault Press (JetPack) plugin service requests
+        if (
+            Post::get('do_backups') !== '' &&
+            Get::get('vaultpress') === 'true' &&
+            Get::get('action') !== '' &&
+            preg_match('%Automattic\/VaultPress\/\d.\d$%', Server::get('HTTP_USER_AGENT'))
+        ) {
+            return 'Vault Press service actions';
+        }
+        // GridBuilder plugin service requests
+        if (
+            apbct_is_plugin_active('wp-grid-builder/wp-grid-builder.php') &&
+            Post::get('wpgb') !== '' &&
+            Get::get('wpgb-ajax') !== ''
+        ) {
+            return 'GridBuilder service actions';
+        }
+        // WSForms - this is the direct integration and service requests skip
+        if (
+            apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
+            ( ( Post::get('wsf_form_id') !== '' && Post::get('wsf_post_id') !== '' ) ||
+            (int) Post::get('wsffid') > 0 )
+        ) {
+            return 'WSForms skip';
+        }
+        // Checkout For WC - service requests skip
+        if (
+            apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') &&
+            ( ( apbct_is_in_uri('wc-ajax=update_checkout') && wp_verify_nonce(Post::get('security'), 'update-order-review') ) ||
+            apbct_is_in_uri('wc-ajax=account_exists') ||
+            apbct_is_in_uri('wc-ajax=complete_order') )
+        ) {
+            return 'Checkout For WC skip';
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Checking if the request must be skipped but logged by exception flag.
+ *
+ * @return false|string
+ */
+function apbct_is_exception_arg_request()
+{
+    if (
+        apbct_is_plugin_active('wc-dynamic-pricing-and-discounts/wc-dynamic-pricing-and-discounts.php') &&
+        Post::get('action') === 'rp_wcdpd_promotion_countdown_timer_update'
+    ) {
+        return 'WooCommerce Dynamic Pricing & Discounts service actions';
+    }
+    return false;
+}
+
+/**
+ * Checking availability of the handlers and return ajax type
+ *
+ * @return string|false
+ */
+function apbct_settings__get_ajax_type()
+{
+    // Check custom ajax availability - 1
+    $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
+    if ( $res_custom_ajax == 400 ) {
+        return 'custom_ajax';
+    }
+
+    // Check rest availability - 0
+    $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+    if ( $res_rest == 200 ) {
+        return 'rest';
+    }
+
+    // Check WP ajax availability - 2
+    $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
+    if ( $res_ajax == 400 ) {
+        return 'admin_ajax';
     }
 
     return false;

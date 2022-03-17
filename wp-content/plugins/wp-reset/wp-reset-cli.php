@@ -3,7 +3,7 @@
 /**
  * WP Reset
  * https://wpreset.com/
- * (c) WebFactory Ltd, 2017-2021
+ * (c) WebFactory Ltd, 2017-2022
  */
 
 
@@ -240,7 +240,7 @@ class WP_Reset_CLI extends WP_CLI_Command
             } else {
               $tmp['info'] .= 'no custom tables';
             }
-            $tmp['info'] .= ' totaling ' . $wp_reset->format_size($ss['tbl_size']) . ' in ' . number_format($ss['tbl_rows']) . ' rows';
+            $tmp['info'] .= ' totaling ' . WP_Reset_Utility::format_size($ss['tbl_size']) . ' in ' . number_format($ss['tbl_rows']) . ' rows';
 
             $table[] = $tmp;
           } // foreach

@@ -128,6 +128,15 @@ if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
 }
 
+/* Fusion Builder Avada Forms integration */
+add_action('wp_ajax_nopriv_fusion_form_submit_form_to_database_email', 'ct_ajax_hook', 1);
+$_cleantalk_hooked_actions[] = 'fusion_form_submit_form_to_database_email';
+
+// Elementor Pro page builder forms
+add_action('wp_ajax_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
+add_action('wp_ajax_nopriv_elementor_pro_forms_send_form', 'apbct_form__elementor_pro__testSpam');
+$_cleantalk_hooked_actions[] = 'elementor_pro_forms_send_form';
+
 /**
  * AjaxLogin plugin handler
  *
@@ -250,6 +259,8 @@ function ct_mc4wp_ajax_hook(array $errors)
  * @return array|bool|string|null
  *
  * @throws Exception
+ *
+ * @psalm-suppress ComplexFunction
  */
 function ct_ajax_hook($message_obj = null)
 {
@@ -301,8 +312,6 @@ function ct_ajax_hook($message_obj = null)
         'save_tourmaster_option',
         //Tourmaster admin save
         'validate_register_email',
-        // Service id #313320
-        'elementor_pro_forms_send_form',
         //Elementor Pro
         'phone-orders-for-woocommerce',
         //Phone orders for woocommerce backend
@@ -342,8 +351,6 @@ function ct_ajax_hook($message_obj = null)
         // WooCommerce cartflow
         'rcp_process_register_form',
         // WordPress Membership Plugin – Restrict Content
-        'give_process_donation',
-        // GiveWP
         'apus_ajax_login',
         // ???? plugin authorization
         'bookly_save_customer',
@@ -387,6 +394,9 @@ function ct_ajax_hook($message_obj = null)
         /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
         //Unknown plugin Ticket #25047
         'alhbrmeu',
+        // Ninja Forms
+        'nf_preview_update',
+        'nf_save_form'
     );
 
     global $apbct;
@@ -418,7 +428,7 @@ function ct_ajax_hook($message_obj = null)
     if ( apbct_is_skip_request(true) ) {
         do_action(
             'apbct_skipped_request',
-            __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request() . ')',
+            __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request(true) . ')',
             $_POST
         );
 
@@ -517,6 +527,23 @@ function ct_ajax_hook($message_obj = null)
         $ct_post_temp = $_POST['data'];
     }
 
+    // Fusion Builder Avada Form integration
+    if (Post::hasString('action', 'fusion_form_submit_form_to_database_email')) {
+        if (Post::get('formData')) {
+            $form_data = Post::get('formData');
+            $form_data = explode('&', $form_data);
+
+            for ($index = 0; $index < count($form_data); $index++) {
+                if (stripos($form_data[$index], 'apbct_visible_fields') === 0) {
+                    unset($form_data[$index]);
+                }
+            }
+
+            $form_data = implode('&', $form_data);
+            $_POST['formData'] = $form_data;
+        }
+    }
+
     /**
      * Filter for POST
      */
@@ -538,7 +565,7 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // Skip submission if no data found
-    if ( $sender_email === '' || $contact_form === false ) {
+    if ( $contact_form === false ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return false;
@@ -587,16 +614,21 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'sender_info'     => array('post_checkjs_passed' => $checkjs),
-            'post_info'       => $post_info,
-            'js_on'           => $checkjs,
-        )
+    $base_call_params = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'sender_info'     => array('post_checkjs_passed' => $checkjs),
+        'post_info'       => $post_info,
+        'js_on'           => $checkjs,
     );
+
+    if ( apbct_is_exception_arg_request() ) {
+        $base_call_params['exception_action'] = 1;
+        $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
+    }
+
+    $base_call_result = apbct_base_call($base_call_params);
     $ct_result        = $base_call_result['ct_result'];
 
     if ( $ct_result->allow == 0 ) {
@@ -645,12 +677,6 @@ function ct_ajax_hook($message_obj = null)
 
         if ( isset($_POST['action']) && $_POST['action'] === 'woocommerce_checkout' ) {
             print $ct_result->comment;
-            die();
-        }
-
-        if ( isset($_POST['action']) && $_POST['action'] === 'frm_entries_create' ) {
-            $result = array('112' => $ct_result->comment);
-            print json_encode($result);
             die();
         }
 
@@ -897,6 +923,17 @@ function ct_ajax_hook($message_obj = null)
                     array(
                         'status' => 'ok',
                         'thank_you_message' => $ct_result->comment
+                    )
+                )
+            );
+        }
+
+        if ( Post::hasString('action', 'fusion_form_submit_form_to_') ) {
+            die(
+                json_encode(
+                    array(
+                        'status' => 'error',
+                        'info' => $ct_result->comment
                     )
                 )
             );

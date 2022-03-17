@@ -3,7 +3,7 @@
   Plugin Name: WP Reset
   Plugin URI: https://wpreset.com/
   Description: Reset the entire site or just selected parts while reserving the option to undo by using snapshots.
-  Version: 1.93
+  Version: 1.95
   Requires at least: 4.0
   Requires PHP: 5.2
   Tested up to: 5.8
@@ -11,7 +11,7 @@
   Author URI: https://www.webfactoryltd.com/
   Text Domain: wp-reset
 
-  Copyright 2015 - 2021  WebFactory Ltd  (email: wpreset@webfactoryltd.com)
+  Copyright 2015 - 2022  WebFactory Ltd  (email: wpreset@webfactoryltd.com)
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License, version 2, as
@@ -106,6 +106,7 @@ class WP_Reset
     add_action('wp_ajax_wp_reset_dismiss_notice', array($this, 'ajax_dismiss_notice'));
     add_action('wp_ajax_wp_reset_run_tool', array($this, 'ajax_run_tool'));
     add_action('admin_print_scripts', array($this, 'remove_admin_notices'));
+    add_action('admin_action_wpr_install_wpfssl', array($this, 'install_wpfssl'));
 
     add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'plugin_action_links'));
     add_filter('plugin_row_meta', array($this, 'plugin_meta_links'), 10, 2);
@@ -370,6 +371,7 @@ class WP_Reset
       'documented_error' => __('An error has occurred.', 'wp-reset'),
       'plugin_name' => __('WP Reset', 'wp-reset'),
       'settings_url' => admin_url('tools.php?page=wp-reset'),
+      'wpfssl_install_url' => add_query_arg(array('action' => 'wpr_install_wpfssl', '_wpnonce' => wp_create_nonce('install_wpfssl'), 'rnd' => rand()), admin_url('admin.php')),
       'icon_url' => $this->plugin_url . 'img/wp-reset-icon.png',
       'invalid_confirmation' => __('Please type "reset" in the confirmation field.', 'wp-reset'),
       'invalid_confirmation_title' => __('Invalid confirmation', 'wp-reset'),
@@ -1109,7 +1111,7 @@ class WP_Reset
       wp_clear_auth_cookie();
       wp_set_auth_cookie($user_id);
 
-      wp_redirect(admin_url() . '?wp-reset=success');
+      wp_safe_redirect(admin_url() . '?wp-reset=success');
       exit;
     }
   } // do_reinstall
@@ -1467,6 +1469,15 @@ class WP_Reset
     echo '</div>'; // wp-reset-tabs
 
     echo '</form>';
+
+    if (!defined('WPFSSL_OPTIONS_KEY')) {
+      echo '<div id="wpfssl-ad">';
+      echo '<h3 class="textcenter"><b>Problems with SSL certificate?<br>Moving a site from HTTP to HTTPS?<br>Mixed content giving you troubles?<br><br><u>Fix all SSL problems with one plugin!</u></b></h3>';
+      echo '<p class="textcenter"><a href="#" class="textcenter install-wpfssl"><img style="max-width: 90%;" src="' . esc_url($this->plugin_url) . '/img/wp-force-ssl-logo.png" alt="WP Force SSL" title="WP Force SSL"></a></p>';
+      echo '<p class="textcenter"><br><a href="#" class="install-wpfssl button button-primary">Install &amp; activate the free WP Force SSL plugin</a></p><p><a href="https://wordpress.org/plugins/wp-force-ssl/" target="_blank">WP Force SSL</a> is a free WP plugin maintained by the same team as this Maintenance plugin. It has <b>+150,000 users, 5-star rating</b>, and is hosted on the official WP repository.</p>';
+      echo '</div>';
+    }
+
     echo '</div>'; // wrap
   } // plugin_page
 
@@ -1532,7 +1543,7 @@ class WP_Reset
     global $current_user, $wpdb;
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Please read carefully before proceeding', 'wp-reset'), 'reset-description', array('collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Please read carefully before proceeding', 'wp-reset'), 'reset-description', array('collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>The following table details what data will be deleted (reset or destroyed) when a selected reset tool is run. Please read it! ';
     echo 'If something is not clear <a href="#" class="change-tab" data-tab="4">contact support</a> before running any tools. It\'s better to ask than to be sorry!';
@@ -1573,7 +1584,9 @@ class WP_Reset
 
     foreach ($rows as $tool => $opt) {
       echo '<tr>';
-      echo '<td>' . nl2br(esc_html($tool)) . '</td>';
+      echo '<td>';
+      WP_Reset_Utility::wp_kses_wf(nl2br(esc_html($tool)));
+      echo '</td>';
       if (empty($opt[0])) {
         echo '<td><i class="dashicons dashicons-yes tooltip" title="Data will NOT be deleted, reset or modified"></i></td>';
       } else {
@@ -1626,21 +1639,21 @@ class WP_Reset
 
     // options reset
     echo '<div class="card">';
-    echo $this->get_card_header(__('Options Reset', 'wp-reset'), 'tool-options-reset', array('collapse_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Options Reset', 'wp-reset'), 'tool-options-reset', array('collapse_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>Options table will be reset to default values meaning all WP core settings, widgets, theme settings and customizations, and plugin settings will be gone. Other content and files will not be touched including posts, pages, custom post types, comments and other data stored in separate tables. Site URL and name will be kept as well. Please see the <a href="#reset-details" class="scrollto">table above</a> for details.</p>';
 
-    echo $this->get_tool_icons(false, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true));
 
     echo '<p><br><label for="reset-options-reactivate-theme"><input type="checkbox" id="reset-options-reactivate-theme" value="1"> ' . __('Reactivate current theme', 'wp-reset') . ' - ' . esc_html($theme_name) . '</label></p>';
-    echo '<p><label for="reset-options-reactivate-plugins"><input type="checkbox" id="reset-options-reactivate-plugins" value="1"> Reactivate ' . sizeof($active_plugins) . ' currently active plugin' . (sizeof($active_plugins) != 1 ? 's' : '') . ' (WP Reset will reactivate by default)</label></p>';
+    echo '<p><label for="reset-options-reactivate-plugins"><input type="checkbox" id="reset-options-reactivate-plugins" value="1"> Reactivate ' . esc_attr(sizeof($active_plugins)) . ' currently active plugin' . (sizeof($active_plugins) != 1 ? 's' : '') . ' (WP Reset will reactivate by default)</label></p>';
 
     echo '<p class="mb0"><a class="button button-delete button-pro-feature" href="#">Reset all options - <span data-feature="tool-options-reset" class="pro-feature"><span class="pro">PRO</span> tool</span></a></p>';
     echo '</div>';
     echo '</div>'; // options reset
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Site Reset', 'wp-reset'), 'tool-site-reset', array('collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Site Reset', 'wp-reset'), 'tool-site-reset', array('collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p><label for="reactivate-theme"><input name="wpr-post-reset[reactivate_theme]" type="checkbox" id="reactivate-theme" value="1"> ' . __('Reactivate current theme', 'wp-reset') . ' - ' . esc_html($theme->get('Name')) . '</label></p>';
     echo '<p><label for="reactivate-wpreset"><input name="wpr-post-reset[reactivate_wpreset]" type="checkbox" id="reactivate-wpreset" value="1" checked> ' . __('Reactivate WP Reset plugin', 'wp-reset') . '</label></p>';
@@ -1650,17 +1663,19 @@ class WP_Reset
 
     wp_nonce_field('wp-reset');
     echo '<p class="mb0"><input id="wp_reset_confirm" type="text" name="wp_reset_confirm" placeholder="' . esc_attr(sprintf(__('Type in: %s', 'wp-reset'), '"reset"')) . '" value="" autocomplete="off"> &nbsp;';
-    echo '<a id="wp_reset_submit" class="button button-delete">' . __('Reset Site', 'wp-reset') . '</a>' . $this->get_snapshot_button('reset-wordpress', 'Before resetting the site') . '</p>';
+    echo '<a id="wp_reset_submit" class="button button-delete">' . __('Reset Site', 'wp-reset') . '</a>';
+    WP_Reset_Utility::wp_kses_wf($this->get_snapshot_button('reset-wordpress', 'Before resetting the site'));
+    echo '</p>';
     echo '</div>';
     echo '</div>'; // card reset
 
     // nuclear reset
     echo '<div class="card">';
-    echo $this->get_card_header(__('Nuclear Site Reset', 'wp-reset'), 'tool-nuclear-reset', array('collapse_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Nuclear Site Reset', 'wp-reset'), 'tool-nuclear-reset', array('collapse_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>All data will be deleted or reset (see the <a href="#reset-details" class="scrollto">explanation table</a> for details). All data stored in the database including custom tables with <code>' . esc_html($wpdb->prefix) . '</code> prefix, as well as all files in wp-content, themes and plugins folders. The only thing restored after reset will be your user account so you can log in again, and the basic WP settings like site URL. Please see the <a href="#reset-details" class="scrollto">table above</a> for details.</p>';
 
-    echo $this->get_tool_icons(true, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, true));
 
     if (is_multisite()) {
       echo '<p class="mb0 wpmu-error">This tool is <b>not compatible</b> with WP multisite (WPMU). Using it would delete files shared by multiple sites in the WP network.</p>';
@@ -1705,7 +1720,7 @@ class WP_Reset
     );
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Index of Tools', 'wp-reset'), 'iot', array('collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Index of Tools', 'wp-reset'), 'iot', array('collapse_button' => true)));
     echo '<div class="card-body">';
     $i = 0;
     $tools_nb = sizeof($tools);
@@ -1737,58 +1752,60 @@ class WP_Reset
     echo '</div>';
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Reset Theme Options', 'wp-reset'), 'tool-reset-theme-options', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Reset Theme Options', 'wp-reset'), 'tool-reset-theme-options', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>' . __('All options (mods) for all themes will be reset; not just for the active theme. The tool works only for themes that use the <a href="https://codex.wordpress.org/Theme_Modification_API" target="_blank">WordPress theme modification API</a>. If options are saved in some other, custom way they won\'t be reset.<br> Always <a href="#" class="create-new-snapshot" data-description="Before resetting theme options">create a snapshot</a> before using this tool if you want to be able to undo its actions.', 'wp-reset') . '</p>';
-    echo $this->get_tool_icons(false, true);
-    echo '<p class="mb0"><a data-confirm-title="Are you sure you want to reset all theme options?" data-btn-confirm="Reset theme options" data-text-wait="Resetting theme options. Please wait." data-text-confirm="All options (mods) for all themes will be reset. Always ' . esc_attr('<a data-description="Before resetting theme options" href="#" class="create-new-snapshot">create a snapshot</a> if you want to be able to undo') . '." data-text-done="Options for %n themes have been reset." data-text-done-singular="Options for one theme have been reset." class="button button-delete" href="#" id="reset-theme-options">Reset theme options</a>' . $this->get_snapshot_button('reset-theme-options', 'Before resetting theme options') . '</p>';
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true));
+    echo '<p class="mb0"><a data-confirm-title="Are you sure you want to reset all theme options?" data-btn-confirm="Reset theme options" data-text-wait="Resetting theme options. Please wait." data-text-confirm="All options (mods) for all themes will be reset. Always ' . esc_attr('<a data-description="Before resetting theme options" href="#" class="create-new-snapshot">create a snapshot</a> if you want to be able to undo') . '." data-text-done="Options for %n themes have been reset." data-text-done-singular="Options for one theme have been reset." class="button button-delete" href="#" id="reset-theme-options">Reset theme options</a>';
+    WP_Reset_Utility::wp_kses_wf($this->get_snapshot_button('reset-theme-options', 'Before resetting theme options') . '</p>');
     echo '</div>';
     echo '</div>'; // reset theme options
 
     echo '<div class="card default-collapsed">';
-    echo $this->get_card_header(__('Reset User Roles', 'wp-reset'), 'tool-reset-user-roles', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Reset User Roles', 'wp-reset'), 'tool-reset-user-roles', array('collapse_button' => true, 'iot_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>Default user roles\' capatibilities will be reset to their default values. All custom roles will be deleted.<br>Users that had custom roles will not be assigned any default ones and might not be able to log in. Roles have to be (re)assigned to them manually.</p>';
-    echo $this->get_tool_icons(false, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true));
     echo '<p class="mb0"><a class="button button-delete button-pro-feature" href="#">Reset user roles - <span data-feature="tool-reset-user-roles" class="pro-feature"><span class="pro">PRO</span> tool</span></a>';
-    echo $this->get_snapshot_button('reset-user-roles', 'Before resetting user roles') . '</p>';
+    WP_Reset_Utility::wp_kses_wf($this->get_snapshot_button('reset-user-roles', 'Before resetting user roles') . '</p>');
     echo '</div>';
     echo '</div>'; // reset user roles
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Delete Transients', 'wp-reset'), 'tool-delete-transients', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete Transients', 'wp-reset'), 'tool-delete-transients', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>All transient related database entries will be deleted. Including expired and non-expired transients, and orphaned transient timeout entries.<br>Always <a href="#" data-description="Before deleting transients" class="create-new-snapshot">create a snapshot</a> before using this tool if you want to be able to undo its actions.</p>';
-    echo $this->get_tool_icons(false, true);
-    echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete all transients?" data-btn-confirm="Delete all transients" data-text-wait="Deleting transients. Please wait." data-text-confirm="All database entries related to transients will be deleted. Always ' . esc_attr('<a data-description="Before deleting transients" href="#" class="create-new-snapshot">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n transient database entries have been deleted." data-text-done-singular="One transient database entry has been deleted." class="button button-delete" href="#" id="delete-transients">Delete all transients</a>' . $this->get_snapshot_button('delete-transients', 'Before deleting transients') . '</p>';
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true));
+    echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete all transients?" data-btn-confirm="Delete all transients" data-text-wait="Deleting transients. Please wait." data-text-confirm="All database entries related to transients will be deleted. Always ' . esc_attr('<a data-description="Before deleting transients" href="#" class="create-new-snapshot">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n transient database entries have been deleted." data-text-done-singular="One transient database entry has been deleted." class="button button-delete" href="#" id="delete-transients">Delete all transients</a>';
+    WP_Reset_Utility::wp_kses_wf($this->get_snapshot_button('delete-transients', 'Before deleting transients') . '</p>');
     echo '</div>';
     echo '</div>'; // delete transients
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Purge Cache', 'wp-reset'), 'tool-purge-cache', array('collapse_button' => true, 'iot_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Purge Cache', 'wp-reset'), 'tool-purge-cache', array('collapse_button' => true, 'iot_button' => true)));
     echo '<div class="card-body">';
     echo '<p>All cache objects stored in both files and the database will be deleted. Along with WP object cache and transients, cache from the following plugins will be purged: W3 Total Cache, WP Cache, LiteSpeed Cache, Endurance Page Cache, SiteGround Optimizer, WP Fastest Cache and Swift Performance.</p>';
-    echo $this->get_tool_icons(true, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, true));
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to purge all cache?" data-btn-confirm="Purge cache" data-text-wait="Purging cache. Please wait." data-text-confirm="All cache objects will be deleted. There is NO UNDO. WP Reset does not make any file backups." data-text-done="Cache has been purged." data-text-done-singular="Cache has been purged." class="button button-delete" href="#" id="purge-cache">Purge cache</a></p>';
     echo '</div>';
     echo '</div>'; // purge cache
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Delete Local Data', 'wp-reset'), 'tool-delete-local-data', array('collapse_button' => true, 'iot_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete Local Data', 'wp-reset'), 'tool-delete-local-data', array('collapse_button' => true, 'iot_button' => true)));
     echo '<div class="card-body">';
     echo '<p>All local storage and session storage data will be deleted. Cookies without a custom set path will be deleted as well. WP cookies are not touched, with Delete Local Data button.<br>Deleting all WordPress cookies (including authentication cookies) will delete all WP related cookies and user (you) will be logged out on the next page reload.
     </p>';
-    echo $this->get_tool_icons(false, false);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, false));
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete all local data?" data-btn-confirm="Delete local data" data-text-wait="Deleting local data. Please wait." data-text-confirm="All local data; cookies, local storage and local session will be deleted. There is NO UNDO. WP Reset does not make backups of local data." data-text-done="%n local data objects have been deleted." data-text-done-singular="One local data object has been deleted." class="button button-delete" href="#" id="delete-local-data">Delete local data</a><a data-confirm-title="Are you sure you want to delete all WP related cookies?" data-btn-confirm="Delete all WordPress cookies" data-text-wait="Deleting WP cookies. Please wait." data-text-confirm="All WP cookies including authentication ones will be deleted. You will have to log in again. There is NO UNDO. WP Reset does not make backups of cookies." data-text-done="All WP cookies have been deleted.  Reload the page to login again." data-text-done-singular="All WP cookies have been deleted. Reload the page to login again." class="button button-delete" href="#" id="delete-wp-cookies">Delete all WordPress cookies</a></p>';
     echo '</div>';
     echo '</div>'; // delete local data
 
     echo '<div class="card default-collapsed">';
-    echo $this->get_card_header(__('Delete Content', 'wp-reset'), 'tool-delete-content', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete Content', 'wp-reset'), 'tool-delete-content', array('collapse_button' => true, 'iot_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>Besides content, all linked or child records (for selected content) will be deleted to prevent creating orphaned rows in the database. For instance, for posts that\'s posts, post meta, and comments related to posts. Delete process does not call any WP hooks such as <i>before_delete_post</i>. Choosing a post type or taxonomy does not delete that parent object it deletes the child objects. Parent objects are defined in code. If you want to remove them, remove their code definition. When media is deleted, files are left in the uploads folder. To delete files use the <a class="scrollto" href="#tool-delete-uploads">Clean uploads Folder</a> tool. Deleting users does not affect the current, logged in user account. All orphaned objects will be reassigned to him.</p>';
 
-    echo $this->get_tool_icons(false, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true));
 
     $post_types = get_post_types('', false, 'and');
     $taxonomies = get_taxonomies('', false, 'and');
@@ -1816,11 +1833,11 @@ class WP_Reset
     echo '</div>'; // delete content
 
     echo '<div class="card default-collapsed">';
-    echo $this->get_card_header(__('Delete Widgets', 'wp-reset'), 'tool-delete-widgets', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete Widgets', 'wp-reset'), 'tool-delete-widgets', array('collapse_button' => true, 'iot_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>All widgets, orphaned, active and inactive ones, as well as widgets in active and inactive sidebars will be deleted including their settings. After deleting, WordPress will automatically recreate default, empty database entries related to widgets. So, no matter how many times users run the tool it will never return "no data deleted". That\'s expected and normal.</p>';
 
-    echo $this->get_tool_icons(false, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true));
 
     echo '<p class="mb0"><a class="button button-delete button-pro-feature" href="#">Delete widgets - <span data-feature="tool-delete-widgets" class="pro-feature"><span class="pro">PRO</span> tool</span></a></p>';
     echo '</div>';
@@ -1829,25 +1846,25 @@ class WP_Reset
     $theme =  wp_get_theme();
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Delete Themes', 'wp-reset'), 'tool-delete-themes', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete Themes', 'wp-reset'), 'tool-delete-themes', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>' . __('All themes will be deleted. Including the currently active theme - ' . esc_html($theme->get('Name')) . '.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
-    echo $this->get_tool_icons(true, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, true));
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete all themes?" data-btn-confirm="Delete all themes" data-text-wait="Deleting all themes. Please wait." data-text-confirm="All themes will be deleted. There is NO UNDO. WP Reset does not make any file backups." data-text-done="%n themes have been deleted." data-text-done-singular="One theme has been deleted." class="button button-delete" href="#" id="delete-themes">Delete all themes</a></p>';
     echo '</div>';
     echo '</div>'; // delete themes
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Delete Plugins', 'wp-reset'), 'tool-delete-plugins', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete Plugins', 'wp-reset'), 'tool-delete-plugins', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>' . __('All plugins will be deleted except for WP Reset which will remain active.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
-    echo $this->get_tool_icons(true, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, true));
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete all plugins?" data-btn-confirm="Delete plugins" data-text-wait="Deleting plugins. Please wait." data-text-confirm="All plugins except WP Reset will be deleted. There is NO UNDO. WP Reset does not make any file backups." data-text-done="%n plugins have been deleted." data-text-done-singular="One plugin has been deleted." class="button button-delete" href="#" id="delete-plugins">Delete plugins</a></p>';
     echo '</div>';
     echo '</div>'; // delete plugins
 
     echo '<div class="card default-collapsed">';
-    echo $this->get_card_header(__('Delete MU Plugins & Drop-ins', 'wp-reset'), 'tool-delete-mu-plugins-dropins', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete MU Plugins & Drop-ins', 'wp-reset'), 'tool-delete-mu-plugins-dropins', array('collapse_button' => true, 'iot_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>MU Plugins are located in <code>/wp-content/mu-plugins/</code> and are, as the name suggests, must-use plugins that are automatically activated by WP and can\'t be deactiavated via the <a href="' . esc_url(admin_url('plugins.php?plugin_status=mustuse')) . '" target="_blank">plugins interface</a>, although if any are used, they are listed in the "Must Use" tab.<br>';
     echo 'Drop-ins are pieces of code found in <code>/wp-content/</code> that replace default, built-in WordPress functionality. Most often used are <code>db.php</code> and <code>advanced-cache.php</code> that implement custom DB and cache functionality. They can\'t be deactivated via the <a href="' . esc_url(admin_url('plugins.php?plugin_status=dropins')) . '" target="_blank">plugins interface</a> but if any are present are listed in the "Drop-in" tab.</p>';
@@ -1855,7 +1872,7 @@ class WP_Reset
     if (is_multisite()) {
       echo '<p class="mb0 wpmu-error">This tool is <b>not compatible</b> with WP multisite (WPMU). Using it would delete plugins for all sites in the network since they all share the same plugin files.</p>';
     } else {
-      echo $this->get_tool_icons(true, false, true);
+      WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, false, true));
       echo '<p class="mb0"><a class="button button-delete button-pro-feature" href="#">Delete must use plugins - <span data-feature="tool-delete-mu-plugins" class="pro-feature"><span class="pro">PRO</span> tool</span></a><a class="button button-delete button-pro-feature" href="#">Delete drop-ins - <span data-feature="tool-delete-dropins" class="pro-feature"><span class="pro">PRO</span> tool</span></a></p>';
     }
     echo '</div>';
@@ -1865,10 +1882,10 @@ class WP_Reset
     $upload_dir['basedir'] = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $upload_dir['basedir']);
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Clean uploads Folder', 'wp-reset'), 'tool-delete-uploads', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Clean uploads Folder', 'wp-reset'), 'tool-delete-uploads', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>' . __('All files in <code>' . esc_html($upload_dir['basedir']) . '</code> folder will be deleted. Including folders and subfolders, and files in subfolders. Files associated with <a href="' . esc_url(admin_url('upload.php')) . '">media</a> entries will be deleted too.<br><b>There is NO UNDO. WP Reset does not make any file backups.</b>', 'wp-reset') . '</p>';
-    echo $this->get_tool_icons(true, false);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, false));
     if (false != $upload_dir['error']) {
       echo '<p class="mb0"><span style="color:#dd3036;"><b>Tool is not available.</b></span> Folder is not writeable by WordPress. Please check file and folder access rights.</p>';
     } else {
@@ -1878,10 +1895,10 @@ class WP_Reset
     echo '</div>'; // clean uploads folder
 
     echo '<div class="card default-collapsed">';
-    echo $this->get_card_header(__('Clean wp-content Folder', 'wp-reset'), 'tool-delete-wp-content', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Clean wp-content Folder', 'wp-reset'), 'tool-delete-wp-content', array('collapse_button' => true, 'iot_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>All folders and their content in <code>wp-content</code> folder except the following ones will be deleted: <code>mu-plugins</code>, <code>plugins</code>, <code>themes</code>, <code>uploads</code>, <code>wp-reset-autosnapshots</code>, <code>wp-reset-snapshots-export</code>.</p>';
-    echo $this->get_tool_icons(true, false);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, false));
     if (false === is_writable(trailingslashit(WP_CONTENT_DIR))) {
       echo '<p class="mb0"><span style="color:#dd3036;"><b>Tool is not available.</b></span> Folder is not writeable by WordPress. Please check file and folder access rights.</p>';
     } else {
@@ -1893,7 +1910,7 @@ class WP_Reset
     $custom_tables = $this->get_custom_tables();
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Empty or Delete Custom Tables', 'wp-reset'), 'tool-empty-delete-custom-tables', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Empty or Delete Custom Tables', 'wp-reset'), 'tool-empty-delete-custom-tables', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>' . __('This action affects only custom tables with <code>' . esc_html($wpdb->prefix) . '</code> prefix. Core WP tables and other tables in the database that do not have that prefix will not be deleted/emptied. Deleting (dropping) tables completely removes them from the database. Emptying (truncating) removes all content from them, but keeps the structure intact.<br>Always <a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> before using this tool if you want to be able to undo its actions.</p>', 'wp-reset');
     if ($custom_tables) {
@@ -1910,20 +1927,22 @@ class WP_Reset
       echo '<p>' . __('There are no custom tables. There\'s nothing for this tool to empty or delete.', 'wp-reset') . '</p>';
       $custom_tables_btns = ' disabled';
     }
-    echo $this->get_tool_icons(false, true, true);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(false, true, true));
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to empty all custom tables?" data-btn-confirm="Empty custom tables" data-text-wait="Emptying custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . esc_attr($wpdb->prefix) . '</code> will be emptied. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before emptying custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been emptied." data-text-done-singular="One custom table has been emptied." class="button button-delete' . esc_attr($custom_tables_btns) . '" href="#" id="truncate-custom-tables">Empty (truncate) custom tables</a>';
-    echo '<a data-confirm-title="Are you sure you want to delete all custom tables?" data-btn-confirm="Delete custom tables" data-text-wait="Deleting custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . esc_attr($wpdb->prefix) . '</code> will be deleted. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been deleted." data-text-done-singular="One custom table has been deleted." class="button button-delete' . esc_attr($custom_tables_btns) . '" href="#" id="drop-custom-tables">Delete (drop) custom tables</a>' . $this->get_snapshot_button('drop-custom-tables', 'Before deleting custom tables') . '</p>';
+    echo '<a data-confirm-title="Are you sure you want to delete all custom tables?" data-btn-confirm="Delete custom tables" data-text-wait="Deleting custom tables. Please wait." data-text-confirm="All custom tables with prefix <code>' . esc_attr($wpdb->prefix) . '</code> will be deleted. Always ' . esc_attr('<a href="#" class="create-new-snapshot" data-description="Before deleting custom tables">create a snapshot</a> if you want to be able to undo') . '." data-text-done="%n custom tables have been deleted." data-text-done-singular="One custom table has been deleted." class="button button-delete' . esc_attr($custom_tables_btns) . '" href="#" id="drop-custom-tables">Delete (drop) custom tables</a>';
+    WP_Reset_Utility::wp_kses_wf($this->get_snapshot_button('drop-custom-tables', 'Before deleting custom tables'));
+    echo '</p>';
     echo '</div>';
     echo '</div>'; // empty custom tables
 
     echo '<div class="card default-collapsed">';
-    echo $this->get_card_header(__('Switch WP Version', 'wp-reset'), 'tool-switch-wp-version', array('collapse_button' => true, 'iot_button' => true, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Switch WP Version', 'wp-reset'), 'tool-switch-wp-version', array('collapse_button' => true, 'iot_button' => true, 'pro' => true)));
     echo '<div class="card-body">';
     if (is_multisite()) {
       echo '<p class="mb0 wpmu-error">This tool is <b>not compatible</b> with WP multisite (WPMU). Using it would change the WP version for all sites in the network since they all share the same core files.</p>';
     } else {
       echo '<p>Replace current WordPress version with the selected new version. Switching from a previous version, to a newer version is mostly supported and properly handled by the WP installer. Reverting WordPress, rolling back WordPress to a previous version is not supported. Results may vary!</p>';
-      echo $this->get_tool_icons(true, true);
+      WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, true));
 
       $wp_versions = WP_Reset_Utility::get_wordpress_versions();
       echo '<p><label for="select-wp-version">Select the WordPress version to switch to:</label> ';
@@ -1935,7 +1954,7 @@ class WP_Reset
         } elseif ($release_date == 'point') {
           echo '<option value="point-' . esc_attr(substr($version, 0, 3)) . '">WordPress v' . esc_html($version) . ' (Point release nightly)' . ($wp_version == $version ? ' - installed' : '') . '</option>';
         } else {
-          echo '<option value="' . esc_attr($version) . '">WordPress v' . esc_html($version) . ' (' . date('Y-m-d', $release_date) . ')' . ($wp_version == $version ? ' - installed' : '') . '</option>';
+          echo '<option value="' . esc_attr($version) . '">WordPress v' . esc_html($version) . ' (' . esc_attr(date('Y-m-d', $release_date)) . ')' . ($wp_version == $version ? ' - installed' : '') . '</option>';
         }
       }
       echo '</select></p>';
@@ -1948,12 +1967,12 @@ class WP_Reset
     echo '</div>'; // switch WP version
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Delete .htaccess File', 'wp-reset'), 'tool-delete-htaccess', array('iot_button' => true, 'collapse_button' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Delete .htaccess File', 'wp-reset'), 'tool-delete-htaccess', array('iot_button' => true, 'collapse_button' => true)));
     echo '<div class="card-body">';
     echo '<p>' . __('This action deletes the .htaccess file located in <code>' . esc_html($this->get_htaccess_path()) . '</code><br><b>There is NO UNDO. WP Reset does not make any file backups.</b></p>', 'wp-reset');
 
     echo '<p>If you need to edit .htaccess, install our free <a href="' . esc_url(admin_url('plugin-install.php?tab=plugin-information&plugin=wp-htaccess-editor&TB_iframe=true&width=600&height=550')) . '" class="thickbox open-plugin-details-modal">WP Htaccess Editor</a> plugin. It automatically creates backups when you edit .htaccess as well as checks for syntax errors. To create the default .htaccess file open <a href="' . esc_url(admin_url('options-permalink.php')) . '">Settings - Permalinks</a> and re-save settings. WordPress will recreate the file.</p>';
-    echo $this->get_tool_icons(true, false);
+    WP_Reset_Utility::wp_kses_wf($this->get_tool_icons(true, false));
     echo '<p class="mb0"><a data-confirm-title="Are you sure you want to delete the .htaccess file?" data-btn-confirm="Delete .htaccess file" data-text-wait="Deleting .htaccess file. Please wait." data-text-confirm="Htaccess file will be deleted. There is NO UNDO. WP Reset does not make any file backups." data-text-done="Htaccess file has been deleted." data-text-done-singular="Htaccess file has been deleted." class="button button-delete" href="#" id="delete-htaccess">Delete .htaccess file</a></p>';
 
     echo '</div>';
@@ -1969,7 +1988,7 @@ class WP_Reset
   private function tab_collections()
   {
     echo '<div class="card">';
-    echo $this->get_card_header('What are Plugin & Theme Collections?', 'collections-info', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header('What are Plugin & Theme Collections?', 'collections-info', array('collapse_button' => false)));
     echo '<div class="card-body">';
     echo '<p>' . __('Have a set of plugins (and themes) that you install and activate after every reset? Or on every fresh WordPress installation? Well, no more clicking install &amp; active for ten minutes! Build the collection once and install it with one click as many times as needed.</p><p>WP Reset stores collections in the cloud so they\'re accessible on every site you build. You can use free plugins and themes from the official repo, and PRO ones by uploading a ZIP file. We\'ll safely store your license keys too, so you have everything in one place.', 'wp-reset') . '</p>';
     echo '<p><a class="button button-secondary button-pro-feature" href="#">Add a new collection - <span data-feature="collections" class="pro-feature"><span class="pro">PRO</span> feature</span></a> &nbsp; <a class="button button-secondary button-pro-feature" href="#">Reload my saved collections from the cloud - <span data-feature="collections" class="pro-feature"><span class="pro">PRO</span> feature</span></a></p>';
@@ -1985,7 +2004,7 @@ class WP_Reset
     $plugins['wp-external-links'] = array('name' => 'WP External Links', 'desc' => 'Manage all external & internal links. Control icons, nofollow, noopener, UGC, sponsored and if links open in new window or new tab.');
 
     echo '<div class="card" data-collection-id="1">';
-    echo $this->get_card_header('Must Have WordPress Plugins', 'collection-id-1', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header('Must Have WordPress Plugins', 'collection-id-1', array('collapse_button' => false)));
     echo '<div class="card-body"><div class="thirdx2"><p class="_mb0"></p><div class="dropdown  dropdown-right">
     <a class="button dropdown-toggle" href="#">Install collection</a>
     <div class="dropdown-menu">
@@ -2025,14 +2044,14 @@ class WP_Reset
   private function tab_support()
   {
     echo '<div class="card">';
-    echo $this->get_card_header(__('Documentation', 'wp-reset'), 'support-documentation', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Documentation', 'wp-reset'), 'support-documentation', array('collapse_button' => false)));
     echo '<div class="card-body">';
     echo '<p class="mb0">' . __('All tools and features are explained in detail in <a href="' . esc_url($this->generate_web_link('support-tab', '/documentation/')) . '" target="_blank">the documentation</a>. We did our best to describe how things work on both the code level and an "average user" level.', 'wp-reset') . '</p>';
     echo '</div>';
     echo '</div>'; // documentation
 
     echo '<div class="card">';
-    echo $this->get_card_header('Emergency Recovery Script', 'support-ers', array('collapse_button' => false, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header('Emergency Recovery Script', 'support-ers', array('collapse_button' => false, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p>Emergency Recovery Script is a standalone, single-file, WordPress independent PHP script created to <b>recover WordPress sites from the most difficult situations</b>. When access to the admin is not possible when core files are compromised (accidental delete or malware related situations), when you get the white screen of death, can\'t log in for whatever reason or a plugin has killed your site - emergency recovery script can fix the problem! Some of the things ERS can do;</p>';
     echo '<ul class="plain-list">';
@@ -2049,21 +2068,21 @@ class WP_Reset
     echo '</div>'; // emergency recovery script
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Public Support Forum', 'wp-reset'), 'support-forum', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Public Support Forum', 'wp-reset'), 'support-forum', array('collapse_button' => false)));
     echo '<div class="card-body">';
     echo '<p>' . __('We are very active on the <a href="https://wordpress.org/support/plugin/wp-reset" target="_blank">official WP Reset support forum</a>. If you found a bug, have a feature idea or just want to say hi - please drop by. We love to hear back from our users.', 'wp-reset') . '</p>';
     echo '</div>';
     echo '</div>'; // forum
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Premium Email Support', 'wp-reset'), 'support-email', array('collapse_button' => false, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Premium Email Support', 'wp-reset'), 'support-email', array('collapse_button' => false, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p class="mb0">Need urgent support? Have one of our devs personally help you with your issue. All PRO license holders have access to premium email support. Get <span class="pro-feature pro-feature-text" data-feature="support-email">WP Reset <span>PRO</span></span> now.</p>';
     echo '</div>';
     echo '</div>'; // email support
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Care to Help Out?', 'wp-reset'), 'support-help-out', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Care to Help Out?', 'wp-reset'), 'support-help-out', array('collapse_button' => false)));
     echo '<div class="card-body">';
     echo '<p class="mb0">' . __('No need for donations :) If you can give us a <a href="https://wordpress.org/support/plugin/wp-reset/reviews/#new-post" target="_blank">five star rating</a> you\'ll help out more than you can imagine. A public mention <a href="https://twitter.com/webfactoryltd" target="_blank">@webfactoryltd</a> also does wonders. Thank you!', 'wp-reset') . '</p>';
     echo '</div>';
@@ -2078,8 +2097,12 @@ class WP_Reset
    */
   private function tab_pro()
   {
+    $agency_lifetime = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-agency-ltd-launch'));
+    $team_lifetime = $this->generate_web_link('pricing-table', '/', array(), 'pricing');
+    $personal_lifetime = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-personal-ltd-launch'));
+
     echo '<div class="card">';
-    echo $this->get_card_header(__('WP Reset PRO', 'wp-reset'), 'pro-features', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('WP Reset PRO', 'wp-reset'), 'pro-features', array('collapse_button' => false)));
     echo '<div class="card-body">';
     echo '<p>More ways to reset your site, more tools, automatic snapshots, collections, email support and the emergency recover script - that\'s WP Reset PRO in a nutshell. The same <b>quality and easy-of-use</b> you experienced in the free version is very much a part of the PRO one, but extended and upgraded with more tools that will save you even more time.</p>';
     echo '<p>WP Reset PRO is aimed towards <b>webmasters, agencies, and everyone who buildsa a lot of WordPress sites</b>. It\'s much, much more than a "reset" tool. It\'s an easy way to start a new site, to test changes and to get out of the thickest jams. And thanks to its cloud features and the Dashboard it\'ll give you access to collections and snapshots on all the sites you\'re working on - instantly, without dragging any files along.</p>';
@@ -2089,16 +2112,23 @@ class WP_Reset
     echo '</div>';
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Pricing', 'wp-reset'), 'pro-pricing', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Pricing', 'wp-reset'), 'pro-pricing', array('collapse_button' => false)));
     echo '<div class="card-body">';
 
     echo '<table id="pricing-table" class="mb0">';
     echo '<tr>';
     echo '<th>&nbsp;</th>';
-    echo '<th nowrap>WP Reset <span>PRO</span><br><b>Agency</b></th>';
-    echo '<th nowrap>WP Reset <span>PRO</span><br><b>Team</b></th>';
-    echo '<th nowrap>WP Reset <span>PRO</span><br><b>Personal</b></th>';
     echo '<th nowrap>WP Reset<br>Free</th>';
+    echo '<th nowrap>WP Reset <span>PRO</span><br><b>Personal</b></th>';
+    echo '<th nowrap>WP Reset <span>PRO</span><br><b>Team</b></th>';
+    echo '<th nowrap>WP Reset <span>PRO</span><br><b>Agency</b></th>';
+    echo '</tr>';
+
+    echo '<tr class="pricing"><td>Lifetime Price</td>';
+    echo '<td>free</td>';
+    echo '<td>one-time payment<br><del>&nbsp;$99&nbsp;</del> <b>$49</b><br><a href="' . esc_url($personal_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
+    echo '<td>one-time payment<br><del>&nbsp;$159&nbsp;</del> <b>$59</b><br><a href="' . esc_url($team_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
+    echo '<td>one-time payment<br><del>&nbsp;$399&nbsp;</del> <b>$199</b><br><a href="' . esc_url($agency_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
     echo '</tr>';
 
     $rows = array();
@@ -2114,18 +2144,15 @@ class WP_Reset
     $rows['Plugins & Themes Collections'] = array(false, true, true, true);
     $rows['Emergency Recovery Script'] = array(false, true, true, true);
     $rows['Email Support'] = array(false, true, true, true);
-    $rows['WP Reset Dashboard'] = array(false, true, true, true);
-    $rows['License Manager'] = array(false, true, true, true);
-    $rows['White-Label'] = array(false, false, false, true);
-    $rows['Manage Snapshots for all sites in Dashboard'] = array(false, true, true, true);
-    $rows['Manage Collections for all sites in Dashboard'] = array(false, true, true, true);
+    $rows['WP Reset Dashboard with License Manager'] = array(false, true, true, true);
+    $rows['White-Label & Rebranding'] = array(false, false, false, true);
+    $rows['Manage Snapshots & Collections for all sites in Dashboard'] = array(false, true, true, true);
     $rows['Number of sites included in the license (localhosts are not counted & you can change sites)'] = array('&infin;', 1, 5, 100);
     $rows['Number of WP Reset Cloud site licenses with 2GB storage per site (localhosts are not counted & you can change sites)'] = array(0, 1, 5, 20);
 
     foreach ($rows as $feature => $details) {
       echo '<tr>';
       echo '<td>' . esc_html($feature) . '</td>';
-      $details = array_reverse($details);
       foreach ($details as $tmp) {
         echo '<td>';
         if ($tmp === true) {
@@ -2133,28 +2160,18 @@ class WP_Reset
         } elseif ($tmp === false) {
           echo '<i class="dashicons dashicons-no red tooltip" title="Feature is not available"></i>';
         } else {
-          echo $tmp;
+          WP_Reset_Utility::wp_kses_wf($tmp);
         }
         echo '</td>';
       } // foreach column
       echo '</tr>';
     } // foreach $rows
 
-    $agency = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-agency-launch'));
-    $team = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-team-launch'));
-    $team_lifetime = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-team-lifetime-launch'));
-    $personal = $this->generate_web_link('pricing-table', '/buy/', array('p' => 'wp-reset-pro-personal-launch'));
-    echo '<tr class="pricing"><td>Yearly Price</td>';
-    echo '<td><del>&nbsp;$299/y&nbsp;</del><br><b>50% OFF</b><br>$149 <small>/y</small><br><a href="' . esc_url($agency) . '" class="button" target="_blank">BUY NOW</a></td>';
-    echo '<td><del>&nbsp;$158/y&nbsp;</del><br><b>50% OFF</b><br>$79 <small>/y</small><br><a href="' . esc_url($team) . '" class="button" target="_blank">BUY NOW</a></td>';
-    echo '<td><del>&nbsp;$79 <small>/y</small>&nbsp;</del><br><b>50% OFF</b><br>$39 <small>/y</small><br><a href="' . esc_url($personal) . '" class="button" target="_blank">BUY NOW</a></td>';
-    echo '<td>free</td>';
-    echo '</tr>';
     echo '<tr class="pricing"><td>Lifetime Price</td>';
-    echo '<td><i>n/a</i></td>';
-    echo '<td><del>&nbsp;$319&nbsp;</del><br><b>one-time payment<br>50% OFF</b><br>$159<br><a href="' . esc_url($team_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
-    echo '<td><i>n/a</i></td>';
     echo '<td>free</td>';
+    echo '<td>one-time payment<br><del>&nbsp;$99&nbsp;</del> <b>$49</b><br><a href="' . esc_url($personal_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
+    echo '<td>one-time payment<br><del>&nbsp;$159&nbsp;</del> <b>$59</b><br><a href="' . esc_url($team_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
+    echo '<td>one-time payment<br><del>&nbsp;$399&nbsp;</del> <b>$199</b><br><a href="' . esc_url($agency_lifetime) . '" class="button button-primary" target="_blank">BUY NOW</a></td>';
     echo '</tr>';
     echo '</table>';
 
@@ -2162,7 +2179,7 @@ class WP_Reset
     echo '</div>';
 
     echo '<div class="card">';
-    echo $this->get_card_header(__('Activate PRO License', 'wp-reset'), 'pro-activate', array('collapse_button' => false));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header(__('Activate PRO License', 'wp-reset'), 'pro-activate', array('collapse_button' => false)));
     echo '<div class="card-body">';
 
     echo '<p>License key is visible on the confirmation screen, right after purchasing. You can also find it in the confirmation email sent to the email address provided on purchase. Or use keys created with the <a href="https://dashboard.wpreset.com/licenses/" target="_blank">license manager</a>.</p>
@@ -2264,7 +2281,7 @@ class WP_Reset
 
       echo '<p class="mb0"><b>Currently used WordPress tables</b>, prefixed with <i>' . esc_html($wpdb->prefix) . '</i>, consist of ' . esc_html($tbl_core) . ' standard and ';
       if ($tbl_custom) {
-        echo $tbl_custom . ' custom table' . ($tbl_custom == 1 ? '' : 's');
+        echo esc_attr($tbl_custom) . ' custom table' . ($tbl_custom == 1 ? '' : 's');
       } else {
         echo 'no custom tables';
       }
@@ -2277,7 +2294,7 @@ class WP_Reset
     echo '</div>';
 
     echo '<div class="card">';
-    echo $this->get_card_header('User Created Snapshots', 'snapshots-user', array('collapse_button' => 1, 'create_snapshot' => true, 'snapshot_actions' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header('User Created Snapshots', 'snapshots-user', array('collapse_button' => 1, 'create_snapshot' => true, 'snapshot_actions' => true)));
     echo '<div class="card-body">';
     if ($snapshots = $this->get_snapshots()) {
       $snapshots = array_reverse($snapshots);
@@ -2293,9 +2310,9 @@ class WP_Reset
 
         echo '<td>';
         if (current_time('timestamp') - strtotime($ss['timestamp']) > 12 * HOUR_IN_SECONDS) {
-          echo date(get_option('date_format'), strtotime($ss['timestamp'])) . '<br>@ ' . date(get_option('time_format'), strtotime($ss['timestamp']));
+          echo esc_attr(date(get_option('date_format'), strtotime($ss['timestamp']))) . '<br>@ ' . esc_attr(date(get_option('time_format'), strtotime($ss['timestamp'])));
         } else {
-          echo human_time_diff(strtotime($ss['timestamp']), current_time('timestamp')) . ' ago';
+          echo esc_attr(human_time_diff(strtotime($ss['timestamp']), current_time('timestamp'))) . ' ago';
         }
         echo '</td>';
 
@@ -2303,14 +2320,14 @@ class WP_Reset
         if (!empty($ss['name'])) {
           echo '<b>' . esc_html($ss['name']) . '</b><br>';
         }
-        echo $ss['tbl_core'] . ' standard &amp; ';
+        echo esc_attr($ss['tbl_core']) . ' standard &amp; ';
         if ($ss['tbl_custom']) {
-          echo $ss['tbl_custom'] . ' custom table' . ($ss['tbl_custom'] == 1 ? '' : 's');
+          echo esc_attr($ss['tbl_custom']) . ' custom table' . ($ss['tbl_custom'] == 1 ? '' : 's');
         } else {
           echo 'no custom tables';
         }
-        echo ' totaling ' . number_format($ss['tbl_rows']) . ' rows</td>';
-        echo '<td class="ss-size">' . WP_Reset_Utility::format_size($ss['tbl_size']) . '</td>';
+        echo ' totaling ' . esc_attr(number_format($ss['tbl_rows'])) . ' rows</td>';
+        echo '<td class="ss-size">' . esc_attr(WP_Reset_Utility::format_size($ss['tbl_size'])) . '</td>';
         echo '<td>';
         echo '<div class="dropdown">
         <a class="button dropdown-toggle" href="#">Actions</a>
@@ -2333,7 +2350,7 @@ class WP_Reset
     echo '</div>';
 
     echo '<div class="card">';
-    echo $this->get_card_header('Automatic Snapshots', 'snapshots-auto', array('collapse_button' => false, 'pro' => true));
+    WP_Reset_Utility::wp_kses_wf($this->get_card_header('Automatic Snapshots', 'snapshots-auto', array('collapse_button' => false, 'pro' => true)));
     echo '<div class="card-body">';
     echo '<p><span class="pro-feature pro-feature-text" data-feature="snapshots-auto">WP Reset <span>PRO</span></span> creates automatic snapshots before significant events occur on your site that can cause it to stop working correctly. Plugin, theme and core updates, plugin and theme activations and deactivations all of those can happen in the background without your knowledge. With automatic snapshots, you can roll back any update with a single click. Snapshots can be uploaded to the WP Reset Cloud, Dropbox, Google Drive or pCloud, giving you an extra layer of security.<br>
     Upgrade to <span class="pro-feature pro-feature-text" data-feature="snapshots-auto">WP Reset <span>PRO</span></span> to enable automatic snapshots and give your site an extra layer of safety.</p>';
@@ -2467,7 +2484,7 @@ class WP_Reset
         } else {
           $tbl_custom++;
         }
-
+        
         $wpdb->query("OPTIMIZE TABLE {$table->Name}");
         $wpdb->query("CREATE TABLE {$uid}_{$table->Name} LIKE {$table->Name}");
         $wpdb->query("INSERT {$uid}_{$table->Name} SELECT * FROM {$table->Name}");
@@ -2925,6 +2942,66 @@ class WP_Reset
 
     return $uid;
   } // generate_snapshot_uid
+
+
+  // auto download / install / activate WP Force SSL plugin
+  function install_wpfssl() {
+    check_ajax_referer('install_wpfssl');
+
+    if (false === current_user_can('administrator')) {
+      wp_die('Sorry, you have to be an admin to run this action.');
+    }
+
+    $plugin_slug = 'wp-force-ssl/wp-force-ssl.php';
+    $plugin_zip = 'https://downloads.wordpress.org/plugin/wp-force-ssl.latest-stable.zip';
+
+    @include_once ABSPATH . 'wp-admin/includes/plugin.php';
+    @include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+    @include_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+    @include_once ABSPATH . 'wp-admin/includes/file.php';
+    @include_once ABSPATH . 'wp-admin/includes/misc.php';
+		echo '<style>
+		body{
+			font-family: sans-serif;
+			font-size: 14px;
+			line-height: 1.5;
+			color: #444;
+		}
+		</style>';
+
+    echo '<div style="margin: 20px; color:#444;">';
+    echo 'If things are not done in a minute <a target="_parent" href="' . admin_url('plugin-install.php?s=force%20ssl%20webfactory&tab=search&type=term') .'">install the plugin manually via Plugins page</a><br><br>';
+    echo 'Starting ...<br><br>';
+
+		wp_cache_flush();
+    $upgrader = new Plugin_Upgrader();
+    echo 'Check if WP Force SSL is already installed ... <br />';
+    if ($this->is_plugin_installed($plugin_slug)) {
+      echo 'WP Force SSL is already installed! <br /><br />Making sure it\'s the latest version.<br />';
+      $upgrader->upgrade($plugin_slug);
+      $installed = true;
+    } else {
+      echo 'Installing WP Force SSL.<br />';
+      $installed = $upgrader->install($plugin_zip);
+    }
+    wp_cache_flush();
+
+    if (!is_wp_error($installed) && $installed) {
+      echo 'Activating WP Force SSL.<br />';
+      $activate = activate_plugin($plugin_slug);
+
+      if (is_null($activate)) {
+        echo 'WP Force SSL Activated.<br />';
+
+        echo '<script>setTimeout(function() { top.location = "tools.php?page=wp-reset"; }, 1000);</script>';
+        echo '<br>If you are not redirected in a few seconds - <a href="tools.php?page=wp-reset" target="_parent">click here</a>.';
+      }
+    } else {
+      echo 'Could not install WP Force SSL. You\'ll have to <a target="_parent" href="' . admin_url('plugin-install.php?s=force%20ssl%20webfactory&tab=search&type=term') .'">download and install manually</a>.';
+    }
+
+    echo '</div>';
+  } // install_wpfssl
 
 
   /**

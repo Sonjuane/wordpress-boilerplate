@@ -16,9 +16,10 @@ class Mo_Firebase_Authentication_Admin_LoginSettings {
 				</ol>
 				<strong style="font-weight: 600; vertical-align: top; ">Option 2: Use a Shortcode for login</strong>
 				<ol>
-					<p>1. Place shortcode <b>[mo_firebase_auth_login]</b> in WordPress pages or posts where you want to give social login option to your users.<br>
-					2. Place shortcode <b>[mo_firebase_auth_display_login_form]</b> to add Firebase Login form on WordPress pages.<br>
-					3. Place shortcode <b>[mo_firebase_auth_display_registration_form]</b> to add Firebase Registration form on WordPress pages.</p>
+					<p>1. Place shortcode <b>[mo_firebase_auth_login_ui]</b> to add Firebase Phone Login button on WordPress pages.<br>
+					2. Place shortcode <b>[mo_firebase_auth_login]</b> in WordPress pages or posts where you want to give social login option to your users.<br>
+					3. Place shortcode <b>[mo_firebase_auth_display_login_form]</b> to add Firebase Login form on WordPress pages.<br>
+					4. Place shortcode <b>[mo_firebase_auth_display_registration_form]</b> to add Firebase Registration form on WordPress pages.</p>
 				</ol>
 			</div>
 		</div>

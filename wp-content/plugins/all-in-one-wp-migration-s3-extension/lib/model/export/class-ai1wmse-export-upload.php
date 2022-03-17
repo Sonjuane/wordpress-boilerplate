@@ -53,6 +53,11 @@ class Ai1wmse_Export_Upload {
 			$params['archive_offset'] = 0;
 		}
 
+		// Set multipart offset
+		if ( ! isset( $params['multipart_offset'] ) ) {
+			$params['multipart_offset'] = 0;
+		}
+
 		// Set archive size
 		if ( ! isset( $params['archive_size'] ) ) {
 			$params['archive_size'] = ai1wm_archive_bytes( $params );
@@ -104,8 +109,13 @@ class Ai1wmse_Export_Upload {
 				$file_chunk_etag = $s3->upload_file_chunk( $file_chunk_data, $file_path, $params['upload_id'], $params['bucket_name'], $params['region_name'], $params['file_chunk_number'] );
 
 				// Add file chunk ETag
-				if ( ( $multipart = fopen( ai1wm_multipart_path( $params ), 'a' ) ) ) {
-					fwrite( $multipart, $file_chunk_etag . PHP_EOL );
+				if ( ( $multipart = fopen( ai1wm_multipart_path( $params ), 'cb' ) ) ) {
+					if ( fseek( $multipart, $params['multipart_offset'] ) !== -1 ) {
+						fwrite( $multipart, $file_chunk_etag . PHP_EOL );
+					}
+
+					$params['multipart_offset'] = ftell( $multipart );
+
 					fclose( $multipart );
 				}
 
@@ -170,6 +180,9 @@ class Ai1wmse_Export_Upload {
 
 			// Unset archive offset
 			unset( $params['archive_offset'] );
+
+			// Unset multipart offset
+			unset( $params['multipart_offset'] );
 
 			// Unset archive size
 			unset( $params['archive_size'] );

@@ -526,9 +526,11 @@ class Plugin {
 
 		$request = parse_url( rawurldecode( $_SERVER['REQUEST_URI'] ) );
 
+		do_action( 'wps_hide_login_before_redirect', $request );
+
 		if ( ! ( isset( $_GET['action'] ) && $_GET['action'] === 'postpass' && isset( $_POST['post_password'] ) ) ) {
 
-			if ( is_admin() && ! is_user_logged_in() && ! defined( 'DOING_AJAX' ) && ! defined( 'DOING_CRON' ) && $pagenow !== 'admin-post.php' && $request['path'] !== '/wp-admin/options.php' ) {
+			if ( is_admin() && ! is_user_logged_in() && ! defined( 'WP_CLI' ) && ! defined( 'DOING_AJAX' ) && ! defined( 'DOING_CRON' ) && $pagenow !== 'admin-post.php' && $request['path'] !== '/wp-admin/options.php' ) {
 				wp_safe_redirect( $this->new_redirect_url() );
 				die();
 			}
@@ -538,15 +540,12 @@ class Plugin {
 				die();
 			}
 
-			if ( ! is_user_logged_in() && $request['path'] === '/wp-admin/options.php' ) {
+			if ( ! is_user_logged_in() && isset( $request['path'] ) && $request['path'] === '/wp-admin/options.php' ) {
 				header('Location: ' . $this->new_redirect_url() );
 				die;
 			}
 
-			if ( $pagenow === 'wp-login.php'
-			     && $request['path'] !== $this->user_trailingslashit( $request['path'] )
-			     && get_option( 'permalink_structure' ) ) {
-
+			if ( $pagenow === 'wp-login.php' && isset( $request['path'] ) && $request['path'] !== $this->user_trailingslashit( $request['path'] ) && get_option( 'permalink_structure' ) ) {
 				wp_safe_redirect( $this->user_trailingslashit( $this->new_login_url() )
 				                  . ( ! empty( $_SERVER['QUERY_STRING'] ) ? '?' . $_SERVER['QUERY_STRING'] : '' ) );
 

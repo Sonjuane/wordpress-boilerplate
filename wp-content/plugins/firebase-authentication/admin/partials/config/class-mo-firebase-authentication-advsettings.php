@@ -30,10 +30,10 @@ class Mo_Firebase_Authentication_Admin_AdvSettings {
 				<form name="integration_form" id="mo_firebase_auth_integration"  method="post" style="margin-bottom: 10px;">
 					
 					<input type="hidden" name="option" value="mo_firebase_auth_integration" style="margin-top: 0px; margin-bottom: 0px;">
-					<div style="display: inline-block;"><h3 style="margin: 15px 0;">Login & Registeration Form Integration</h3></div>&nbsp;<small style="color: #FF0000"><a href="admin.php?page=mo_firebase_authentication&tab=licensing_plans">[PREMIUM]</a></small>
-					<span style="float: right; font-size: 14px; margin-top: 10px;">[<a href="https://plugins.miniorange.com/firebase-woocommerce-integration" target="_blank" rel="noopener">Click here</a>]</span>
+					<div style="display: inline-block;"><h3 style="margin: 15px 0;">Login & Registration Form Integration</h3></div>&nbsp;<small style="color: #FF0000"><a href="admin.php?page=mo_firebase_authentication&tab=licensing_plans">[PREMIUM]</a></small>
+					<span style="float: right; font-size: 14px; margin-top: 10px;"><a href="https://plugins.miniorange.com/firebase-woocommerce-integration" target="_blank" rel="noopener" class="mo_firebase_setup_guide_style" style="text-decoration: none;"> Know more</a></span>
 					<table class="mo_settings_table" style="width: 95%;">
-					<tr><td>Select if you want to allow users to login using firebase credentials with below third party or custom login/registration page.</td></tr>
+					<tr><td>Select below if you want to allow users to login using firebase credentials with WooCommerce or BuddyPress.</td></tr>
 					<tr><td></td></tr><tr><td></td></tr>
 					<tr><td>
 					<input type="checkbox" name = "mo_firebase_auth_woocommerce_intigration" id = "mo_firebase_auth_woocommerce_intigration" value= "1" onclick="mo_firebase_auth_manageWCDiv();" disabled>
@@ -55,7 +55,7 @@ class Mo_Firebase_Authentication_Admin_AdvSettings {
 					
 					<input type="hidden" name="option" value="mo_firebase_auth_integration">
 					<div style="display: inline-block;"><h3  style="margin: 10px 0;">Firebase Authentication methods</h3></div>&nbsp;<small style="color: #FF0000"> <a href="admin.php?page=mo_firebase_authentication&tab=licensing_plans">[ENTERPRISE]</a></small>
-					<span style="float: right; font-size: 14px; margin-top: 10px;">[<a href="https://plugins.miniorange.com/firebase-social-login-integration-for-wordpress" target="_blank" rel="noopener">Click here</a>]</span>
+					<span style="float: right; font-size: 14px; margin-top: 10px;"><a href="https://plugins.miniorange.com/firebase-social-login-integration-for-wordpress" target="_blank" rel="noopener" class="mo_firebase_setup_guide_style" style="text-decoration: none;"> Know more</a></span>
 					<table class="mo_settings_table"><tr><td>
 					<p>Select Firebase Social login methods to Login into your site. </p></td></tr>
 					<!-- <input type="radio" id="emailPassword" value="emailPassword" disabled>

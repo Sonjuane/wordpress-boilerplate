@@ -6,6 +6,7 @@ require( 'config/class-mo-firebase-authentication-hooks.php' );
 require( 'config/class-mo-firebase-authentication-licensing_plans.php' );
 require( 'support/class-mo-firebase-authentication-support.php' );
 require( 'support/class-mo-firebase-authentication-faq.php' );
+require( 'support/class-mo-firebase-authentication-demo.php' );
 require( 'account/class-mo-firebase-authentication-account.php' );
 
 function mo_firebase_authentication_main_menu() {
@@ -67,6 +68,7 @@ class Mo_Firebase_Authentication_Admin_Menu {
 					<a href="admin.php?page=mo_firebase_authentication&tab=advsettings" class="nav-tab <?php if($currenttab === 'advsettings') echo 'nav-tab-active'; ?>">Advanced Settings</a>
 					<a href="admin.php?page=mo_firebase_authentication&tab=loginsettings"class="nav-tab <?php if($currenttab === 'loginsettings') echo 'nav-tab-active'; ?>">Login Settings</a>
 					<!-- <a href="admin.php?page=mo_firebase_authentication&tab=hooks" class="nav-tab <?php if($currenttab === 'hooks') echo 'nav-tab-active'; ?>">Hooks</a> -->
+					<a href="admin.php?page=mo_firebase_authentication&tab=requestfordemo" class="nav-tab  <?php if($currenttab === 'requestfordemo') echo 'nav-tab-active'; ?>">Trials Available</a>
 					<a href="admin.php?page=mo_firebase_authentication&tab=account" class="nav-tab  <?php if($currenttab === 'account') echo 'nav-tab-active'; ?>">Account Setup</a>
 					<a href="admin.php?page=mo_firebase_authentication&tab=licensing_plans" class="nav-tab <?php if($currenttab === 'licensing_plans') echo 'nav-tab-active'; ?>">Licensing Plans</a>
 
@@ -128,6 +130,8 @@ class Mo_Firebase_Authentication_Admin_Menu {
     		Mo_Firebase_Authentication_Admin_Licensing_Plans::mo_firebase_authentication_licensing_plans();
     	elseif( $currenttab == 'faq')
     		Mo_Firebase_Authentication_Admin_FAQ::mo_firebase_authentication_faq();
+    	elseif( $currenttab == 'requestfordemo')
+    		Mo_Firebase_Authentication_Admin_Demo::mo_firebase_authentication_handle_demo();
 	}
 
 	public static function mo_firebase_auth_show_support_sidebar( $currenttab ) { 

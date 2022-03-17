@@ -19,8 +19,8 @@ class Mo_Firebase_Authentication_Admin_Config {
 									</label>
 								</div>
 								<div style="display:inline"><div style="display:inline-block;padding:0px 10px 10px 0px"><h3>Enable Firebase Authentication</h3></div>
-								<span style="float: right; font-size: 14px; margin-top: 10px;">[
-								<a href="https://plugins.miniorange.com/login-into-wordpress-using-firebase-authentication" target="_blank" rel="noopener">How to configure?</a> ]</span>
+								<span style="float: right; font-size: 14px; margin-top: 10px;">
+								<a href="https://plugins.miniorange.com/login-into-wordpress-using-firebase-authentication" target="_blank" rel="noopener" class="mo_firebase_setup_guide_style" style="text-decoration: none;"> How to configure?</a></span>
 							</div>
 						</form>
 						<form action="" method="post" id="mo_firebase_auth_form" style="margin-top: 0px;">
@@ -75,7 +75,7 @@ class Mo_Firebase_Authentication_Admin_Config {
 					<form name="mo_firebase_attr_mapping_form" id="mo_firebase_attr_mapping_form"  method="post">
 						<input type="hidden" name="option" value="mo_firebase_attr_mapping">
 						<table class="mo_settings_table" style="margin-top: 10px;">
-						<tr><td><strong><span class="mo_premium_feature">*</span>Username Attribute:</strong></td>
+						<tr><td><strong><font color="#FF0000">* </font>Username Attribute:</strong></td>
 						<td><input class="mo_table_short_textbox" type="text" id="mo_firebase_username" name="username_attr" value="" placeholder="Username Attribute Name" disabled style="width:40%;"></td></tr>
 						<tr><td><span class="mo_premium_feature"></span><strong>Email Attribute:</strong></td>
 						<td><input type="text" class="mo_table_short_textbox" id="mo_firebase_email" name="email_attr" value="" placeholder="Email Attribute Name" disabled style="width:40%;"></td></tr>

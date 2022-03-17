@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
 function apbct_array($array)
@@ -177,10 +178,45 @@ function apbct_base_call($params = array(), $reg_flag = false)
     );
 
     /**
+     * Add exception_action sender email is empty
+     */
+    if (
+        empty($params['sender_email']) &&
+        ! isset($params['exception_action']) &&
+        // No need to log excluded requests on the direct integrations
+        ! empty($params['post_info']['comment_type']) &&
+        strpos($params['post_info']['comment_type'], 'contact_form_wordpress_') === false &&
+        ! preg_match('/comment$/', $params['post_info']['comment_type']) &&
+        ! apbct_is_trackback() &&
+        ! defined('XMLRPC_REQUEST')
+    ) {
+        $params['exception_action'] = 1;
+    }
+    /**
+     * Skip checking excepted requests if the "Log excluded requests" option is disabled.
+     */
+    if ( isset($params['exception_action']) && $params['exception_action'] == 1 && ! $apbct->settings['exclusions__log_excluded_requests'] ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return array('ct_result' => new CleantalkResponse());
+    }
+
+    /**
      * Add honeypot_field if exists in params
      */
     if ( isset($params['honeypot_field']) ) {
         $default_params['honeypot_field'] = $params['honeypot_field'];
+    }
+    /**
+     * Add honeypot_field to $base_call_data is forms__wc_honeypot on
+     */
+    if ( $apbct->settings['data__honeypot_field'] ) {
+        $honeypot_field = 1;
+
+        if ( Post::get('wc_apbct_email_id') || Post::get('apbct__email_id__wp_register') ) {
+            $honeypot_field = 0;
+        }
+
+        $params['honeypot_field'] = $honeypot_field;
     }
 
     // Send $_SERVER if couldn't find IP
@@ -422,6 +458,8 @@ function apbct_exclusions_check__ip()
  */
 function apbct_get_sender_info()
 {
+    global $apbct;
+
     // Validate cookie from the backend
     $cookie_is_ok = apbct_cookies_test();
 
@@ -446,9 +484,14 @@ function apbct_get_sender_info()
         : null;
 
     // Visible fields processing
-    $visible_fields = apbct_visible_fields__process(Cookie::get('apbct_visible_fields', array(), 'array'));
+    $visible_fields_collection = '';
+    if ( Cookie::getVisibleFields() ) {
+        $visible_fields_collection = Cookie::getVisibleFields();
+    } elseif ( isset($_POST['apbct_visible_fields']) ) {
+        $visible_fields_collection = stripslashes($_POST['apbct_visible_fields']);
+    }
 
-    global $apbct;
+    $visible_fields = apbct_visible_fields__process($visible_fields_collection);
 
     return array(
         'plugin_request_id'      => $apbct->plugin_request_id,
@@ -467,6 +510,7 @@ function apbct_get_sender_info()
         // PHP cookies
         'cookies_enabled'        => $cookie_is_ok,
         'data__set_cookies'      => $apbct->settings['data__set_cookies'],
+        'data__cookies_type'     => $apbct->data['cookies_type'],
         'REFFERRER_PREVIOUS'     => Cookie::get('apbct_prev_referer') && $cookie_is_ok ? Cookie::get(
             'apbct_prev_referer'
         ) : null,
@@ -474,8 +518,6 @@ function apbct_get_sender_info()
             'apbct_site_landing_ts'
         ) : null,
         'page_hits'              => Cookie::get('apbct_page_hits') ?: null,
-        // JS cookies
-        'js_info'                => Cookie::get('ct_user_info'),
         'mouse_cursor_positions' => Cookie::get('ct_pointer_data'),
         'js_timezone'            => Cookie::get('ct_timezone') ?: null,
         'key_press_timestamp'    => Cookie::get('ct_fkp_timestamp') ?: null,
@@ -526,22 +568,23 @@ function apbct_sender_info___get_page_url()
 function apbct_visible_fields__process($visible_fields)
 {
     $visible_fields = is_array($visible_fields)
-        ? json_encode($visible_fields)
+        ? json_encode($visible_fields, JSON_FORCE_OBJECT)
         : $visible_fields;
 
     // Do not decode if it's already decoded
     $fields_collection = json_decode($visible_fields, true);
 
     if ( ! empty($fields_collection) ) {
+        // These fields belong this request
+        $fields_to_check = apbct_get_fields_to_check();
+
         foreach ( $fields_collection as $current_fields ) {
             if ( isset($current_fields['visible_fields'], $current_fields['visible_fields_count']) ) {
                 $fields = explode(' ', $current_fields['visible_fields']);
 
-                // This fields belong this request
-                $fields_to_check = apbct_get_fields_to_check();
                 if ( count(array_intersect(array_keys($fields_to_check), $fields)) > 0 ) {
                     // WP Forms visible fields formatting
-                    if ( strpos($visible_fields, 'wpforms') !== false ) {
+                    if ( strpos($current_fields['visible_fields'], 'wpforms') !== false ) {
                         $current_fields = preg_replace(
                             array('/\[/', '/\]/'),
                             '',
@@ -593,6 +636,44 @@ function apbct_get_fields_to_check()
 function apbct_js_keys__get__ajax()
 {
     die(json_encode(array('js_key' => ct_get_checkjs_value())));
+}
+
+function apbct_get_pixel_url__ajax($direct_call = false)
+{
+    global $apbct;
+    $pixel_hash = md5(
+        Helper::ipGet()
+        . $apbct->api_key
+        . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
+    );
+
+    $server           = get_option('cleantalk_server');
+    $server_url       = isset($server['ct_work_url']) ? $apbct->server['ct_work_url'] : APBCT_MODERATE_URL;
+    $pixel            = '/pixel/' . $pixel_hash . '.gif';
+    $pixel_url = str_replace('http://', 'https://', $server_url) . $pixel;
+
+    if ( $direct_call ) {
+        return $pixel_url ;
+    }
+
+    die($pixel_url);
+}
+
+/**
+ * Checking email before POST
+ */
+function apbct_email_check_before_post()
+{
+    $email = trim(Post::get('email'));
+
+    if ( $email ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( isset($result['data']) ) {
+            die(json_encode(array('result' => $result['data'])));
+        }
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
 }
 
 /**
@@ -690,18 +771,25 @@ function ct_get_admin_email()
 {
     global $apbct;
 
-    // Not WPMS
-    if (!is_multisite()) {
-        return $apbct->data['account_email'] ?: get_option('admin_email');
+    if ( ! is_multisite() ) {
+        // Not WPMS
+        $admin_email = get_option('admin_email');
+    } elseif ( is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
+        // WPMS - Main site, common account
+        $admin_email = get_site_option('admin_email');
+    } else {
+        // WPMS - Individual account, individual key
+        $admin_email = get_blog_option(get_current_blog_id(), 'admin_email');
     }
 
-    // Main site, common account
-    if (is_main_site() || $apbct->network_settings['multisite__work_mode'] != 3) {
-        return $apbct->data['account_email'] ?: get_site_option('admin_email');
+    if ( $apbct->data['account_email'] ) {
+        add_filter('apbct_get_api_key_email', function () {
+            global $apbct;
+            return $apbct->data['account_email'];
+        });
     }
 
-    // Individual account, individual key
-    return $apbct->data['account_email'] ?: get_blog_option(get_current_blog_id(), 'admin_email');
+    return $admin_email;
 }
 
 /**
@@ -1115,7 +1203,7 @@ function apbct__styles_if_website_hidden()
         echo $styles;
     }
 
-    if ( $apbct->settings['forms__wc_honeypot'] ) {
+    if ( $apbct->settings['data__honeypot_field'] ) {
         $styles = "
 		<style>
 		.wc_apbct_email_id {
@@ -1135,7 +1223,7 @@ function apbct__wc_add_honeypot_field($fields)
 {
     global $apbct;
 
-    if ( $apbct->settings['forms__wc_honeypot'] ) {
+    if ( $apbct->settings['data__honeypot_field'] ) {
         $fields['billing']['wc_apbct_email_id'] = array(
             'id'            => 'wc_apbct_email_id',
             'type'          => 'text',

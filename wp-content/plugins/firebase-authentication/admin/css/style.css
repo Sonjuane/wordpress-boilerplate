@@ -93,6 +93,29 @@ strong{
   height: 0;
 }
 
+.mo_firebase_setup_guide_style{
+  border: 1px black solid;
+  display:inline-block; 
+  background-color:#ffffff;
+  padding:4px 8px;
+  border-radius:4px;
+  color:#000;
+  font-weight:600;
+  font-size: 13px;  
+}
+
+.mo_firebase_setup_guide_style:before{
+  color: blue;
+  font-family: "dashicons";
+  content: "\f330";
+  font-size:20px;
+  display: inline-block;
+  vertical-align: middle;
+  text-decoration: none;
+  font-size: 15px;
+  margin-top: -2px;
+}
+
 .mo_firebase_auth_slider {
   position: absolute;
   cursor: pointer;

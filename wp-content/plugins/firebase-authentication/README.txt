@@ -3,8 +3,8 @@ Contributors: cyberlord92
 Donate link: https://miniorange.com
 Tags: firebase, authentication, login, sso, jwt, social login, OTP verification, firebase otp, woocommerce, woocommerce integration
 Requires at least: 3.0.1
-Tested up to: 5.8
-Stable tag: 1.5.1
+Tested up to: 5.9
+Stable tag: 1.5.4
 License: MIT/Expat
 License URI: https://docs.miniorange.com/mit-license
 
@@ -23,10 +23,8 @@ Firebase authentication works using default WordPress login page. Also, we suppo
 	a) Only Firebase credentials
 	b) Only WordPress credentials
 	c) Both Firebase and WordPress credentials
-*	**Auto Sync Users** : New users will be created in Firebase when they register on a WordPress site using any registration form.
-*	**Login/Registration Form Integration** : Integration with any Third Party and Custom Login/Registration Form to allow Firebase Login/Registration via different hooks provided in the plugin 
+*	**Auto Register WooCommerce Users to Firebase** : Provide an option to sync a WordPress user to Firebase whenever an end-user registers into the WordPress site via the WooCommerce registration form. User is created in Firebase with only email address and password.
 *	**Support for Firebase Phone Authentication method** : Users will be asked to enter OTP provided via Firebase to login into WordPress (Passwordless login).
-*	**Support for Sign In via Email Link (Passwordless login)** : Users will be asked to enter email address and verfication link will be sent on their email by Firebase to login into the WordPress site.
 *	**Support for Firebase Social Login** : Users will be provided an option to login in to WordPress using selected social login providers
 	Providers supported are
 	1. Google
@@ -37,10 +35,10 @@ Firebase authentication works using default WordPress login page. Also, we suppo
 	6. Yahoo
 	7. Microsoft
 *	**Support for Social Login buttons Shortcode** : Use a shortcode to place Firebase social login buttons anywhere in your Theme or Plugin
-*	**Attribute Mapping** : User attributes received from Firebase login are mapped to WordPress user profile
+*	**Sync Firebase UID to WordPress** : Users can map email, Firebase user-id to their WordPress user profile using this WordPress Firebase Authentication feature.
 *	**Custom Redirect Login and Logout URL** : Automatically Redirect users after successful login/logout.
-*	**Support for Firebase Login and Registartion form Shortcode** : Use shortcodes to place Firebase Login and Registration form anywhere in your Theme
-*	**WP Hooks for Different Events** : Provides support for different hooks for user defined functions
+*	**Support for Firebase Login and Registartion form Shortcode** : Using login form shortcode, users can enter their Firebase credentials to login into the WP site, and using the registration form shortcode, users can register into the WordPress site, and that user is also auto created in Firebase with an email address and password.
+*	**WP Hooks for Different Events** : Provides support for different hooks for user defined functions.
 *	**Firebase WooCommerce Integration** : Integrate WooCommerce with the WordPress Firebase Authentication plugin and allow users to log in to your WooCommerce site using firebase login credentials on WooCommerce Checkout and My account page.
 
 == Installation ==
@@ -66,6 +64,17 @@ Please email us at info@xecurify.com or <a href="https://miniorange.com/contact"
 3. The result after successful Test Authentication
 
 == Changelog ==
+
+= 1.5.4 =
+* Added compatibility with WP 5.9
+* UI changes and minor bug fixes
+
+= 1.5.3 =
+* Added functionality for requesting the demo
+
+= 1.5.2 =
+* Readme changes
+* Minor updates in pricing plans
 
 = 1.5.1 =
 * Minor Security Fixes

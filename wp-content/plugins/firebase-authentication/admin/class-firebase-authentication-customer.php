@@ -41,7 +41,7 @@ class MO_Firebase_Customer{
 		$response = wp_remote_post( $url, $args );
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo "Something went wrong: $error_message";
+			echo "Something went wrong: ".esc_attr($error_message);
 			exit();
 		}
 		
@@ -71,7 +71,7 @@ class MO_Firebase_Customer{
 		$response = wp_remote_post( $url, $args );
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo "Something went wrong: $error_message";
+			echo "Something went wrong: ".esc_attr($error_message);
 			exit();
 		}
 			
@@ -105,7 +105,7 @@ class MO_Firebase_Customer{
 		$response = wp_remote_post( $url, $args );
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo "Something went wrong: $error_message";
+			echo "Something went wrong: ".esc_attr($error_message);
 			exit();
 		}
 		
@@ -147,7 +147,7 @@ class MO_Firebase_Customer{
 		$response = wp_remote_post( $url, $args );
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo "Something went wrong: $error_message";
+			echo "Something went wrong: ".esc_attr($error_message);
 			exit();
 		}
 		
@@ -202,7 +202,7 @@ class MO_Firebase_Customer{
 		$response = wp_remote_post( $url, $args );
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo "Something went wrong: $error_message";
+			echo "Something went wrong: ".esc_attr($error_message);
 			exit();
 		}
 		

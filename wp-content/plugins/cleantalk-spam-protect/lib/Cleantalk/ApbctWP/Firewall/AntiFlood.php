@@ -231,7 +231,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                     ),
                     30
                 ),
-                '{CLEANTALK_TITLE}'                => __('Antispam by CleanTalk', 'cleantalk-spam-protect'),
+                '{CLEANTALK_TITLE}'                => __('Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
                 '{REQUEST_URI}'                    => Server::get('REQUEST_URI'),
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
@@ -260,11 +260,11 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => esc_url(get_rest_url()),
-            '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
             'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'sfw__random_get'                      => $apbct->settings['sfw__random_get'] === '1' ||
-                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists())
+                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists()),
+            'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
 
         $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';

@@ -13,7 +13,7 @@ function mo_firebase_authentication_main_menu() {
 
 	$currenttab = "";
 	if( isset( $_GET['tab'] ) )
-		$currenttab = $_GET['tab'];
+		$currenttab = sanitize_text_field($_GET['tab']);
 	
 	Mo_Firebase_Authentication_Admin_Menu::mo_firebase_auth_show_menu( $currenttab );
 	echo '
@@ -52,7 +52,7 @@ class Mo_Firebase_Authentication_Admin_Menu {
 		 <div style="margin-left:5px; overflow:hidden">
 			<div class="wrap">
 				<div class="wrap">
-					<div><img style="float:left;" src="<?php echo dirname(plugin_dir_url( __FILE__ ));?>/images/logo.png"></div>
+					<div><img style="float:left;" src="<?php echo esc_url( dirname(plugin_dir_url( __FILE__ )));?>/images/logo.png"></div>
 				</div>
 			       	<h1>
 			            miniOrange Firebase Authentication&nbsp
@@ -92,7 +92,7 @@ class Mo_Firebase_Authentication_Admin_Menu {
 					return;
 				}
 				event.preventDefault();
-				let url = "<?php echo site_url(); ?>/?mo_action=firebaselogin&test=true";
+				let url = "<?php echo esc_url(site_url()); ?>/?mo_action=firebaselogin&test=true";
 				jQuery("#mo_firebasetestconfig").attr("action", url);
 				let newwindow = window.open("about:blank", 'firebasetestconfig', 'location=yes,height=700,width=600,scrollbars=yes,status=yes');
 				jQuery("#mo_firebasetestconfig").submit();
@@ -112,7 +112,7 @@ class Mo_Firebase_Authentication_Admin_Menu {
 		if($currenttab == 'account') {
 			if (get_option ( 'mo_firebase_authentication_verify_customer' ) == 'true') {
 				Mo_Firebase_Authentication_Admin_Account::verify_password();
-			} else if (trim ( get_option ( 'mo_firebase_authentication_email' ) ) != '' && trim ( get_option ( 'mo_firebase_authentication_admin_api_key' ) ) == '' && get_option ( 'mo_firebase_authentication_new_registration' ) != 'true') {
+			} elseif (trim ( get_option ( 'mo_firebase_authentication_email' ) ) != '' && trim ( get_option ( 'mo_firebase_authentication_admin_api_key' ) ) == '' && get_option ( 'mo_firebase_authentication_new_registration' ) != 'true') {
 				Mo_Firebase_Authentication_Admin_Account::verify_password();
 			}
 			else {
@@ -137,7 +137,7 @@ class Mo_Firebase_Authentication_Admin_Menu {
 	public static function mo_firebase_auth_show_support_sidebar( $currenttab ) { 
 		if( $currenttab != 'licensing_plans' ) { 
 			echo '<td style="vertical-align:top;padding-left:1%;" class="mo_firebase_authentication_sidebar">';
-			echo Mo_Firebase_Authentication_Admin_Support::mo_firebase_authentication_support();
+			Mo_Firebase_Authentication_Admin_Support::mo_firebase_authentication_support();
 			echo '</td>';
 		}
 	}

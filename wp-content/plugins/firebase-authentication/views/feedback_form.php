@@ -27,10 +27,10 @@ function mo_firebase_auth_display_feedback_form() {
 				<?php
 					foreach ( $deactivate_reasons as $deactivate_reason ) { ?>
                     <div class="radio" style="padding:1px;margin-left:2%">
-                        <label style="font-weight:normal;font-size:14.6px" for="<?php echo $deactivate_reason; ?>">
-                            <input type="radio" name="deactivate_reason_radio" value="<?php echo $deactivate_reason; ?>"
+                        <label style="font-weight:normal;font-size:14.6px" for="<?php echo esc_attr($deactivate_reason); ?>">
+                            <input type="radio" name="deactivate_reason_radio" value="<?php echo esc_attr($deactivate_reason); ?>"
                                    required>
-							<?php echo $deactivate_reason; ?></label>
+							<?php echo esc_attr($deactivate_reason); ?></label>
                     </div>
 					<?php } ?>
                     <br>
@@ -47,6 +47,7 @@ function mo_firebase_auth_display_feedback_form() {
             </form>
             <form name="f" method="post" action="" id="mo_feedback_form_close">
                 <input type="hidden" name="option" value="mo_firebase_auth_skip_feedback"/>
+                <?php wp_nonce_field('mo_firebase_auth_skip_feedback_form','mo_firebase_auth_skip_feedback_form_nonce'); ?>
             </form>
         </div>
     </div>

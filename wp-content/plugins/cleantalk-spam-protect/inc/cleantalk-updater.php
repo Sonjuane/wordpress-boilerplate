@@ -458,7 +458,7 @@ function apbct_update_to_5_138_0()
 
             switch_to_blog($blog);
 
-            // Getting key
+            // Getting Access key
             $settings = $net_settings['allow_custom_key']
                 ? get_option('cleantalk_settings')
                 : $main_blog_settings;
@@ -961,25 +961,19 @@ function apbct_update_to_5_161_2()
     global $apbct;
     // Set type of the alt cookies
     if ($apbct->settings['data__set_cookies'] == 2) {
-        // Check custom ajax availability
-        $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
-        if ($res_custom_ajax != 400) {
-            // Check rest availability
-            $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-            if ($res_rest != 200) {
-                // Check WP ajax availability
-                $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
-                if ($res_ajax != 400) {
-                    // There is no available alt cookies types. Cookies will be disabled.
-                    $apbct->settings['data__set_cookies'] = 0;
-                } else {
-                    $apbct->data['ajax_type'] = 'admin_ajax';
-                }
+        // Check rest availability
+        $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+        if ($res_rest != 200) {
+            // Check WP ajax availability
+            $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
+            if ($res_ajax != 400) {
+                // There is no available alt cookies types. Cookies will be disabled.
+                $apbct->settings['data__set_cookies'] = 0;
             } else {
-                $apbct->data['ajax_type'] = 'rest';
+                $apbct->data['ajax_type'] = 'admin_ajax';
             }
         } else {
-            $apbct->data['ajax_type'] = 'custom_ajax';
+            $apbct->data['ajax_type'] = 'rest';
         }
         $apbct->saveSettings();
         $apbct->saveData();
@@ -1014,27 +1008,19 @@ function apbct_update_to_5_162_1()
 
     // Set type of the AJAX handler for the ajax js
     if ( $apbct->settings['data__use_ajax'] == 1 ) {
-        // Check custom ajax availability
-        $res_custom_ajax = Helper::httpRequestGetResponseCode(
-            esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php')
-        );
-        if ($res_custom_ajax != 400) {
-            // Check rest availability
-            $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
-            if ($res_rest != 200) {
-                // Check WP ajax availability
-                $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
-                if ($res_ajax != 400) {
-                    // There is no available alt cookies types. Cookies will be disabled.
-                    $apbct->settings['data__use_ajax'] = 0;
-                } else {
-                    $apbct->data['ajax_type'] = 'admin_ajax';
-                }
+        // Check rest availability
+        $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
+        if ($res_rest != 200) {
+            // Check WP ajax availability
+            $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
+            if ($res_ajax != 400) {
+                // There is no available alt cookies types. Cookies will be disabled.
+                $apbct->settings['data__use_ajax'] = 0;
             } else {
-                $apbct->data['ajax_type'] = 'rest';
+                $apbct->data['ajax_type'] = 'admin_ajax';
             }
         } else {
-            $apbct->data['ajax_type'] = 'custom_ajax';
+            $apbct->data['ajax_type'] = 'rest';
         }
         $apbct->saveSettings();
         $apbct->saveData();
@@ -1109,5 +1095,46 @@ function apbct_update_to_5_172_1()
     if ( isset($apbct->settings['forms__wc_honeypot']) ) {
         $apbct->settings['data__honeypot_field'] = $apbct->settings['forms__wc_honeypot'];
         $apbct->saveSettings();
+    }
+}
+
+/**
+ * 5.172.1
+ */
+function apbct_update_to_5_176()
+{
+    global $apbct;
+    $apbct->data['ajax_type'] = apbct_settings__get_ajax_type() ?: 'admin_ajax';
+    $apbct->saveData();
+}
+
+/**
+ * 5.172.1
+ */
+function apbct_update_to_5_176_1()
+{
+    global $apbct;
+    if ( ! isset($apbct->settings['data__email_decoder']) ) {
+        $apbct->settings['data__email_decoder'] = 0;
+        $apbct->saveSettings();
+    }
+}
+
+function apbct_update_to_5_177_2()
+{
+    global $apbct;
+
+    if ( isset($apbct->remote_calls['update_plugin']) ) {
+        unset($apbct->remote_calls['update_plugin']);
+        $apbct->save('remote_calls');
+    }
+}
+
+function apbct_update_to_5_177_3()
+{
+    global $apbct;
+    if ( ! empty($apbct->settings['exclusions__urls']) ) {
+        $apbct->data['check_exclusion_as_url'] = false;
+        $apbct->saveData();
     }
 }

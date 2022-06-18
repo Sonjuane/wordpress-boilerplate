@@ -5,7 +5,7 @@ namespace Cleantalk\ApbctWP;
 use ArrayObject;
 
 /**
- * CleanTalk Antispam State class
+ * CleanTalk Anti-Spam State class
  *
  * @package Antiospam Plugin by CleanTalk
  * @subpackage State
@@ -46,7 +46,7 @@ class State extends \Cleantalk\Common\State
         'forms__comments_test'                     => 1,
         'forms__contact_forms_test'                => 1,
         'forms__general_contact_forms_test'        => 1,
-        // Antispam test for unsupported and untested contact forms
+        // Anti-Spam test for unsupported and untested contact forms
         'forms__wc_checkout_test'                  => 1,
         // WooCommerce checkout default test
         'forms__wc_register_from_order'            => 1,
@@ -54,7 +54,7 @@ class State extends \Cleantalk\Common\State
         'forms__wc_add_to_cart'                    => 0,
         // Woocommerce add to cart
         'forms__search_test'                       => 1,
-        // Test default Wordpress form
+        // Test default WordPress form
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,
         'forms__check_internal'                    => 0,
@@ -80,8 +80,7 @@ class State extends \Cleantalk\Common\State
         // Data processing
         'data__protect_logged_in'                  => 1,
         // Do anti-spam tests to for logged in users.
-        'data__use_ajax'                           => 1,
-        // Ajax handler type: REST API - 0 / custom AJAX - 1 / WP AJAX - 2
+        'data__use_ajax'                           => 0,
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0,
         //CAPD
@@ -91,7 +90,8 @@ class State extends \Cleantalk\Common\State
         // Secure connection to servers
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
-        'data__honeypot_field'                     => 0,
+        'data__honeypot_field'                     => 1,
+        'data__email_decoder'                      => 0,
 
         // Exclusions
         // Send to the cloud some excepted requests
@@ -123,7 +123,7 @@ class State extends \Cleantalk\Common\State
 
         // WordPress
         'wp__use_builtin_http_api'                 => 1,
-        // Using Wordpress HTTP built in API
+        // Using WordPress HTTP built in API
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
@@ -140,10 +140,10 @@ class State extends \Cleantalk\Common\State
         'last_remote_call'               => 0, //Timestam of last remote call
         'current_settings_template_id'   => null,  // Loaded settings template id
         'current_settings_template_name' => null,  // Loaded settings template name
-        'ajax_type'                      => false, // Ajax type
+        'ajax_type'                      => 'admin_ajax', // Ajax type - admin_ajax|REST
         'cookies_type'                   => 'native', // Native / Alternative / None
 
-        // Antispam
+        // Anti-Spam
         'spam_store_days'                => 15, // Days before delete comments from folder Spam
         'relevance_test'                 => 0, // Test comment for relevance
         'notice_api_errors'              => 0, // Send API error notices to WP admin
@@ -209,11 +209,18 @@ class State extends \Cleantalk\Common\State
         // Comment's test
         'count_checked_comments'      => 0,
         'count_bad_comments'          => 0,
+
+        // User's test
+        'count_checked_users'      => 0,
+        'count_bad_users'          => 0,
+
+        // Check URL exclusion by the new way - as URL
+        'check_exclusion_as_url'  => true,
     );
 
     public $def_network_settings = array(
 
-        // Key
+        // Access key
         'apikey'                                                        => '',
         'multisite__allow_custom_settings'                              => 1,
         'multisite__work_mode'                                          => 1,
@@ -250,7 +257,6 @@ class State extends \Cleantalk\Common\State
         'sfw_send_logs'      => array('last_call' => 0, 'cooldown' => 0),
 
         // Installation
-        'update_plugin'      => array('last_call' => 0, 'cooldown' => 0),
         'install_plugin'     => array('last_call' => 0, 'cooldown' => 0),
         'activate_plugin'    => array('last_call' => 0, 'cooldown' => 0),
         'insert_auth_key'    => array('last_call' => 0, 'cooldown' => 0),
@@ -446,7 +452,7 @@ class State extends \Cleantalk\Common\State
             $this->data['cookies_type'] = 'none';
         }
 
-        // Network with Mutual key
+        // Network with Mutual Access key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
             // Get stats from main blog
             switch_to_blog(get_main_site_id());

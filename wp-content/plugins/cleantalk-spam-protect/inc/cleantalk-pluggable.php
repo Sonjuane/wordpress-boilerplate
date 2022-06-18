@@ -156,6 +156,13 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
 {
     global $wp_rewrite;
 
+    /**
+     * If exists get_rest_url() - return it
+     */
+    if ( ! is_null($wp_rewrite) && function_exists('get_rest_url') ) {
+        return get_rest_url();
+    }
+
     if ( empty($path) ) {
         $path = '/';
     }
@@ -346,8 +353,8 @@ function apbct_is_ajax()
             apbct_get_server_variable('HTTP_X_REQUESTED_WITH') &&
             strtolower(apbct_get_server_variable('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
         ) || // by Request type
-        ! empty($_POST['quform_ajax']) || // special. QForms
-        ! empty($_POST['iphorm_ajax']); // special. IPHorm
+        ! empty(Post::get('quform_ajax')) || // special. QForms
+        ! empty(Post::get('iphorm_ajax')); // special. IPHorm
 }
 
 /**
@@ -434,7 +441,7 @@ function apbct_is_in_uri($str)
 
 /**
  * Checking if current request is a cron job
- * Support for wordpress < 4.8.0
+ * Support for WordPress < 4.8.0
  *
  * @return bool
  * @psalm-suppress RedundantCondition
@@ -495,8 +502,8 @@ function apbct_is_direct_trackback()
     return
         Server::hasString('REQUEST_URI', '/trackback') &&
         isset($_POST) &&
-        isset($_POST['url']) && ! empty($_POST['url']) &&
-        isset($_POST['title']) && ! empty($_POST['title']);
+        ! empty(Post::get('url')) &&
+        ! empty(Post::get('title'));
 }
 
 /**
@@ -570,45 +577,38 @@ function apbct_is_skip_request($ajax = false)
 
         // Bookly Plugin admin actions skip
         if ( apbct_is_plugin_active('bookly-responsive-appointment-booking-tool/main.php') &&
-             isset($_POST['action']) &&
-             strpos($_POST['action'], 'bookly') !== false &&
-             is_admin() ) {
+            strpos(Post::get('action'), 'bookly') !== false &&
+            is_admin() ) {
             return 'bookly_pro_update_staff_advanced';
         }
         // Youzier login form skip
         if ( apbct_is_plugin_active('youzer/youzer.php') &&
-             isset($_POST['action']) &&
-             $_POST['action'] === 'yz_ajax_login' ) {
+            Post::get('action') === 'yz_ajax_login' ) {
             return 'youzier_login_form';
         }
         // Youzify login form skip
         if ( apbct_is_plugin_active('youzify/youzify.php') &&
-             isset($_POST['action']) &&
-             $_POST['action'] === 'youzify_ajax_login' ) {
+            Post::get('action') === 'youzify_ajax_login' ) {
             return 'youzify_login_form';
         }
         // InJob theme lost password skip
         if ( apbct_is_plugin_active('iwjob/iwjob.php') &&
-             isset($_POST['action']) &&
-             $_POST['action'] === 'iwj_lostpass' ) {
+            Post::get('action') === 'iwj_lostpass' ) {
             return 'injob_theme_plugin';
         }
         // Divi builder skip
         if ( apbct_is_theme_active('Divi') &&
-             isset($_POST['action']) &&
-             ($_POST['action'] === 'save_epanel' || $_POST['action'] === 'et_fb_ajax_save') ) {
+            (Post::get('action') === 'save_epanel' || Post::get('action') === 'et_fb_ajax_save') ) {
             return 'divi_builder_skip';
         }
         // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
         if ( apbct_is_plugin_active('email-before-download/email-before-download.php') &&
-             isset($_POST['action']) &&
-             $_POST['action'] === 'ebd_inline_links' ) {
+            Post::get('action') === 'ebd_inline_links' ) {
             return 'ebd_inline_links';
         }
         // WP Discuz skip service requests. The plugin have the direct integration
         if ( apbct_is_plugin_active('wpdiscuz/class.WpdiscuzCore.php') &&
-             isset($_POST['action']) &&
-             strpos($_POST['action'], 'wpd') !== false ) {
+            strpos(Post::get('action'), 'wpd') !== false ) {
             return 'ebd_inline_links';
         }
         // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
@@ -628,8 +628,7 @@ function apbct_is_skip_request($ajax = false)
         }
         // Newspaper theme login form
         if ( apbct_is_theme_active('Newspaper') &&
-             isset($_POST['action']) &&
-             ($_POST['action'] == 'td_mod_login' || $_POST['action'] == 'td_mod_remember_pass') ) {
+            (Post::get('action') === 'td_mod_login' || Post::get('action') === 'td_mod_remember_pass') ) {
             return 'Newspaper_theme_login_form';
         }
         // Save abandoned cart checking skip
@@ -694,14 +693,12 @@ function apbct_is_skip_request($ajax = false)
 
         // W2DC - https://codecanyon.net/item/web-20-directory-plugin-for-wordpress/6463373
         if ( apbct_is_plugin_active('w2dc/w2dc.php') &&
-             isset($_POST['action']) &&
-             $_POST['action'] === 'vp_w2dc_ajax_vpt_option_save' &&
+             Post::get('action') === 'vp_w2dc_ajax_vpt_option_save' &&
              is_admin() ) {
             return 'w2dc_skipped';
         }
         if ( (apbct_is_plugin_active('elementor/elementor.php') || apbct_is_plugin_active('elementor-pro/elementor-pro.php')) &&
-             isset($_POST['actions_save_builder_action']) &&
-             $_POST['actions_save_builder_action'] === 'save_builder' &&
+             Post::get('actions_save_builder_action') === 'save_builder' &&
              is_admin() ) {
             return 'elementor_skip';
         }
@@ -811,6 +808,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'GiveWP';
         }
+
+        // MultiStep Checkout for WooCommerce
+        if (
+            apbct_is_plugin_active('woo-multistep-checkout/woo-multistep-checkout.php') &&
+            Post::get('action') === 'thwmsc_step_validation'
+        ) {
+            return 'MultiStep Checkout for WooCommerce - step validation';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -827,7 +832,7 @@ function apbct_is_skip_request($ajax = false)
         }
         // UltimateMember password reset skip
         if ( apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
-             isset($_POST['_um_password_reset']) && $_POST['_um_password_reset'] == 1 ) {
+            (int) Post::get('_um_password_reset') === 1 ) {
             return 'ultimatemember_password_reset';
         }
         // UltimateMember password reset skip
@@ -915,6 +920,31 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Checkout For WC skip';
         }
+        //Restrict Content Pro - Login Form
+        if (
+            apbct_is_plugin_active('restrict-content-pro/restrict-content-pro.php') &&
+            Post::equal('rcp_action', 'login') &&
+            Post::get('rcp_user_login') ||
+            Post::get('rcp_user_pass')
+        ) {
+            return 'Restrict Content Pro Login Form skip';
+        }
+        // APBCT service actions
+        if (
+            apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
+            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post')
+        ) {
+            return 'APBCT service actions';
+        }
+    }
+
+    // Event Manager - there is the direct integration
+    if (
+        apbct_is_plugin_active('events-manager/events-manager.php') &&
+        Post::get('action') === 'booking_add' &&
+        wp_verify_nonce(Post::get('_wpnonce'), 'booking_add')
+    ) {
+        return 'Event Manager skip';
     }
 
     return false;
@@ -943,23 +973,25 @@ function apbct_is_exception_arg_request()
  */
 function apbct_settings__get_ajax_type()
 {
-    // Check custom ajax availability - 1
-    $res_custom_ajax = Helper::httpRequestGetResponseCode(esc_url(APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php'));
-    if ( $res_custom_ajax == 400 ) {
-        return 'custom_ajax';
-    }
-
-    // Check rest availability - 0
+    // Check rest availability
     $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
     if ( $res_rest == 200 ) {
         return 'rest';
     }
 
-    // Check WP ajax availability - 2
+    // Check WP ajax availability
     $res_ajax = Helper::httpRequestGetResponseCode(admin_url('admin-ajax.php'));
     if ( $res_ajax == 400 ) {
         return 'admin_ajax';
     }
 
     return false;
+}
+
+function apbct__get_cookie_prefix()
+{
+    if ( defined('CLEANTALK_COOKIE_PREFIX') ) {
+        return preg_replace('/[^A-Za-z1-9_-]/', '', CLEANTALK_COOKIE_PREFIX);
+    }
+    return '';
 }

@@ -2,6 +2,12 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
+use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
+use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Post;
+
 class UsersChecker extends Checker
 {
     public function __construct()
@@ -14,8 +20,8 @@ class UsersChecker extends Checker
 
         // Preparing data
         $current_user = wp_get_current_user();
-        if ( ! empty($_COOKIE['ct_paused_users_check']) ) {
-            $prev_check = json_decode(stripslashes($_COOKIE['ct_paused_users_check']), true);
+        if ( ! empty(Cookie::get('ct_paused_users_check')) ) {
+            $prev_check = json_decode(stripslashes(Cookie::get('ct_paused_users_check')), true);
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
@@ -29,8 +35,8 @@ class UsersChecker extends Checker
 
         wp_enqueue_script(
             'ct_users_checkspam',
-            plugins_url('/cleantalk-spam-protect/js/cleantalk-users-checkspam.min.js'),
-            array('jquery', 'jqueryui'),
+            APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js',
+            array('jquery', 'jquery-ui-core'),
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
@@ -59,21 +65,176 @@ class UsersChecker extends Checker
             'ct_status_string_warning' => "<p>" . __(
                 "Please do backup of WordPress database before delete any accounts!",
                 'cleantalk-spam-protect'
-            ) . "</p>"
+            ) . "</p>",
+            'ct_specify_date_range' => esc_html__('Please, specify a date range.', 'cleantalk-spam-protect'),
+            'ct_select_date_range' => esc_html__('Please, select a date range.', 'cleantalk-spam-protect'),
         ));
 
         wp_enqueue_style(
             'cleantalk_admin_css_settings_page',
-            plugins_url() . '/cleantalk-spam-protect/css/cleantalk-spam-check.min.css',
+            APBCT_JS_ASSETS_PATH . '/cleantalk-spam-check.min.css',
             array(),
             APBCT_VERSION,
             'all'
         );
     }
 
+    /**
+     * Get all users from DB
+     *
+     * @return array|false
+     */
+    private static function getAllUsers(UsersScanParameters $userScanParameters)
+    {
+        global $wpdb;
+
+        $amount = $userScanParameters->getAmount();
+        $skip_roles = $userScanParameters->getSkipRoles();
+        $offset = $userScanParameters->getOffset();
+        $between_dates_sql = '';
+        $date_from = $userScanParameters->getFrom();
+        $date_till = $userScanParameters->getTill();
+        if ($date_from && $date_till) {
+            $date_from = date('Y-m-d', (int) strtotime($date_from)) . ' 00:00:00';
+            $date_till = date('Y-m-d', (int) strtotime($date_till)) . ' 23:59:59';
+
+            $between_dates_sql = "WHERE $wpdb->users.user_registered >= '$date_from' AND $wpdb->users.user_registered <= '$date_till'";
+        }
+
+        // Woocommerce
+        $wc_active = false;
+        $wc_orders = '';
+        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')), true)) {
+            $wc_active = true;
+        }
+        if ($wc_active && $userScanParameters->getAccurateCheck()) {
+            $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts"
+                . " INNER JOIN {$wpdb->postmeta} AS postmeta"
+                . " WHERE posts.post_type = 'shop_order'"
+                . " AND posts.post_status = 'wc-completed'"
+                . " AND posts.ID = postmeta.post_id"
+                . " AND postmeta.meta_key = '_customer_user'"
+                . " AND postmeta.meta_value = {$wpdb->users}.ID)";
+        }
+
+        $users = $wpdb->get_results(
+            "
+			SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
+			FROM {$wpdb->users}
+			{$between_dates_sql}
+			{$wc_orders}
+			ORDER BY {$wpdb->users}.ID ASC
+			LIMIT $amount OFFSET $offset;"
+        );
+
+        if (!$users) {
+            $users = array();
+        }
+
+        // removed skip_roles and return $users
+        $users =  self::removeSkipRoles($users, $skip_roles);
+
+        // removed users without IP and Email
+        $users =  self::removeUsersWithoutIPEmail($users);
+
+        return $users;
+    }
+
+    /**
+     * @param array $users
+     * @param array $skip_roles
+     *
+     * @return array|false
+     */
+    private static function removeSkipRoles(array $users, array $skip_roles)
+    {
+        foreach ($users as $index => $user) {
+            $user_meta  = get_userdata($user->ID);
+            $user_roles = $user_meta->roles;
+            foreach ($user_roles as $user_role) {
+                if (in_array($user_role, $skip_roles, true)) {
+                    delete_user_meta($user->ID, 'ct_marked_as_spam');
+                    unset($users[$index]);
+                    break;
+                }
+            }
+        }
+
+        return $users;
+    }
+
+    /**
+     * @param array $users
+     *
+     * @return array|false
+     */
+    private static function removeUsersWithoutIPEmail(array $users)
+    {
+        foreach ($users as $index => $user) {
+            $user_meta = self::getUserMeta($user->ID);
+
+            $user_ip    = ! empty($user_meta[0]['ip']) ? trim($user_meta[0]['ip']) : false;
+            $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;
+
+            // Validate IP and Email
+            $user_ip    = filter_var($user_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+            $user_email = filter_var($user_email, FILTER_VALIDATE_EMAIL);
+
+            if (!$user_ip && !$user_email) {
+                update_user_meta($user->ID, 'ct_bad', '1', true);
+                unset($users[$index]);
+                continue;
+            }
+
+            // Add user ip to $user
+            $user->user_ip = $user_ip;
+        }
+
+        return $users;
+    }
+
+    /**
+     * @param array $users
+     *
+     * @return array
+     */
+    private static function getIPEmailsData(array $users)
+    {
+        $data = array();
+
+        foreach ($users as $user) {
+            if ($user->user_ip) {
+                $data[] = $user->user_ip;
+            }
+            if ($user->user_email) {
+                $data[] = $user->user_email;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array $result
+     *
+     * @return array
+     */
+    private static function getSpammersFromResultAPI(array $result)
+    {
+        $spammers = array();
+
+        foreach ($result as $param => $status) {
+            if ((int) $status['appears'] === 1) {
+                $spammers[] = $param;
+            }
+        }
+
+        return $spammers;
+    }
+
     public function getCurrentScanPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan();
+        $this->list_table = new UsersScan();
 
         $this->getCurrentScanPanel($this);
         echo '<form action="" method="POST">';
@@ -84,7 +245,7 @@ class UsersChecker extends Checker
 
     public function getSpamLogsPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs();
+        $this->list_table = new UsersLogs();
 
         echo '<form action="" method="POST">';
         $this->list_table->display();
@@ -96,7 +257,7 @@ class UsersChecker extends Checker
      */
     public function getBadUsersPage()
     {
-        $this->list_table = new \Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers();
+        $this->list_table = new BadUsers();
 
         echo '<h3>' . esc_html__(
             "These users can't be checked because they haven't IP or e-mail",
@@ -140,227 +301,41 @@ class UsersChecker extends Checker
      */
     public static function lastCheckDate()
     {
-        // Checked users
-        $params      = array(
-            'fields'      => 'ID',
-            'meta_key'    => 'ct_checked',
-            'count_total' => true,
-            'orderby'     => 'ct_checked'
-        );
-        $tmp         = new \WP_User_Query($params);
-        $cnt_checked = $tmp->get_total();
+        global $wpdb;
 
-        if ( $cnt_checked > 0 ) {
-            // If we have checked users return last checking date
-            $users = $tmp->get_results();
+        /**
+         * We are trying to get the date of the last scan by actually
+         * requesting the start date. But unfortunately, the start date
+         * stores the end date. At least for the user scanner.
+         */
+        $sql = "SELECT `start_time`
+				FROM " . APBCT_SPAMSCAN_LOGS . "
+				WHERE `scan_type` = 'users'
+				ORDER BY start_time DESC LIMIT 1";
 
-            return date("M j Y", strtotime(get_user_meta(end($users), 'ct_checked', true)));
-        } else {
-            // If we have not any checked users return first user registered date
-            $params = array(
-                'fields'  => 'ID',
-                'number'  => 1,
-                'orderby' => 'user_registered'
-            );
-            $tmp    = new \WP_User_Query($params);
+        $lastCheckDate = $wpdb->get_col($sql);
 
-            return self::getUserRegister(current($tmp->get_results()));
+        if ($lastCheckDate) {
+            return date('M j Y', strtotime($lastCheckDate[0]));
         }
-    }
 
-    /**
-     * Get date user registered
-     *
-     * @param $user_id
-     *
-     * @return string Date format"M j Y"
-     */
-    private static function getUserRegister($user_id)
-    {
-        $user_data  = get_userdata($user_id);
-        $registered = $user_data->user_registered;
-
-        return date("M j Y", strtotime($registered));
+        return date('M j Y');
     }
 
     public static function ctAjaxCheckUsers()
     {
         check_ajax_referer('ct_secret_nonce', 'security');
 
-        global $apbct, $wpdb;
+        $userScanParameters = new UsersScanParameters($_POST);
 
-        $wc_active = false;
-        if ( in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins'))) ) {
-            $wc_active = true;
-        }
-
-        $amount = ! empty($_POST['amount']) && intval($_POST['amount'])
-            ? (int)$_POST['amount']
-            : 100;
-
-        $skip_roles = array(
-            'administrator'
-        );
-
-        $from_till = '';
-
-        if ( isset($_POST['from'], $_POST['till']) ) {
-            $from_date = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
-            $till_date = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
-
-            $from_till = " AND $wpdb->users.user_registered >= '$from_date' AND $wpdb->users.user_registered <= '$till_date'";
-        }
-
-        $wc_orders = '';
-
-        if ( $wc_active && ! empty($_POST['accurate_check']) ) {
-            $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts INNER JOIN {$wpdb->postmeta} AS postmeta WHERE posts.post_type = 'shop_order' AND posts.post_status = 'wc-completed' AND posts.ID = postmeta.post_id AND postmeta.meta_key = '_customer_user' AND postmeta.meta_value = {$wpdb->users}.ID)";
-        }
-
-        $u = $wpdb->get_results(
-            "
-			SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
-			FROM {$wpdb->users}
-			WHERE
-				NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_bad') AND
-		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked') AND
-		        NOT EXISTS(SELECT * FROM {$wpdb->usermeta} as meta WHERE {$wpdb->users}.ID = meta.user_id AND meta.meta_key = 'ct_checked_now')
-		        $wc_orders
-			    $from_till
-			ORDER BY {$wpdb->users}.user_registered ASC
-			LIMIT $amount;"
-        );
-
-        $check_result = array(
-            'end'     => 0,
-            'checked' => 0,
-            'spam'    => 0,
-            'bad'     => 0,
-            'error'   => 0
-        );
-
-        if ( count($u) > 0 ) {
-            if ( ! empty($_POST['accurate_check']) ) {
-                // Leaving users only with first comment's date. Unsetting others.
-                foreach ( $u as $user_index => $user ) {
-                    if ( ! isset($curr_date) ) {
-                        $curr_date = (substr($user->user_registered, 0, 10) ?: '');
-                    }
-
-                    if ( substr($user->user_registered, 0, 10) != $curr_date ) {
-                        unset($u[$user_index]);
-                    }
-                }
-            }
-
-            // Checking comments IP/Email. Gathering $data for check.
-            $data = array();
-
-            foreach ( $u as $i => $iValue ) {
-                $user_meta = get_user_meta($iValue->ID, 'session_tokens', true);
-                if ( is_array($user_meta) ) {
-                    $user_meta = array_values($user_meta);
-                }
-
-                $curr_ip    = ! empty($user_meta[0]['ip']) ? trim($user_meta[0]['ip']) : '';
-                $curr_email = ! empty($iValue->user_email) ? trim($iValue->user_email) : '';
-
-                // Check for identity
-                $curr_ip    = preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $curr_ip) === 1 ? $curr_ip : null;
-                $curr_email = preg_match('/^\S+@\S+\.\S+$/', $curr_email) === 1 ? $curr_email : null;
-
-                if ( empty($curr_ip) && empty($curr_email) ) {
-                    $check_result['bad']++;
-                    update_user_meta($iValue->ID, 'ct_bad', '1', true);
-                    update_user_meta($iValue->ID, 'ct_checked', date("Y-m-d H:m:s"), true);
-                    update_user_meta($iValue->ID, 'ct_checked_now', '1', true);
-                    unset($u[$i]);
-                } else {
-                    if ( ! empty($curr_ip) ) {
-                        $data[] = $curr_ip;
-                    }
-                    if ( ! empty($curr_email) ) {
-                        $data[] = $curr_email;
-                    }
-                    // Patch for empty IP/Email
-                    $iValue->data       = new \stdClass();
-                    $iValue->user_ip    = empty($curr_ip) ? 'none' : $curr_ip;
-                    $iValue->user_email = empty($curr_email) ? 'none' : $curr_email;
-                }
-            }
-
-            // Recombining after checking and unsetting
-            $u = array_values($u);
-
-            // Drop if data empty and there's no users to check
-            if ( count($data) === 0 ) {
-                if ( $_POST['unchecked'] === 0 ) {
-                    $check_result['end'] = 1;
-                }
-                print json_encode($check_result);
-                die();
-            }
-
-            $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
-                $apbct->api_key,
-                $data,
-                ! empty($_POST['accurate_check']) ? $curr_date : null
-            );
-
-            if ( empty($result['error']) ) {
-                foreach ( $u as $iValue ) {
-                    $check_result['checked']++;
-                    update_user_meta($iValue->ID, 'ct_checked', date("Y-m-d H:m:s"), true);
-                    update_user_meta($iValue->ID, 'ct_checked_now', date("Y-m-d H:m:s"), true);
-
-                    // Do not display forbidden roles.
-                    foreach ( $skip_roles as $role ) {
-                        $user_meta  = get_userdata($iValue->ID);
-                        $user_roles = $user_meta->roles;
-                        if ( in_array($role, $user_roles) ) {
-                            delete_user_meta($iValue->ID, 'ct_marked_as_spam');
-                            continue 2;
-                        }
-                    }
-
-                    $mark_spam_ip    = false;
-                    $mark_spam_email = false;
-
-                    $uip = $iValue->user_ip;
-                    $uim = $iValue->user_email;
-
-                    if ( isset($result[$uip]) && $result[$uip]['appears'] == 1 ) {
-                        $mark_spam_ip = true;
-                    }
-
-                    if ( isset($result[$uim]) && $result[$uim]['appears'] == 1 ) {
-                        $mark_spam_email = true;
-                    }
-
-                    if ( $mark_spam_ip || $mark_spam_email ) {
-                        $check_result['spam']++;
-                        update_user_meta($iValue->ID, 'ct_marked_as_spam', '1', true);
-                    }
-                }
-            } else {
-                $check_result['error']         = 1;
-                $check_result['error_message'] = $result['error'];
-            }
+        // Set type checking
+        if ($userScanParameters->getAccurateCheck() && ($userScanParameters->getFrom() && $userScanParameters->getTill())) {
+            self::startAccurateChecking($userScanParameters);
+        } elseif (!$userScanParameters->getAccurateCheck() && ($userScanParameters->getFrom() && $userScanParameters->getTill())) {
+            self::startCommonChecking($userScanParameters);
         } else {
-            $check_result['end'] = 1;
-
-            $log_data = static::getLogData();
-            static::writeSpamLog(
-                'users',
-                date("Y-m-d H:i:s"),
-                $log_data['checked'],
-                $log_data['spam'],
-                $log_data['bad']
-            );
+            self::startCommonChecking($userScanParameters);
         }
-        echo json_encode($check_result);
-
-        die;
     }
 
     /**
@@ -372,34 +347,15 @@ class UsersChecker extends Checker
     {
         check_ajax_referer('ct_secret_nonce', 'security');
 
-        global $wpdb;
-        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_checked_now')");
+        global $wpdb, $apbct;
 
-        if ( isset($_POST['from']) && isset($_POST['till']) ) {
-            if (
-                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['from']) &&
-                preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $_POST['till'])
-            ) {
-                $from = date('Y-m-d', intval(strtotime($_POST['from']))) . ' 00:00:00';
-                $till = date('Y-m-d', intval(strtotime($_POST['till']))) . ' 23:59:59';
+        $apbct->data['count_checked_users'] = 0;
+        $apbct->data['count_bad_users'] = 0;
+        $apbct->saveData();
 
-                $wpdb->query(
-                    "DELETE FROM {$wpdb->usermeta} WHERE 
-                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad') 
-                AND meta_value >= '{$from}' 
-                AND meta_value <= '{$till}';"
-                );
-                die();
-            } else {
-                $wpdb->query(
-                    "DELETE FROM {$wpdb->usermeta} WHERE 
-                meta_key IN ('ct_checked','ct_marked_as_spam','ct_bad')"
-                );
-                die();
-            }
-        }
+        $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key IN ('ct_marked_as_spam')");
 
-        die();
+        die;
     }
 
     public static function ctAjaxInfo($direct_call = false)
@@ -408,39 +364,15 @@ class UsersChecker extends Checker
             check_ajax_referer('ct_secret_nonce', 'security');
         }
 
-        global $wpdb;
+        global $wpdb, $apbct;
 
         // Checked users
-        $cnt_checked = $wpdb->get_results(
-            "
-			SELECT COUNT(*) AS cnt
-			FROM {$wpdb->usermeta}
-			WHERE meta_key='ct_checked_now'"
-        )[0]->cnt;
+        $cnt_checked = $apbct->data['count_checked_users'];
 
-        // Spam users
-        $cnt_spam = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_marked_as_spam' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+        $cnt_spam = self::getCountSpammers();
 
         // Bad users (without IP and Email)
-        $cnt_bad = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_bad' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+        $cnt_bad      = self::getCountBadUsers();
 
         $return = array(
             'message' => '',
@@ -503,39 +435,15 @@ class UsersChecker extends Checker
 
     private static function getLogData()
     {
-        global $wpdb;
-
         // Checked users
-        $cnt_checked = $wpdb->get_results(
-            "
-			SELECT COUNT(*) AS cnt
-			FROM {$wpdb->usermeta}
-			WHERE meta_key='ct_checked_now'"
-        )[0]->cnt;
+        global $apbct;
 
-        // Spam users
-        $cnt_spam = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_marked_as_spam' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+        $cnt_checked = $apbct->data['count_checked_users'];
+
+        $cnt_spam = self::getCountSpammers();
 
         // Bad users (without IP and Email)
-        $cnt_bad = $wpdb->get_results(
-            "
-			SELECT COUNT({$wpdb->users}.ID) AS cnt
-			FROM {$wpdb->users}
-			INNER JOIN {$wpdb->usermeta} AS meta1 ON ( {$wpdb->users}.ID = meta1.user_id )
-			INNER JOIN {$wpdb->usermeta} AS meta2 ON ( {$wpdb->users}.ID = meta2.user_id )
-				WHERE
-					meta1.meta_key = 'ct_bad' AND
-					meta2.meta_key = 'ct_checked_now';"
-        )[0]->cnt;
+        $cnt_bad = self::getCountBadUsers();
 
         return array(
             'spam'    => $cnt_spam,
@@ -559,9 +467,6 @@ class UsersChecker extends Checker
                     'key'     => 'ct_marked_as_spam',
                     'compare' => '1'
                 ),
-                array(
-                    'key' => 'ct_checked_now'
-                ),
             ),
             'orderby'    => 'registered',
             'order'      => 'ASC',
@@ -580,7 +485,7 @@ class UsersChecker extends Checker
             $text .= PHP_EOL;
         }
 
-        $filename = ! empty($_POST['filename']) ? $_POST['filename'] : false;
+        $filename = ! empty(Post::get('filename')) ? Post::get('filename') : false;
 
         if ( $filename !== false ) {
             header('Content-Type: text/csv');
@@ -598,7 +503,7 @@ class UsersChecker extends Checker
         global $wpdb;
 
         //* TEST DELETION
-        if ( ! empty($_POST['delete']) ) {
+        if ( ! empty(Post::get('delete')) ) {
             $users            = get_users(array('search' => 'user_*', 'search_columns' => array('login', 'nicename')));
             $deleted          = 0;
             $amount_to_delete = 1000;
@@ -662,7 +567,7 @@ class UsersChecker extends Checker
 
         global $wpdb;
 
-        $r = $wpdb->get_var("select count(*) as cnt from $wpdb->usermeta where meta_key='ct_marked_as_spam';");
+        $r = self::getCountSpammers();
 
         if ( ! is_null($r) ) {
             $count_all = (int)$r;
@@ -699,5 +604,216 @@ class UsersChecker extends Checker
         $columns['apbct_status hidden'] = '';
 
         return $columns;
+    }
+
+    /**
+     * Getting count spammers
+     *
+     * @return int
+     */
+    public static function getCountSpammers()
+    {
+        global $wpdb;
+
+        $sql = "SELECT
+                COUNT(`user_id`)
+                FROM $wpdb->usermeta
+                where `meta_key`='ct_marked_as_spam'";
+
+        $count_spammers = $wpdb->get_var($sql);
+
+        if (is_null($count_spammers)) {
+            return 0;
+        }
+
+        return (int) $count_spammers;
+    }
+
+    /**
+     * Getting count bas users without IP and Email
+     *
+     * @return int
+     */
+    public static function getCountBadUsers()
+    {
+        global $wpdb;
+
+        $sql = "SELECT
+                COUNT(`user_id`)
+                FROM $wpdb->usermeta
+                where `meta_key`='ct_bad'";
+
+        $count_bad = $wpdb->get_var($sql);
+
+        if (is_null($count_bad)) {
+            return 0;
+        }
+
+        return (int) $count_bad;
+    }
+
+    public static function getUserMeta($user_id)
+    {
+        $user_meta = get_user_meta($user_id, 'session_tokens', true);
+
+        if ( is_array($user_meta) ) {
+            return array_values($user_meta);
+        }
+
+        return false;
+    }
+
+    /**
+     * All users checking
+     *
+     * @param UsersScanParameters $userScanParameters
+     *
+     * @return void
+     */
+    public static function startCommonChecking(UsersScanParameters $userScanParameters)
+    {
+        global $apbct;
+        $users = self::getAllUsers($userScanParameters);
+
+        if (!$users) {
+            UsersScanResponse::getInstance()->setEnd(1);
+
+            $log_data = static::getLogData();
+            static::writeSpamLog(
+                'users',
+                date("Y-m-d H:i:s"),
+                $log_data['checked'],
+                $log_data['spam'],
+                $log_data['bad']
+            );
+
+            echo UsersScanResponse::getInstance()->toJson();
+            die;
+        }
+
+        $ips_emails_data = self::getIPEmailsData($users);
+
+        $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
+            $apbct->api_key,
+            $ips_emails_data,
+            null
+        );
+
+        if (!empty($result['error'])) {
+            UsersScanResponse::getInstance()->setError(1);
+            UsersScanResponse::getInstance()->setErrorMessage($result['error']);
+        } else {
+            $onlySpammers = self::getSpammersFromResultAPI($result);
+            $marked_user_ids = [];
+
+            foreach ($users as $user) {
+                if (
+                    ! in_array($user->ID, $marked_user_ids, true) &&
+                    (in_array($user->user_ip, $onlySpammers, true) ||
+                    in_array($user->user_email, $onlySpammers, true))
+                ) {
+                    $marked_user_ids[] = $user->ID;
+                    update_user_meta($user->ID, 'ct_marked_as_spam', '1', true);
+                }
+            }
+
+            // Count spam
+            UsersScanResponse::getInstance()->setSpam(count($marked_user_ids));
+        }
+
+        // Count bad users
+        UsersScanResponse::getInstance()->setBad((int)self::getCountBadUsers());
+        // Count checked users
+        UsersScanResponse::getInstance()->setChecked(count($users));
+        // save count checked users to State:data
+        $apbct->data['count_checked_users'] += count($users);
+        $apbct->saveData();
+
+        echo UsersScanResponse::getInstance()->toJson();
+        die;
+    }
+
+    /**
+     * Accurate user checking
+     *
+     * @param UsersScanParameters $userScanParameters
+     *
+     * @return void
+     */
+    private static function startAccurateChecking(UsersScanParameters $userScanParameters)
+    {
+        global $apbct;
+        $users = self::getAllUsers($userScanParameters);
+
+        if (!$users) {
+            UsersScanResponse::getInstance()->setEnd(1);
+
+            $log_data = static::getLogData();
+            static::writeSpamLog(
+                'users',
+                date("Y-m-d H:i:s"),
+                $log_data['checked'],
+                $log_data['spam'],
+                $log_data['bad']
+            );
+
+            echo UsersScanResponse::getInstance()->toJson();
+            die;
+        }
+
+        $users_grouped_by_date = array();
+
+        foreach ($users as $index => $user) {
+            if (!empty($user->user_registered)) {
+                $registered_date = date('Y-m-d', strtotime($user->user_registered));
+                $users_grouped_by_date[$registered_date][] = $user;
+            } else {
+                unset($users[$index]);
+            }
+        }
+
+        foreach ($users_grouped_by_date as $date => $users) {
+            $ips_emails_data = self::getIPEmailsData($users);
+
+            $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
+                $apbct->api_key,
+                $ips_emails_data,
+                $date
+            );
+
+            if (!empty($result['error'])) {
+                UsersScanResponse::getInstance()->setError(1);
+                UsersScanResponse::getInstance()->setErrorMessage($result['error']);
+            } else {
+                $onlySpammers = self::getSpammersFromResultAPI($result);
+                $marked_user_ids = [];
+
+                foreach ($users as $user) {
+                    if (
+                        ! in_array($user->ID, $marked_user_ids, true) &&
+                        (in_array($user->user_ip, $onlySpammers, true) ||
+                         in_array($user->user_email, $onlySpammers, true))
+                    ) {
+                        $marked_user_ids[] = $user->ID;
+                        update_user_meta($user->ID, 'ct_marked_as_spam', '1', true);
+                    }
+                }
+
+                // Count spam
+                UsersScanResponse::getInstance()->updateSpam(count($marked_user_ids));
+            }
+
+            // Count checked users
+            UsersScanResponse::getInstance()->updateChecked(count($users));
+            // save count checked users to State:data
+            $apbct->data['count_checked_users'] += count($users);
+            $apbct->saveData();
+        }
+
+        // Count bad users
+        UsersScanResponse::getInstance()->setBad((int)self::getCountBadUsers());
+
+        echo UsersScanResponse::getInstance()->toJson();
+        die;
     }
 }

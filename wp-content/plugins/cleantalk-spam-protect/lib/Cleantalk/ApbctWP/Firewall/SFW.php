@@ -19,7 +19,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     // Additional params
     private $sfw_counter = false;
     private $api_key = false;
-    private $apbct = array();
+    private $blocked_ips = array();
     private $data__cookies_type = false;
     private $cookie_domain = false;
 
@@ -79,6 +79,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function check()
     {
+        global $apbct;
+
         $results = array();
         $status  = 0;
 
@@ -108,8 +110,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     $this->updateLog($current_ip, 'PASS_SFW');
 
                     if ($this->sfw_counter) {
-                        $this->apbct->data['admin_bar__sfw_counter']['all']++;
-                        $this->apbct->saveData();
+                        $apbct->data['admin_bar__sfw_counter']['all']++;
+                        $apbct->saveData();
                     }
                 }
 
@@ -146,7 +148,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 				WHERE network IN (" . implode(',', $needles) . ")
 				AND	network = " . $current_ip_v4 . " & mask 
 				AND " . rand(1, 100000) . "  
-				ORDER BY status DESC"
+				ORDER BY mask DESC LIMIT 1"
             );
 
 
@@ -168,6 +170,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         break;
                     }
                     if ((int)$db_result['status'] === 0) {
+                        $this->blocked_ips[] = Helper::ipLong2ip($db_result['network']);
                         $result_entry['status'] = 'DENY_SFW';
                     }
                 }
@@ -239,9 +242,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function actionsForDenied($result)
     {
+        global $apbct;
         if ($this->sfw_counter) {
-            $this->apbct->data['admin_bar__sfw_counter']['blocked']++;
-            $this->apbct->saveData();
+            $apbct->data['admin_bar__sfw_counter']['blocked']++;
+            $apbct->saveData();
         }
     }
 
@@ -272,9 +276,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         // Statistics
         if ( ! empty($this->blocked_ips)) {
             reset($this->blocked_ips);
-            $this->apbct->stats['last_sfw_block']['time'] = time();
-            $this->apbct->stats['last_sfw_block']['ip']   = $result['ip'];
-            $this->apbct->save('stats');
+            $apbct->stats['last_sfw_block']['time'] = time();
+            $apbct->stats['last_sfw_block']['ip']   = $result['ip'];
+            $apbct->save('stats');
         }
 
         // File exists?
@@ -318,7 +322,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     'cleantalk-spam-protect'
                 ) : ''),
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
-                '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
+                '{SERVICE_ID}'                     => $apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
                 '{REQUEST_URI}'                    => Server::get('REQUEST_URI'),
@@ -344,7 +348,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             /**
              * Message about IP status
              */
-            if (! empty($_GET['sfw_test_ip'])) {
+            if (! empty(Get::get('sfw_test_ip'))) {
                 $message_ip_status = __(
                     'IP in the common blacklist',
                     'cleantalk-spam-protect'
@@ -408,11 +412,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => esc_url(get_rest_url()),
-            '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
             'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'sfw__random_get'                      => $apbct->settings['sfw__random_get'] === '1' ||
-                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists())
+                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists()),
+            'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
 
         $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
@@ -433,7 +437,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             die($this->sfw_die_page);
         }
 
-        die("IP BLACKLISTED. Blocked by SFW " . $this->apbct->stats['last_sfw_block']['ip']);
+        die("IP BLACKLISTED. Blocked by SFW " . $apbct->stats['last_sfw_block']['ip']);
     }
 
     /**
@@ -441,7 +445,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      *
      * @param $db
      * @param $log_table
-     * @param string $ct_key API key
+     * @param string $ct_key Access key
      * @param bool $_use_delete_command Determs whether use DELETE or TRUNCATE to delete the logs table data
      *
      * @return array|bool array('error' => STRING)

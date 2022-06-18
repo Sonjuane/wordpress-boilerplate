@@ -49,7 +49,7 @@ class RemoteCalls
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
 
-                // Check API key
+                // Check Access key
                 if ($token == strtolower(md5($apbct->api_key))) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
@@ -153,14 +153,6 @@ class RemoteCalls
     }
 
     /**
-     * Update plugin
-     */
-    public static function action__update_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        add_action('wp', 'apbct_rc__update', 1);
-    }
-
-    /**
      * Install plugin
      */
     public static function action__install_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -177,7 +169,7 @@ class RemoteCalls
     }
 
     /**
-     * Insert API key
+     * Insert Access key
      */
     public static function action__insert_auth_key() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {

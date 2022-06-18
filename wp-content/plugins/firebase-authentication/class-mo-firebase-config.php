@@ -27,7 +27,7 @@ class Mo_Firebase_Config {
 	    		}
 				echo '<div style="font-family:Calibri;padding: 0 30%;">';
 				echo '<h1 style="color:#d9534f;text-align:center;">test failed</h1>';
-				echo '<h4 style="text-align:center;"><b>ERROR :</b>'.$fb_error.'</h4>';
+				echo '<h4 style="text-align:center;"><b>ERROR :</b>'. esc_attr($fb_error).'</h4>';
 				echo '</div>';
 				echo '<div style="padding: 10px;"></div><div style="position:absolute;padding:0 46%;"><input style="padding:1%;width:100px;height:30px;background: #0091CD none repeat scroll 0% 0%;cursor: pointer;font-size:15px;border-width: 1px;border-style: solid;border-radius: 3px;white-space: nowrap;box-sizing: border-box;border-color: #0073AA;box-shadow: 0px 1px 0px rgba(120, 200, 230, 0.6) inset;color: #FFF;"type="button" value="Close" onClick="self.close();"></div>';
 				exit();
@@ -56,8 +56,8 @@ class Mo_Firebase_Config {
 			} else {
 				echo '<tr><td>';
 				if ( ! empty( $nestedprefix ) )
-					echo $nestedprefix.".";
-				echo $key.'</td><td>'.$value.'</td></tr>';
+					echo esc_attr($nestedprefix).".";
+				echo esc_attr($key).'</td><td>'.esc_attr($value).'</td></tr>';
 			}
 		}
 	}
@@ -131,9 +131,9 @@ class Mo_Firebase_Config {
 		if ( $flag !== 0 ) {
 			if ( $flag === 1 ) {
 				$jwt_raw_certificate  = get_option( 'mo_firebase_auth_cert1' );
-			} else if( $flag === 2 ) {
+			} elseif ( $flag === 2 ) {
 				$jwt_raw_certificate  = get_option( 'mo_firebase_auth_cert2' );
-			} else if ( $flag === 3 ) {
+			} elseif ( $flag === 3 ) {
 				$jwt_raw_certificate  = get_option( 'mo_firebase_auth_cert3' );
 			}
 		} else {
@@ -173,7 +173,7 @@ class Mo_Firebase_Config {
     	else {
 	    	$user_id = $user->ID;
 	    	wp_set_auth_cookie( $user_id, true );	    	   
-	   		wp_redirect( home_url() );
+	   		wp_safe_redirect( home_url() );
 			exit;
 		}	    	
 	    
@@ -209,7 +209,7 @@ class Mo_Firebase_Config {
 	            $user = get_user_by( 'email', $email );
 	            return $user;
 				}
-			} else if( $user ) {
+			} elseif( $user ) {
 				 return $user;
 			}
 		}
@@ -232,7 +232,7 @@ class Mo_Firebase_Config {
 
 		if ( is_wp_error( $response ) ) {
 			$error_message = $response->get_error_message();
-			echo "Something went wrong: $error_message";
+			echo "Something went wrong: ".esc_attr($error_message);
 			exit();
 		}
 		

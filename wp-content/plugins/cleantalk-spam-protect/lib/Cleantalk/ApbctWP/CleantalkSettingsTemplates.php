@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Variables\Post;
+
 class CleantalkSettingsTemplates
 {
     private $api_key;
@@ -48,11 +50,11 @@ class CleantalkSettingsTemplates
     {
         check_ajax_referer('ct_secret_nonce', 'security');
         $error_text = 'Export handler error.';
-        if ( isset($_POST['data']) && is_array($_POST['data']) ) {
-            $template_info = $_POST['data'];
+        if ( is_array(Post::get('data')) ) {
+            $template_info = Post::get('data');
             if ( isset($template_info['template_id']) ) {
                 $template_id = sanitize_text_field($template_info['template_id']);
-                $res         = \Cleantalk\Common\API::methodServicesTemplatesUpdate(
+                $res         = \Cleantalk\ApbctWP\API::methodServicesTemplatesUpdate(
                     $this->api_key,
                     (int)$template_id,
                     $this->getPluginOptions()
@@ -69,7 +71,7 @@ class CleantalkSettingsTemplates
             }
             if ( isset($template_info['template_name']) ) {
                 $template_name = sanitize_text_field($template_info['template_name']);
-                $res           = \Cleantalk\Common\API::methodServicesTemplatesAdd(
+                $res           = \Cleantalk\ApbctWP\API::methodServicesTemplatesAdd(
                     $this->api_key,
                     $template_name,
                     $this->getPluginOptions()
@@ -91,8 +93,8 @@ class CleantalkSettingsTemplates
     public function settingsTemplatesImportAjax()
     {
         check_ajax_referer('ct_secret_nonce', 'security');
-        if ( isset($_POST['data']) && is_array($_POST['data']) ) {
-            $template_info = $_POST['data'];
+        if ( is_array(Post::get('data')) ) {
+            $template_info = Post::get('data');
             if ( isset($template_info['template_id'], $template_info['template_name'], $template_info['settings']) ) {
                 $res = $this->setPluginOptions(
                     (int)$template_info['template_id'],
@@ -123,7 +125,7 @@ class CleantalkSettingsTemplates
     public static function getOptionsTemplate($api_key)
     {
         if ( ! self::$templates ) {
-            $res = \Cleantalk\Common\API::methodServicesTemplatesGet($api_key);
+            $res = \Cleantalk\ApbctWP\API::methodServicesTemplatesGet($api_key);
             if ( is_array($res) ) {
                 if ( array_key_exists('error', $res) ) {
                     $templates = array();

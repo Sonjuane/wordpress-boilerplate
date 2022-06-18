@@ -1,6 +1,4 @@
 <?php
-
-
 /**
  *
  * @link              https://miniorange.com
@@ -11,7 +9,7 @@
  * Plugin Name:       Firebase Authentication
  * Plugin URI:        firebase-authentication
  * Description:       This plugin allows login into Wordpress using Firebase as Identity provider.
- * Version:           1.5.4
+ * Version:           1.5.7
  * Author:            miniOrange
  * Author URI:        https://miniorange.com
  * License:           MIT/Expat
@@ -28,7 +26,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MO_FIREBASE_AUTHENTICATION_VERSION', '1.5.4' );
+define( 'MO_FIREBASE_AUTHENTICATION_VERSION', '1.5.7' );
 
 /**
  * The code that runs during plugin activation.
@@ -186,7 +184,7 @@ class mo_firebase_authentication_login {
 				$c2[0] = str_replace( '\n', '', $c2[0] );
 				update_option( 'mo_firebase_auth_kid2', $kid2 );
 				update_option( 'mo_firebase_auth_cert2', $c2[0] );
-		  	} else if ( $count > 3) {
+		  	} elseif ( $count > 3) {
 		  		$kid2   = substr( $s[1], 4, 40 );
 		  		$s2     = explode( ",", $split_result[2] );
 			  	$c2     = substr( $s2[0], 2, 1158 );
@@ -203,7 +201,7 @@ class mo_firebase_authentication_login {
 		} else {
 			if ( is_wp_error( $response ) ) {
 				$error_message = $response->get_error_message();
-				echo "Something went wrong: $error_message";
+				echo "Something went wrong: ".esc_attr($error_message);
 				exit();
 			}
 		}
@@ -327,20 +325,20 @@ class mo_firebase_authentication_login {
 		
 		if ( isset( $_POST['option'] ) ) {
 
-			if( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "mo_firebase_authentication_change_email" ) {
+			if( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "mo_firebase_authentication_change_email" && isset( $_REQUEST['mo_firebase_authentication_change_email_form_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_firebase_authentication_change_email_form_nonce'] ) ), 'mo_firebase_authentication_change_email_form' ) ) {
 				//Adding back button
 				update_option('mo_firebase_authentication_verify_customer', '');
 				update_option('mo_firebase_authentication_registration_status','');
 				update_option('mo_firebase_authentication_new_registration','true');
 			}
 
-			if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "change_miniorange" ) {
+			if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "change_miniorange" && isset( $_REQUEST['change_miniorange_form_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['change_miniorange_form_nonce'] ) ), 'change_miniorange_form' ) ) {
 				require_once plugin_dir_path( __FILE__ ) . 'includes/class-firebase-authentication-deactivator.php';
 				MO_Firebase_Authentication_Deactivator::deactivate();
 				return;
 			}
 
-			if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "mo_firebase_authentication_register_customer" ) {	//register the admin to miniOrange
+			if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "mo_firebase_authentication_register_customer" && isset( $_REQUEST['mo_fb_register_form_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['mo_fb_register_form_nonce'] ) ), 'mo_fb_register_form' )) {	//register the admin to miniOrange
 				//validation and sanitization
 				$email = '';
 				$phone = '';
@@ -383,14 +381,20 @@ class mo_firebase_authentication_login {
 						$response = json_decode( $customer->create_customer(), true );
 						if ( strcasecmp( $response['status'], 'SUCCESS' ) != 0 ) {
 							update_option( 'mo_firebase_auth_message', 'Failed to create customer. Try again.' );
+							$this->mo_firebase_auth_show_error_message();
+						}else{
+							update_option( 'mo_firebase_auth_message', 'Your registration is successful. Please login.' );
+							$this->mo_firebase_auth_show_success_message();
 						}
-						$this->mo_firebase_auth_show_success_message();
+
 					} elseif ( strcasecmp( $content['status'], 'SUCCESS' ) == 0 ) {
 						update_option( 'mo_firebase_auth_message', 'Account already exist. Please Login.' );
+						$this->mo_firebase_auth_show_error_message();
 					} else {
 						update_option( 'mo_firebase_auth_message', $content['status'] );
+						$this->mo_firebase_auth_show_success_message();
 					}
-					$this->mo_firebase_auth_show_success_message();
+					
 					
 				} else {
 					update_option( 'mo_firebase_auth_message', 'Passwords do not match.');
@@ -424,7 +428,7 @@ class mo_firebase_authentication_login {
 					}
 				}
 
-			} else if( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "mo_firebase_authentication_verify_customer" ) {//register the admin to miniOrange
+			} else if( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == "mo_firebase_authentication_verify_customer"  && isset($_REQUEST['mo_fb_login_form_nonce']) && wp_verify_nonce( $_REQUEST['mo_fb_login_form_nonce'], 'mo_fb_login_form')) {//register the admin to miniOrange
 				//validation and sanitization
 				$email = '';
 				$password = '';
@@ -457,7 +461,7 @@ class mo_firebase_authentication_login {
 					$this->mo_firebase_auth_show_error_message();
 				}
 		
-			} else if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == 'mo_firebase_auth_skip_feedback' ) {
+			} else if ( sanitize_text_field( wp_unslash( $_POST['option'] ) ) == 'mo_firebase_auth_skip_feedback' && isset($_REQUEST['mo_firebase_auth_skip_feedback_form_nonce']) && wp_verify_nonce( $_REQUEST['mo_firebase_auth_skip_feedback_form_nonce'], 'mo_firebase_auth_skip_feedback_form' ) ) {
 				deactivate_plugins( __FILE__ );
 				update_option( 'mo_firebase_auth_message', 'Plugin deactivated successfully' );
 				$this->mo_firebase_auth_show_success_message();
@@ -490,7 +494,7 @@ class mo_firebase_authentication_login {
 
 					$email = sanitize_email( $_POST['mo_fb_demo_request_email'] );
 					$demo_plan = isset($_POST['mo_fb_demo_request_plan']) ? stripslashes( $_POST['mo_fb_demo_request_plan'] ) : '';
-					$query = stripslashes( $_POST['mo_fb_demo_request_usecase'] );
+					$query = sanitize_text_field( $_POST['mo_fb_demo_request_usecase'] );
 
 					if( $this->mo_firebase_authentication_check_empty_or_null( $email ) || $this->mo_firebase_authentication_check_empty_or_null( $demo_plan ) || $this->mo_firebase_authentication_check_empty_or_null( $query ) ){
 

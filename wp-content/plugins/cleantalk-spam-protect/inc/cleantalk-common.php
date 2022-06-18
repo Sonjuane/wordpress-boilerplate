@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\DB;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Server;
 
@@ -18,8 +19,8 @@ function apbct_array($array)
     return new \Cleantalk\Common\Arr($array);
 }
 
-$ct_checkjs_frm           = 'ct_checkjs_frm';
-$ct_checkjs_register_form = 'ct_checkjs_register_form';
+$ct_checkjs_frm             = 'ct_checkjs_frm';
+$ct_checkjs_register_form   = 'ct_checkjs_register_form';
 
 $apbct_cookie_request_id_label  = 'request_id';
 $apbct_cookie_register_ok_label = 'register_ok';
@@ -209,11 +210,24 @@ function apbct_base_call($params = array(), $reg_flag = false)
     /**
      * Add honeypot_field to $base_call_data is forms__wc_honeypot on
      */
-    if ( $apbct->settings['data__honeypot_field'] ) {
+    if ( $apbct->settings['data__honeypot_field'] && ! isset($params['honeypot_field']) ) {
         $honeypot_field = 1;
-
-        if ( Post::get('wc_apbct_email_id') || Post::get('apbct__email_id__wp_register') ) {
-            $honeypot_field = 0;
+        // collect probable sources
+        $honeypot_potential_values = array(
+            'wc_apbct_email_id'                     => Post::get('wc_apbct_email_id'),
+            'apbct__email_id__wp_register'          => Post::get('apbct__email_id__wp_register'),
+            'apbct__email_id__wp_contact_form_7'    => Post::get('apbct__email_id__wp_contact_form_7'),
+            'apbct__email_id__wp_wpforms'           => Post::get('apbct__email_id__wp_wpforms'),
+            'apbct__email_id__search_form'          => Post::get('apbct__email_id__search_form')
+        );
+        // if source is filled then pass them to params as additional fields
+        foreach ($honeypot_potential_values as $source_name => $source_value) {
+            if ( $source_value ) {
+                $honeypot_field = 0;
+                $params['sender_info']['honeypot_field_value']  = $source_value;
+                $params['sender_info']['honeypot_field_source'] = $source_name;
+                break;
+            }
         }
 
         $params['honeypot_field'] = $honeypot_field;
@@ -230,11 +244,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     $ct = new Cleantalk();
 
-    $ct->use_bultin_api = $apbct->settings['wp__use_builtin_http_api'] ? true : false;
-    $ct->ssl_on         = $apbct->settings['data__ssl_on'];
-    $ct->ssl_path       = APBCT_CASERT_PATH;
-
-    // Options store url without shceme because of DB error with ''://'
+    // Options store url without scheme because of DB error with ''://'
     $config             = ct_get_server();
     $ct->server_url     = APBCT_MODERATE_URL;
     $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
@@ -330,6 +340,10 @@ function apbct_exclusions_check($func = null)
 {
     global $apbct;
 
+    if ( Post::get('apbct_do_not_exclude') ) {
+        return false;
+    }
+
     // Common exclusions
     if (
         apbct_exclusions_check__ip() ||
@@ -405,6 +419,11 @@ function apbct_exclusions_check__url()
                 apbct_get_server_variable('HTTP_REFERER')
             )
             : apbct_get_server_variable('REQUEST_URI');
+
+        if ( $apbct->data['check_exclusion_as_url'] ) {
+            $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
+            $haystack = $protocol . Server::get('SERVER_NAME') . $haystack;
+        }
 
         foreach ( $exclusions as $exclusion ) {
             if (
@@ -487,8 +506,8 @@ function apbct_get_sender_info()
     $visible_fields_collection = '';
     if ( Cookie::getVisibleFields() ) {
         $visible_fields_collection = Cookie::getVisibleFields();
-    } elseif ( isset($_POST['apbct_visible_fields']) ) {
-        $visible_fields_collection = stripslashes($_POST['apbct_visible_fields']);
+    } elseif ( Post::get('apbct_visible_fields') ) {
+        $visible_fields_collection = stripslashes(Post::get('apbct_visible_fields'));
     }
 
     $visible_fields = apbct_visible_fields__process($visible_fields_collection);
@@ -501,7 +520,7 @@ function apbct_get_sender_info()
         'USER_AGENT'             => apbct_get_server_variable('HTTP_USER_AGENT'),
         'page_url'               => apbct_sender_info___get_page_url(),
         'cms_lang'               => substr(get_locale(), 0, 2),
-        'ct_options'             => json_encode($apbct->settings),
+        'ct_options'             => json_encode($apbct->settings, JSON_UNESCAPED_SLASHES),
         'fields_number'          => sizeof($_POST),
         'direct_post'            => $cookie_is_ok === null && apbct_is_post() ? 1 : 0,
         // Raw data to validated JavaScript test in the cloud
@@ -528,7 +547,7 @@ function apbct_get_sender_info()
         'apbct_invisible_fields' => ! empty($visible_fields['invisible_fields']) ? $visible_fields['invisible_fields'] : null,
         // Misc
         'site_referer'           => Cookie::get('apbct_site_referer') ?: null,
-        'source_url'             => Cookie::get('apbct_urls') ? json_encode(Cookie::get('apbct_urls')) : null,
+        'source_url'             => Cookie::get('apbct_urls') ? json_encode(json_decode(Cookie::get('apbct_urls'), true)) : null,
         'pixel_url'              => Cookie::get('apbct_pixel_url'),
         'pixel_setting'          => $apbct->settings['data__pixel'],
         // Debug stuff
@@ -544,6 +563,7 @@ function apbct_get_sender_info()
         'screen_info'            => Cookie::get('ct_screen_info') ? json_encode(Cookie::get('ct_screen_info')) : null,
         'has_scrolled'           => Cookie::get('ct_has_scrolled') ? json_encode(Cookie::get('ct_has_scrolled')) : null,
         'mouse_moved'            => Cookie::get('ct_mouse_moved') ? json_encode(Cookie::get('ct_mouse_moved')) : null,
+        'emulations_headless_mode' => Cookie::get('apbct_headless') ? json_encode(Cookie::get('apbct_headless')) : null,
     );
 }
 
@@ -641,6 +661,7 @@ function apbct_js_keys__get__ajax()
 function apbct_get_pixel_url__ajax($direct_call = false)
 {
     global $apbct;
+
     $pixel_hash = md5(
         Helper::ipGet()
         . $apbct->api_key
@@ -778,7 +799,7 @@ function ct_get_admin_email()
         // WPMS - Main site, common account
         $admin_email = get_site_option('admin_email');
     } else {
-        // WPMS - Individual account, individual key
+        // WPMS - Individual account, individual Access key
         $admin_email = get_blog_option(get_current_blog_id(), 'admin_email');
     }
 
@@ -793,7 +814,7 @@ function ct_get_admin_email()
 }
 
 /**
- * Inner function - Current Cleantalk working server info
+ * Inner function - Current CleanTalk working server info
  * @return    array Array of server data
  */
 function ct_get_server()
@@ -834,7 +855,7 @@ function ct_hash($new_hash = '')
 /**
  * Inner function - Write manual moderation results to PHP sessions
  *
- * @param string $hash Cleantalk comment hash
+ * @param string $hash CleanTalk comment hash
  * @param string $message comment_content
  * @param int $allow flag good comment (1) or bad (0)
  *
@@ -1011,21 +1032,9 @@ function ct_get_fields_any_postdata($arr, $message = array())
     return $message;
 }
 
-/**
- * Checks if given string is valid regular expression
- *
- * @param string $regexp
- *
- * @return bool
- */
-function apbct_is_regexp($regexp)
-{
-    return @preg_match('/' . $regexp . '/', '') !== false;
-}
-
 function cleantalk_debug($key, $value)
 {
-    if ( isset($_COOKIE) && isset($_COOKIE['cleantalk_debug']) ) {
+    if ( Cookie::get('cleantalk_debug')) {
         @header($key . ": " . $value);
     }
 }
@@ -1237,4 +1246,69 @@ function apbct__wc_add_honeypot_field($fields)
     }
 
     return $fields;
+}
+
+/**
+ * The function determines whether it is necessary
+ * to conduct a general check of the post request
+ *
+ * @return boolean
+ */
+function apbct_need_to_process_unknown_post_request()
+{
+    global $apbct;
+
+    /** Exclude Ajax requests */
+    if ( apbct_is_ajax() ) {
+        return false;
+    }
+
+    /** Bitrix24 contact form */
+    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+         ! empty(Post::get('your-phone')) &&
+         ! empty(Post::get('your-email')) &&
+         ! empty(Post::get('your-message'))
+    ) {
+        return true;
+    }
+
+    /** VFB_Pro integration */
+    if (
+        ! empty($_POST) &&
+        $apbct->settings['forms__contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        apbct_is_plugin_active('vfb-pro/vfb-pro.php') &&
+        ! empty(Post::get('_vfb-form-id'))
+    ) {
+        return true;
+    }
+
+    /** Integration with custom forms */
+    if (
+        ! empty($_POST) &&
+        apbct_custom_forms_trappings()
+    ) {
+        return true;
+    }
+
+    if (
+        $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+        empty(Post::get('ct_checkjs_cf7')) &&
+        ! apbct_is_direct_trackback()
+    ) {
+        return true;
+    }
+
+    if ( apbct_is_user_enable() ) {
+        if (
+            $apbct->settings['forms__general_contact_forms_test'] == 1 &&
+            ! Post::get('comment_post_ID') &&
+            ! Get::get('for') &&
+            ! apbct_is_direct_trackback()
+        ) {
+            return true;
+        }
+    }
+
+    return false;
 }

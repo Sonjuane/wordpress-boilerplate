@@ -7,7 +7,7 @@ use Cleantalk\Variables\Server;
  */
 function ct_contact_form_validate()
 {
-    global $pagenow, $apbct, $ct_checkjs_frm;
+    global $pagenow, $apbct, $ct_checkjs_frm, $cleantalk_executed;
 
     // Exclude the XML-RPC requests
     if ( defined('XMLRPC_REQUEST') ) {
@@ -17,6 +17,12 @@ function ct_contact_form_validate()
 
     // Exclusios common function
     if ( apbct_exclusions_check(__FUNCTION__) ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        return null;
+    }
+
+    // Verification completed
+    if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
         return null;
     }
@@ -142,7 +148,7 @@ function ct_contact_form_validate()
     }
 
     // Do not execute anti-spam test for logged in users.
-    if ( isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
+    if ( defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -221,12 +227,15 @@ function ct_contact_form_validate()
         unset($_POST['TellAFriend_Link']);
     }
 
+    $checkjs = apbct_js_test('ct_checkjs', $_COOKIE, true) ?: apbct_js_test('ct_checkjs', $_POST);
+
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
+            'js_on'           => $checkjs,
             'sender_info'     => array('sender_email' => urlencode($sender_email)),
         )
     );
@@ -308,7 +317,7 @@ function ct_contact_form_validate()
                 die();
                 // Enfold Theme Contact Form. Using $contact_form
             } elseif ( ! empty($contact_form) && $contact_form == 'contact_form_enfold_theme' ) {
-                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Antispam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
+                echo "<div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1' style='display: block;'><div id='ajaxresponse_1' class='ajaxresponse ajaxresponse_1'><h3 class='avia-form-success'>Anti-Spam by CleanTalk: " . $ct_result->comment . "</h3><a href='.'><-Back</a></div></div>";
                 die();
             } else {
                 ct_die(null, null);

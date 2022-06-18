@@ -2,9 +2,9 @@
 Contributors: glomberg, safronik
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 3.0
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 5.6
-Stable tag: 5.173
+Stable tag: 5.179
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -35,9 +35,11 @@ No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bo
 19. Spam FireWall: Anti-Flood
 20. Spam FireWall: Anti-Crawler
 21. Hide «Website» field for comments
+22. Block messages by languages, countries, networks.
+23. Email Address Encoder
 
 = Free trial then $8 per year =
-CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a> 
+CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = Public reviews =
 > CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
@@ -291,6 +293,11 @@ This option disables comments on your site. You can choose one or several option
 * Disable comments for media
 
 When using Disables comments, existing comments will not be deleted and will remain on the pages.
+
+= Email Address Encoder =
+
+CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding the email addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals.
+To reveal the encoded email address simply click on it and it will be decoded instantly.
 
 = Translations =
 * Albanian (sq_AL) - thanks to fjalaime https://wordpress.org/support/users/fjalaime/
@@ -594,6 +601,171 @@ If your website has forms that send data to external sources, you can enable opt
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 5.179 Jun 16 2022 =
+#### Email Encoder functionality improved, SFW updating process improved and some minor issues fixed.
+* New. EmailEncoder.php->modifyContent. Admins and logged in exclusions.
+* Fix. Email encoder. Prevent encoding data for logged in users.
+* Fix. Queue. Return statement from executeStage() method added.
+* Fix. SFW. Updating process fixed.
+* Fix. SFW. SFW update worker fixed.
+* Mod: Using the shutdown hook to call a function ct_contact_form_validate().
+* Fix. apbct_sfw_update__worker. Clear errors if stage is finished.
+* Fix. HTTP lib. Useragent for WP HTTP API requests fixed.
+* Fix. cleantalk_external. Exclusion for tp.media booking forms.
+* Fix. cleantalk_external. Exclusion for flodesk forms.
+* Mod: Replace apbct_update_actions() to upgrader_process_complete hook
+* Fix. cleantalk_external.js->ct_protect_external(). Exclusion for tp.media booking forms.
+* Fix. RemoteCalls. No cache parameter added.
+* Fix. apbct_remove_upd_folder(). Force unknown file deletion ('.last.jpegoptim')
+* Fix. apbct_remove_upd_folder(). Add chek if a strange file is a file and exists.
+* Fix. GetFieldsAny.php. Decode email if it is urlencoded.
+* Fix. cleantalk-public-validate.php. Add JS check to public forms.
+* Mod: Refactoring User Scanner
+* Fixed apbct_cookies_test cookie
+* Upd. JS. Cookies has_scrolling and mouse_moved optimized.
+* Upd. Email encoder. Links mailto: processed.
+
+= 5.178 Jun 02 2022 =
+#### Comment moderation option added, cookies prefix added, RemoteCalls stability improved and some minor issues fixed.
+* New. Options. Comment moderation option added on discussion page.
+* New. Settings. Encode contact data long description added.
+* New. Cookies. Getting prefix function implemented.
+* New. Cookies. Get and set cookies with prefix.
+* New. Cookies. Using cookie prefix on client code.
+* Mod: Created RemoteCallsCounter::class to limit remote calls
+* Mod: Created RemoteCallsLogger::class for logging last remote calls
+* Upd. Comments. Comment moderation logic modified.
+* Fix: webto.salesforce.com extended form
+* Fix. SFW. Statistics fixed.
+* Fix: secure2.convio.net external
+* Fix: hookb.in external
+* Fix: fixed test for wpforms
+* Fix. Pluggable. Getting REST url fixed.
+* Fix: Formidable Pro Multistep Fixed
+* Fix: Formidable Form Pro ajax response - fixed
+* Fix. Settings. Alternative cookies option renamed.
+* Fix. Common. Cookies test function fixed.
+* Fix. External forms. JS logic fixed.
+* Fix. External forms. Force ajax check action handler added.
+* Fix. cleantalk.php. VisualFormBuilder hook change.
+* Delete RC update plugin
+* Fix. cleantalk.php. Visual Form Builder integration: add legacy support.
+* Fix. Helper. Fatal error (Call to private method) fixed.
+* Fix. WooCommerce. WC checking order hook changed.
+* Fix. Settings. Validate URL exclusions.
+* Fix. cleantalk-public-integrations.php->apbct_form__gravityForms__testSpam. Gravity forms multiple email fields fix.
+* Fix. SFW updating. Writing update errors fixed.
+* Fix. cleantalk.php-> apbct_sfw_update__worker() Convert errors array to a string if set in a stage.
+
+= 5.177.2 May 27 2022 =
+* Fix. EmailEncoder.php. Fix accident encoding.
+
+= 5.177.1 May 19 2022 =
+* Fix. Pluggable. Getting REST url fixed.
+
+= 5.177 May 12 2022 =
+#### WP 6.0 compatibility, Email Encoder added, Common HTTP API implemented, Honeypot fields improved and some minor issues fixed.
+* New. Email Encode functionality added.
+* New. cleantalk-common.php. Honeypot field value and source now sends in sender_info.
+* New. ct_preprocess_comment(). Honeypot field source now sends in sender_info.
+* New. HTTP API. Common CleanTalk http library added.
+* New. Public integrations. Honeypot field for search form.
+* New. WP 6.0 compatibility.
+* Fix: EZ Form Calculator - clearing the message
+* Fix. Common. Checking all post data fixed.
+* Imp. Settings. "Hide website" field moved to "different" section.
+* Imp. Settings. "Hide website" type changed to checkbox from radio.
+* Imp. Settings. "Honeypot field" state changed to enabled by defaults.
+* Mod: Integration for Advanced Classifieds & Directory Pro - registration form
+* Fix. Custom ajax. Custom ajax handler usage removed completely.
+* Fix: Excluded the addition of visible fields in filter of The Events Calendar
+* Fix. cleantalk-common.php. Added search honeypot field signature to potential honeypot fields post values
+* Fix: MultiStep Checkout for WooCommerce - skipped step validation
+* Ref. cleantalk-public-integrations.php. Empty string converts to false - comparison removed.
+* fix: apbct_get_rest_url - returns the result of a get_rest_url() function if it exists
+* Mod: modified getting pixel_url.
+* Fix. apbct_init. Reduce multiple direct calls of apbct_get_pixel_url__ajax.
+* Fix: Cleantalk\Common\HTTP\Request. Timeout error while async request.
+* Fix. HTTP API. Process exception passed from WordPress \Requests class.
+* Fix. Cleantalk. Antispam class fixed.
+* Fix. API. Common API class fixed.
+* Fix. Comments checker. Pagination fixed.
+* Fix. Common. CleanTalk service request excluded.
+
+= 5.176 Apr 28 2022 =
+#### New integration added, honeypot fields added and some minor issues fixed.
+* New. Integration. NextendSocialLogin integration implemented.
+* New: Exclusions validation in apbct_settings__sanitize__exclusions().
+* New. WPDiscuz integration. Now sends sender_url. Integrations.php now ready to process sender_url.
+* New. Common. Headless parameter added.
+* Upd. Integration. A honeypot field was added for the CF7 integration.
+* Upd. Integration. A honeypot field was added for the WPForms integration.
+* Fix. Common. Prevent double json encoding for source_url.
+* Fix. SFW. SFW results priority depends by network mask.
+* Fix: Excluded visible fields for AvadaFormBuilder
+* Fix: honeypot fixed
+* Fix. Forms. Prevent generating a honeypot field if such option is disabled.
+* Fix: Fixed external forms
+* Exclusion fields descritpions update.
+* Fields exclusion input changed to textarea to keep visual identity with URL exclusion.
+* Fix. After review. Removed condition on exclusions array slicing. Functions order changed.
+* Fix. WPDiscuz integration. Now tries to get email, nick and message directly from POST. If unsuccessful then runs get_fields_any.
+* Fix: Optimize and fixed user scanner
+* Fix. JS. Using ajax for getting JS key is disabled by default.
+* Fix. Common. Custom ajax logic removed.
+* Fix. Settings. Now templated settings applies to sub-sites on the first save.
+* Fix: FixTeam integration - removed visible fields
+* Fix. apbct_settings__sanitize__exclusions(). Checking input params types.
+* Fix. Settings. Url/fields exclusion validating fixed.
+* Fix: Fusion Avada Form Builder Fixed
+* Fix: External form fix for infusionsoft
+
+= 5.175 Apr 14 2022 =
+#### Integration added, typos fixed, user scanner improved and minor issues fixed.
+* New. Integration. Events Manager plugin integration implemented.
+* New. Code. New validate classes.
+* New. Code. New validate sub-classes in ApbctWP.
+* Upd. Readme. One more AntiSpam feature added.
+* Mod: PlansoFormBuilder integration
+* Fix. External forms. Capturing buffer fixed.
+* Fix. Integration. Simple Ajax Chat sending fixed.
+* Fix. Exclusions. Special flag to prevent exclusions implemented.
+* Fix. Getting key errors handle.
+* Fix. Getting key error output fixed.
+* Fix: Added VFB_Pro integration
+* Fix. Settings api. Long description for text fields implemented.
+* Fix. Settings. Long description for hoster api key removed.
+* Fix. Settings. Long descriptions UTM marks fixed.
+* Fix. Comments checker. Dates ranges fixed.
+* Fix. Code. Core based JqueryUI use on users/comments checking page.
+* Fix. Code. Moderate API answer fixed.
+* Fix. Code. Including assets fixed.
+* Fix. Text. Typos on company brand terms fixed.
+* Fix: Glitched redirect after plugin activation.
+* Fix. Settings. Hoster Access Key long description mark removed.
+* Fix: Filter visible fields for AvadaFormBuilder
+* Fix. Code. Using wrappers for calling global variables.
+* Fix. Code. Cookie secure attribute fixed.
+* Fix. Code. Refactoring the user scanning engine.
+* Fix. Cookie. Getting cookies fixed.
+* Upd. Settings. SFW long description added.
+* Upd. Localization. SFW, AC, AF titles is not localized now.
+* Fix. Common. Collecting visited urls fixed.
+* Fix. Integration. JP contact form checking JS fixed.
+* Fix. Integration. CF7 form checking JS fixed.
+
+= 5.174.1 Mar 25 2022 =
+* Fix: Comments/Users scanner fixed.
+
+= 5.174 Mar 25 2022 =
+#### Minor issues fixed.
+* Fix. URLs storing fixed.
+* Fix. Visible fields. Do not add hidden field for logged-in users if the protection was deactivated.
+* Fix. Integration. CF7 native spam protection fixed.
+* Fix. Integration. Formidable integration fixed.
+* Fix. Integration. Skipping elementor pro action fixed.
+* Fix. Scanners. Users and comments scanners fixed.
 
 = 5.173 Mar 03 2022 =
 #### Honeypot field implemented for improving antispam protection, new integrations added, performance improved and minor issues fixed.

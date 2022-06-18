@@ -2,13 +2,15 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\HTTP\Request;
+
 /**
- * CleanTalk Antispam Helper class.
- * Compatible only with Wordpress.
+ * CleanTalk Anti-Spam Helper class.
+ * Compatible only with WordPress.
  *
  * @depends \Cleantalk\Common\Helper
  *
- * @package Antispam Plugin by CleanTalk
+ * @package Anti-Spam Plugin by CleanTalk
  * @subpackage Helper
  * @Version 1.0
  * @author Cleantalk team (welcome@cleantalk.org)
@@ -27,7 +29,7 @@ class Helper extends \Cleantalk\Common\Helper
      * get      - GET-request
      * ssl      - use SSL
      *
-     * @param string $url URL
+     * @param string|array<string> $url URL
      * @param array|string|int $data POST|GET indexed array with data to send
      * @param string|array $presets String or Array with presets: get_code, async, get, ssl, dont_split_to_array
      * @param array $opts Optional option for CURL connection
@@ -46,7 +48,13 @@ class Helper extends \Cleantalk\Common\Helper
             $opts
         );
 
-        return parent::httpRequest($url, $data, $presets, $opts);
+        $http = new Request();
+
+        return $http->setUrl($url)
+                    ->setData($data)
+                    ->setPresets($presets)
+                    ->setOptions($opts)
+                    ->request();
     }
 
     /**
@@ -59,7 +67,7 @@ class Helper extends \Cleantalk\Common\Helper
      */
     public static function httpRequestGetResponseCode($url)
     {
-        return static::httpRequest($url, array(), 'get_code');
+        return static::httpRequest($url, array(), 'get_code get');
     }
 
     /**
@@ -89,6 +97,14 @@ class Helper extends \Cleantalk\Common\Helper
     {
         global $apbct;
 
+        // RemoteCallsCounter
+        $logging_data = array(
+            'rc_action' => $rc_action,
+            'request_params' => $request_params
+        );
+        $RCCounter = new RemoteCallsCounter($logging_data);
+        $RCCounter->execute();
+
         $request_params = array_merge(array(
             'spbc_remote_call_token' => md5($apbct->api_key),
             'spbc_remote_call_action' => $rc_action,
@@ -96,7 +112,8 @@ class Helper extends \Cleantalk\Common\Helper
         ), $request_params);
         $patterns       = array_merge(
             array(
-                'dont_split_to_array'
+                'dont_split_to_array',
+                'no_cache'
             ),
             $patterns
         );
@@ -128,6 +145,14 @@ class Helper extends \Cleantalk\Common\Helper
      */
     public static function httpRequestRcToHostTest($rc_action, $request_params, $patterns = array())
     {
+        // RemoteCallsCounter
+        $logging_data = array(
+            'rc_action' => $rc_action,
+            'request_params' => $request_params
+        );
+        $RCCounter = new RemoteCallsCounter($logging_data);
+        $RCCounter->execute();
+
         // Delete async pattern to get the result in this process
         $key = array_search('async', $patterns, true);
         if ($key) {

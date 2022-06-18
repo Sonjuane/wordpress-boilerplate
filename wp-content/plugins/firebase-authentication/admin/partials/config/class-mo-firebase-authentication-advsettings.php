@@ -37,10 +37,10 @@ class Mo_Firebase_Authentication_Admin_AdvSettings {
 					<tr><td></td></tr><tr><td></td></tr>
 					<tr><td>
 					<input type="checkbox" name = "mo_firebase_auth_woocommerce_intigration" id = "mo_firebase_auth_woocommerce_intigration" value= "1" onclick="mo_firebase_auth_manageWCDiv();" disabled>
-						<img src="<?php echo dirname(plugin_dir_url( __FILE__ ));?>/../images/woocommerce-circle.png" width="50px">&nbsp;&nbsp;WooCommerce
+						<img src="<?php echo esc_url(dirname(plugin_dir_url( __FILE__ )));?>/../images/woocommerce-circle.png" width="50px">&nbsp;&nbsp;WooCommerce
 						</td></tr><tr><td>
 					<input type="checkbox" name = "mo_firebase_auth_buddypress_intigration"value="1" disabled>
-						<img src="<?php echo dirname(plugin_dir_url( __FILE__ ));?>/../images/buddypress.png" width="50px">&nbsp;&nbsp;BuddyPress
+						<img src="<?php echo esc_url(dirname(plugin_dir_url( __FILE__ )));?>/../images/buddypress.png" width="50px">&nbsp;&nbsp;BuddyPress
 				    	</td></tr>
 			    	</table>
 			    	<input type="submit" style="text-align:center; font-size: 14px; font-weight: 400; margin-top: 10px;" class="btn btn-primary" name="integration_settings" value=" Save Settings" id = "mo_auth_integration_save_settings_button" disabled><br>

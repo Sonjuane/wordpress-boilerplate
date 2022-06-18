@@ -42,9 +42,9 @@ class Mo_Firebase_Authentication_Admin_Config {
 							</table>
 							<div style="margin-top: 10px;">
 							<font color="#FF0000">*</font><strong>Project Id</strong><div class="mo-firebase-auth-tooltip">&#x1F6C8;<div class="mo-firebase-auth-tooltip-text mo-tt-right">collect project Id from your firebase project</div> </div></div><div style="margin-top: 10px;">
-							<input type="text" id="project_id" name="projectid" value= "<?php echo get_option( 'mo_firebase_auth_project_id' ); ?>" placeholder="Enter Project Id.." required="" style = "width:50%; font-size: 14px;"></div><br>
+							<input type="text" id="project_id" name="projectid" value= "<?php echo esc_attr(get_option( 'mo_firebase_auth_project_id' )); ?>" placeholder="Enter Project Id.." required="" style = "width:50%; font-size: 14px;"></div><br>
 							<font color="#FF0000">*</font><strong>API Key</strong><div class="mo-firebase-auth-tooltip">&#x1F6C8;<div class="mo-firebase-auth-tooltip-text mo-tt-right">collect API key from your firebase project</div> </div><br>
-							<input style = "width:50%; font-size: 14px;" type="password" id="api_key" name="apikey" value="<?php echo get_option( 'mo_firebase_auth_api_key' ); ?>" placeholder="Enter your API Key.." required="">
+							<input style = "width:50%; font-size: 14px;" type="password" id="api_key" name="apikey" value="<?php echo esc_attr(get_option( 'mo_firebase_auth_api_key' )); ?>" placeholder="Enter your API Key.." required="">
 							<i class="fa fa-eye" id="show_button" onclick="passwordShowButton('api_key', this.id)" style="margin-left: -30px; cursor: pointer; "></i>
 							<br><br>
 							<input type="submit" class="button button-primary button-large" style="margin-top: 10px; width:140px;" name="verify_user" value=" Save Configuration" id = "mo_auth_configure_button">
@@ -61,7 +61,7 @@ class Mo_Firebase_Authentication_Admin_Config {
 							<table class="mo_settings_table" >
 							<tr><td>
 							<font color="#FF0000">* </font><strong>Username</strong></td><td><input type="text" id="test_username" name="test_username" value="" placeholder="Username"  required="" class="mo_table_short_textbox" style="width:40%;"></td></tr> <tr><td></td></tr><tr><td>
-							<font color="#FF0000">* </font><strong>Password</strong></td><td><input type="password" id="test_password" name="test_password" value="" placeholder="Password" required="" class="mo_table_short_textbox" style="width:40%;">
+							<font color="#FF0000">* </font><strong>Password</strong></td><td><input type="password" id="test_password" name="test_password" value="" placeholder="Password" required="" class="mo_table_short_textbox" style="width:40%;" autocomplete="on">
 							<i class="fa fa-eye" id="show_button1" onclick="passwordShowButton('test_password', this.id)" style="margin-left: -30px; cursor: pointer; "></i>
 							</td></tr><br></table>
 							<input type="hidden" id="test_check_field" name="test_check_field" value="test_check_true">
@@ -83,7 +83,31 @@ class Mo_Firebase_Authentication_Admin_Config {
 						<input type="submit" class="btn btn-primary" id="mo_firebase_save_attr_mapping_button" name="save_settings" value="Save Settings" disabled style="font-size: 14px; font-weight: 400;">
 					</form>
 				</div>
-		</div>
+
+				<div class="mo_table_layout" style="width:100%" >
+					<h3 style="margin: 0px">Role Mapping <small style="color: #FF0000;font-size: 60%"><a href="admin.php?page=mo_firebase_authentication&tab=licensing_plans">[PREMIUM]</a></small></h3>
+					<form name="mo_firebase_role_mapping_form" id="mo_firebase_role_mapping_form"  method="post">
+						<input type="hidden" name="option" value="mo_firebase_role_mapping">
+						<table class="mo_settings_table" style="margin-top: 20px;">
+						
+						<tr><td colspan="2" style="padding-top: 10px;"><strong> <input type="checkbox" name="keep_existing_user_roles" value="1" disabled />Keep existing user roles</strong> <br><strong></strong><small>Role mapping won't apply to existing WordPress users</small></td></tr>
+						<tr><td><strong>WordPress Role:</strong></td>
+						<td style="padding-top:15px;">
+							<select name="mo_firebase_default_role" id="mo_firebase_default_role" disabled>
+								<?php
+								$mo_fb_role = isset($role_mappings['mo_firebase_default_role']) && $role_mappings['mo_firebase_default_role'] ?$role_mappings['mo_firebase_default_role']: 'subscriber';
+								wp_dropdown_roles($mo_fb_role);
+								//wp_dropdown_roles( 'editor' );
+								?>
+							</select>
+						</td>
+						</tr>
+						<tr><td colspan="2"><strong></strong><small>This role will be assigned to all the users who login with firebase.</small></td></tr>
+						</table>
+						<input type="submit" class="btn btn-primary" id="mo_firebase_save_role_mapping_button" style="font-size: 14px; font-weight: 400; margin-top: 2%;" name="save_settings" disabled value="Save Settings">
+					</form>
+				</div>
+			</div>
 	</div>
 	<script>
 
@@ -107,7 +131,7 @@ class Mo_Firebase_Authentication_Admin_Config {
 						return;
 					}
 					event.preventDefault();
-					let url = "<?php echo site_url(); ?>/?mo_action=firebaselogin&test=true";
+					let url = "<?php echo esc_url(site_url()); ?>/?mo_action=firebaselogin&test=true";
 					jQuery("#mo_firebasetestconfig").attr("action", url);
 					let newwindow = window.open("about:blank", 'firebasetestconfig', 'location=yes,height=700,width=600,scrollbars=yes,status=yes');
 					jQuery("#mo_firebasetestconfig").submit();

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 5.173
+  Version: 5.179
   Author: СleanTalk <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -34,6 +34,7 @@ use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
 use Cleantalk\Variables\Get;
+use Cleantalk\Variables\Post;
 use Cleantalk\Variables\Request;
 use Cleantalk\Variables\Server;
 
@@ -60,6 +61,9 @@ if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent,
 define('APBCT_NAME', $plugin_info['Name']);
 define('APBCT_VERSION', $plugin_info['Version']);
 define('APBCT_URL_PATH', plugins_url('', __FILE__));  //HTTP path.   Plugin root folder without '/'.
+define('APBCT_CSS_ASSETS_PATH', plugins_url('css', __FILE__));  //CSS assets path.   Plugin root folder without '/'.
+define('APBCT_JS_ASSETS_PATH', plugins_url('js', __FILE__));  //JS assets path.   Plugin root folder without '/'.
+define('APBCT_IMG_ASSETS_PATH', plugins_url('inc/images', __FILE__));  //IMAGES assets path.   Plugin root folder without '/'.
 define('APBCT_DIR_PATH', dirname(__FILE__) . '/');          //System path. Plugin root folder with '/'.
 define('APBCT_PLUGIN_BASE_NAME', plugin_basename(__FILE__));          //Plugin base name.
 define(
@@ -77,7 +81,7 @@ define('APBCT_SETTINGS', 'cleantalk_settings');         //Option name with plugi
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); //Option name with plugin network settings.
 define('APBCT_DEBUG', 'cleantalk_debug');            //Option name with a debug data. Empty by default.
 
-// Multisite
+// WordPress Multisite
 define('APBCT_WPMS', (is_multisite() ? true : false)); // WMPS is enabled
 
 // Different params
@@ -137,6 +141,14 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
     \Cleantalk\Antispam\DisableComments::getInstance();
 }
 
+// Email encoder
+if (
+    $apbct->key_is_ok &&
+    ( ! is_admin() || apbct_is_ajax() ) &&
+    $apbct->settings['data__email_decoder'] ) {
+    \Cleantalk\Antispam\EmailEncoder::getInstance();
+}
+
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {
@@ -160,6 +172,10 @@ add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
 add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 add_action('wp_ajax_apbct_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 
+// Force ajax checking for external forms
+add_action('wp_ajax_nopriv_cleantalk_force_ajax_check', 'ct_ajax_hook');
+add_action('wp_ajax_cleantalk_force_ajax_check', 'ct_ajax_hook');
+
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 
@@ -172,12 +188,36 @@ $apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $
 if ( $apbct->plugin_version === '1.0.0' ) {
     $apbct->plugin_version = '5.100';
 }
-// Do update actions if version is changed
-apbct_update_actions();
 
 /**
- * @psalm-suppress TypeDoesNotContainType
+ * This function runs when WordPress completes its upgrade process
+ * It iterates through each plugin updated to see if ours is included
+ *
+ * @param $upgrader WP_Upgrader
+ * @param $options Array
+ *
  */
+function apbct_upgrader_process_complete($_upgrader, $options)
+{
+    $our_plugin = APBCT_PLUGIN_BASE_NAME;
+
+    // If an update has taken place and the updated type is plugins and the plugin's element exists
+    if ($options['action'] === 'update' && $options['type'] === 'plugin' && isset($options['plugins'])) {
+        // Iterate through the plugins being updated and check if ours is there
+
+        foreach ($options['plugins'] as $plugin) {
+            if ($plugin === $our_plugin) {
+                apbct_update_actions();
+            }
+        }
+    }
+}
+// compatibility with old version
+if (version_compare($apbct->plugin_version, '5.179') === -1) {
+    apbct_update_actions();
+}
+add_action('upgrader_process_complete', 'apbct_upgrader_process_complete', 10, 2);
+
 add_action('init', function () {
     global $apbct;
     // Self cron
@@ -195,7 +235,7 @@ add_action('init', function () {
         if ( is_array($cron_res) ) {
             foreach ( $cron_res as $_task => $res ) {
                 if ( $res === true ) {
-                    $apbct->errorDelete('cron', 'save_data');
+                    $apbct->errorDelete('cron', true);
                 } else {
                     $apbct->errorAdd('cron', $res);
                 }
@@ -214,14 +254,11 @@ if ( $apbct->settings && $apbct->key_is_ok ) {
 //Delete cookie for admin trial notice
 add_action('wp_logout', 'apbct__hook__wp_logout__delete_trial_notice_cookie');
 
-// Formidable Forms Pro Ajax Test Spam
-add_filter('frm_validate_entry', 'apbct_form__formidable__testSpam', 1, 2);
-
 // Set cookie only for public pages and for non-AJAX requests
 if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
-     && empty($_POST['ct_checkjs_register_form']) // Buddy press registration fix
-     && empty($_GET['ct_checkjs_search_default']) // Search form fix
-     && empty($_POST['action']) //bbPress
+     && empty(Post::get('ct_checkjs_register_form')) // Buddy press registration fix
+     && empty(Get::get('ct_checkjs_search_default')) // Search form fix
+     && empty(Post::get('action')) //bbPress
 ) {
     add_action('template_redirect', 'apbct_cookie', 2);
     add_action('template_redirect', 'apbct_store__urls', 2);
@@ -234,7 +271,11 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
 // Early checks
 
 // Iphorm
-if ( isset($_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid']) ) {
+if (
+    Post::get('iphorm_ajax') !== '' &&
+    Post::get('iphorm_id') !== '' &&
+    Post::get('iphorm_uid') !== ''
+) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
@@ -244,8 +285,8 @@ if ( isset($_POST['iphorm_ajax'], $_POST['iphorm_id'], $_POST['iphorm_uid']) ) {
 
 // Facebook
 if ( $apbct->settings['forms__general_contact_forms_test'] == 1
-     && ( ! empty($_POST['action']) && $_POST['action'] === 'fb_intialize')
-     && ! empty($_POST['FB_userdata'])
+     && ( Post::get('action') === 'fb_intialize')
+     && ! empty(Post::get('FB_userdata'))
 ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
@@ -327,8 +368,23 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'VisualFormBuilder' => array(
-        'hook'    => 'vfb_isBot',
+        'hook'    => array('vfb_isbot','vfb_isBot'),
         'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'EventsManager' => array(
+        'hook'    => 'em_booking_validate',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'PlansoFormBuilder' => array(
+        'hook'    => 'psfb_validate_form_request',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'NextendSocialLogin' => array(
+        'hook'    => 'nsl_before_register',
+        'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
 );
@@ -338,8 +394,7 @@ new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct-
 if (
     apbct_is_in_uri('admin-ajax.php') &&
     sizeof($_POST) > 0 &&
-    isset($_GET['action']) &&
-    $_GET['action'] === 'ninja_forms_ajax_submit'
+    Get::get('action') === 'ninja_forms_ajax_submit'
 ) {
     $_POST['action'] = 'ninja_forms_ajax_submit';
 }
@@ -379,6 +434,9 @@ add_filter('avf_form_send', 'apbct_form__enfold_contact_form__test_spam', 4, 10)
 // Profile Builder integration
 add_filter('wppb_output_field_errors_filter', 'apbct_form_profile_builder__check_register', 1, 3);
 
+// Advanced Classifieds & Directory Pro
+add_filter('acadp_is_spam', 'apbct_advanced_classifieds_directory_pro__check_register', 1, 2);
+
 // WP Foro register system integration
 add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1);
 
@@ -392,6 +450,10 @@ add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
 add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
 // Do spam check
 add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
+
+// Formidable
+add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
+add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
@@ -482,7 +544,7 @@ if ( is_admin() || is_network_admin() ) {
         }
     }
 
-    if ( apbct_is_ajax() || isset($_POST['cma-action']) ) {
+    if ( apbct_is_ajax() || Post::get('cma-action') !== '' ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
@@ -492,11 +554,11 @@ if ( is_admin() || is_network_admin() ) {
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
 
         // Feedback for comments
-        if ( isset($_POST['action']) && $_POST['action'] == 'ct_feedback_comment' ) {
+        if ( Post::get('action') === 'ct_feedback_comment' ) {
             add_action('wp_ajax_nopriv_ct_feedback_comment', 'apbct_comment__send_feedback', 1);
             add_action('wp_ajax_ct_feedback_comment', 'apbct_comment__send_feedback', 1);
         }
-        if ( isset($_POST['action']) && $_POST['action'] == 'ct_feedback_user' ) {
+        if ( Post::get('action') === 'ct_feedback_user' ) {
             add_action('wp_ajax_nopriv_ct_feedback_user', 'apbct_user__send_feedback', 1);
             add_action('wp_ajax_ct_feedback_user', 'apbct_user__send_feedback', 1);
         }
@@ -506,12 +568,12 @@ if ( is_admin() || is_network_admin() ) {
         // if Unknown action or Known action with mandatory check
         if (
             ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1) &&
-            isset($_POST['action']) &&
+            Post::get('action') !== '' &&
             (
-                ! in_array($_POST['action'], $_cleantalk_hooked_actions) ||
-                in_array($_POST['action'], $_cleantalk_ajax_actions_to_check)
+                ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
+                in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
             ) &&
-            ! in_array($_POST['action'], array_column($apbct_active_integrations, 'hook'))
+            ! in_array(Post::get('action'), array_column($apbct_active_integrations, 'hook'))
         ) {
             add_action('plugins_loaded', 'ct_ajax_hook');
         }
@@ -544,14 +606,6 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-integrations.php');
-    //Bitrix24 contact form
-    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 &&
-         ! empty($_POST['your-phone']) &&
-         ! empty($_POST['your-email']) &&
-         ! empty($_POST['your-message'])
-    ) {
-        ct_contact_form_validate();
-    }
 
     // Sends feedback to the cloud about comments
     // add_action('wp_set_comment_status', 'ct_comment_send_feedback', 10, 2);
@@ -572,6 +626,14 @@ if ( is_admin() || is_network_admin() ) {
 
         add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
     }
+
+    /**
+     * This hook is triggered if the request is from a form
+     * with which we did not integrate.
+     */
+    if (apbct_need_to_process_unknown_post_request()) {
+        add_action('shutdown', 'ct_contact_form_validate', 999);
+    }
 // Public pages actions
 } else {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-public-validate.php');
@@ -589,7 +651,7 @@ if ( is_admin() || is_network_admin() ) {
     add_filter('wp_die_handler', 'apbct_comment__sanitize_data__before_wp_die', 1); // Check comments after validation
 
     // Registrations
-    if ( ! isset($_POST['wp-submit']) ) {
+    if ( ! Post::get('wp-submit') ) {
         add_action('login_form_register', 'apbct_cookie');
         add_action('login_form_register', 'apbct_store__urls');
     }
@@ -599,7 +661,7 @@ if ( is_admin() || is_network_admin() ) {
     add_filter('registration_errors', 'ct_check_registration_erros', 999999, 3);
     add_action('user_register', 'apbct_user_register');
 
-    // Multisite registrations
+    // WordPress Multisite registrations
     add_action('signup_extra_fields', 'ct_register_form');
     add_filter('wpmu_validate_user_signup', 'ct_registration_errors_wpmu', 10, 3);
 
@@ -610,11 +672,19 @@ if ( is_admin() || is_network_admin() ) {
     add_filter('wp_list_comments_args', 'ct_wp_list_comments_args');
 
     // Ait-Themes fix
-    if ( isset($_GET['ait-action']) && $_GET['ait-action'] === 'register' ) {
-        $tmp = $_POST['redirect_to'];
+    if ( Get::get('ait-action') === 'register' ) {
+        $tmp = Post::get('redirect_to');
         unset($_POST['redirect_to']);
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
+    }
+
+    /**
+     * This hook is triggered if the request is from a form
+     * with which we did not integrate.
+     */
+    if (apbct_need_to_process_unknown_post_request()) {
+        add_action('shutdown', 'ct_contact_form_validate', 999);
     }
 }
 
@@ -641,10 +711,10 @@ function apbct_sfw__check()
     }
 
     // Skip the check
-    if ( ! empty($_GET['access']) ) {
+    if ( ! empty(Get::get('access')) ) {
         $spbc_settings = get_option('spbc_settings');
         $spbc_key      = ! empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
-        if ( $_GET['access'] === $apbct->api_key || ($spbc_key !== false && $_GET['access'] === $spbc_key) ) {
+        if ( Get::get('access') === $apbct->api_key || ($spbc_key !== false && Get::get('access') === $spbc_key) ) {
             \Cleantalk\Variables\Cookie::set(
                 'spbc_firewall_pass_key',
                 md5(apbct_get_server_variable('REMOTE_ADDR') . $spbc_key),
@@ -747,8 +817,11 @@ function apbct_plugin_redirect()
 {
     global $apbct;
     wp_suspend_cache_addition(true);
-    if ( get_option('ct_plugin_do_activation_redirect', false) && ! isset($_GET['activate-multi']) ) {
-        delete_option('ct_plugin_do_activation_redirect');
+    if (
+        get_option('ct_plugin_do_activation_redirect', false) &&
+        delete_option('ct_plugin_do_activation_redirect') &&
+        ! Get::get('activate-multi')
+    ) {
         ct_account_status_check(null, false);
         apbct_sfw_update__init(3); // Updating SFW
         wp_redirect($apbct->settings_link);
@@ -852,7 +925,7 @@ function apbct_sfw_update__init($delay = 0)
         return false;
     }
 
-    // Key is empty
+    // The Access key is empty
     if ( ! $apbct->api_key && ! $apbct->ip_license ) {
         return array('error' => 'SFW UPDATE INIT: KEY_IS_EMPTY');
     }
@@ -930,10 +1003,12 @@ function apbct_sfw_update__worker($checker_work = false)
 {
     global $apbct;
 
-    usleep(10000);
-
     if ( ! $apbct->data['key_is_ok'] ) {
         return array('error' => 'Worker: KEY_IS_NOT_VALID');
+    }
+
+    if ( ! $apbct->settings['sfw__enabled'] ) {
+        return false;
     }
 
     if ( ! $checker_work ) {
@@ -968,7 +1043,23 @@ function apbct_sfw_update__worker($checker_work = false)
 
     $result = $queue->executeStage();
 
-    if ( isset($result['error']) ) {
+    if ( $result === null ) {
+        // The stage is in progress, will try to wait up to 5 seconds to its complete
+        for ( $i = 0; $i < 5; $i++ ) {
+            sleep(1);
+            $queue->refreshQueue();
+            if ( ! $queue->isQueueInProgress() ) {
+                // The stage executed, break waiting and continue sfw_update__worker process
+                break;
+            }
+            if ( $i >= 4 ) {
+                // The stage still not executed, exit from sfw_update__worker
+                return true;
+            }
+        }
+    }
+
+    if ( isset($result['error']) && $result['status'] === 'FINISHED' ) {
         $apbct->errorAdd('sfw_update', $result['error']);
         $apbct->saveErrors();
 
@@ -981,8 +1072,14 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->queue['finished'] = time();
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
-            if ( isset($stage['error']) ) {
-                $apbct->errorAdd('sfw_update', $stage['error']);
+            if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
+                //there could be an array of errors of files processed
+                if ( is_array($stage['error']) ) {
+                    $error = implode(" ", array_values($stage['error']));
+                } else {
+                    $error = $result['error'];
+                }
+                $apbct->errorAdd('sfw_update', $error);
             }
         }
 
@@ -1045,6 +1142,7 @@ function apbct_sfw_update__get_multifiles()
     } else {
         return $result;
     }
+    return null;
 }
 
 function apbct_sfw_update__download_files($urls)
@@ -1061,6 +1159,7 @@ function apbct_sfw_update__download_files($urls)
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         $download_again = array();
+        $results        = array_values($results);
         for ( $i = 0; $i < $count_results; $i++ ) {
             if ( $results[$i] === 'error' ) {
                 $download_again[] = $urls[$i];
@@ -1455,6 +1554,17 @@ function apbct_remove_upd_folder($dir_name)
             }
         }
 
+        //add more paths if some strange files has been detected
+        $non_cleantalk_files_filepaths = array(
+            $dir_name . '.last.jpegoptim'
+        );
+
+        foreach ( $non_cleantalk_files_filepaths as $filepath ) {
+            if ( file_exists($filepath) && is_file($filepath) && !is_writable($filepath) ) {
+                unlink($filepath);
+            }
+        }
+
         rmdir($dir_name);
     }
 }
@@ -1479,7 +1589,7 @@ function apbct_sfw_direct_update()
 
     $api_key = $apbct->api_key;
 
-    // Key is empty
+    // The Access key is empty
     if ( empty($api_key) ) {
         return array('error' => 'SFW DIRECT UPDATE: KEY_IS_EMPTY');
     }
@@ -1677,7 +1787,7 @@ function apbct_antiflood__clear_table()
 }
 
 /**
- * Install plugin from wordpress catalog
+ * Install plugin from WordPress catalog
  *
  * @param null|WP $_wp
  * @param null|string|array $plugin
@@ -1689,7 +1799,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
     global $wp_version;
 
     if ( is_null($plugin) ) {
-        $plugin = isset($_GET['plugin']) ? $_GET['plugin'] : null;
+        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
     }
 
     if ( $plugin ) {
@@ -1747,7 +1857,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
 function apbct_rc__activate_plugin($plugin)
 {
     if ( ! $plugin ) {
-        $plugin = isset($_GET['plugin']) ? $_GET['plugin'] : null;
+        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
     }
 
     if ( $plugin ) {
@@ -1773,7 +1883,7 @@ function apbct_rc__activate_plugin($plugin)
 }
 
 /**
- * Uninstall plugin from wordpress catalog
+ * Uninstall plugin from WordPress catalog
  *
  * @param null $plugin
  */
@@ -1782,14 +1892,14 @@ function apbct_rc__deactivate_plugin($plugin = null)
     global $apbct;
 
     if ( is_null($plugin) ) {
-        $plugin = isset($_GET['plugin']) ? $_GET['plugin'] : null;
+        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
     }
 
     if ( $plugin ) {
         // Switching complete deactivation for security
-        if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' && ! empty($_GET['misc__complete_deactivation']) ) {
+        if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' && ! empty(Get::get('misc__complete_deactivation')) ) {
             $spbc_settings                                = get_option('spbc_settings');
-            $spbc_settings['misc__complete_deactivation'] = (int)$_GET['misc__complete_deactivation'];
+            $spbc_settings['misc__complete_deactivation'] = (int) Get::get('misc__complete_deactivation');
             update_option('spbc_settings', $spbc_settings);
         }
 
@@ -1819,7 +1929,7 @@ function apbct_rc__deactivate_plugin($plugin = null)
 
 
 /**
- * Uninstall plugin from wordpress. Delete files.
+ * Uninstall plugin from WordPress. Delete files.
  *
  * @param null $plugin
  */
@@ -1828,14 +1938,14 @@ function apbct_rc__uninstall_plugin($plugin = null)
     global $apbct;
 
     if ( is_null($plugin) ) {
-        $plugin = isset($_GET['plugin']) ? $_GET['plugin'] : null;
+        $plugin = Get::get('plugin') ? (string) Get::get('plugin') : null;
     }
 
     if ( $plugin ) {
         // Switching complete deactivation for security
-        if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' && ! empty($_GET['misc__complete_deactivation']) ) {
+        if ( $plugin === 'security-malware-firewall/security-malware-firewall.php' && ! empty(Get::get('misc__complete_deactivation')) ) {
             $spbc_settings                                = get_option('spbc_settings');
-            $spbc_settings['misc__complete_deactivation'] = (int)$_GET['misc__complete_deactivation'];
+            $spbc_settings['misc__complete_deactivation'] = (int) Get::get('misc__complete_deactivation');
             update_option('spbc_settings', $spbc_settings);
         }
 
@@ -1876,157 +1986,6 @@ function apbct_rc__uninstall_plugin__check_deactivate()
 {
     global $apbct;
     $apbct->plugin_deactivated = true;
-}
-
-/**
- * @throws JsonException
- * @psalm-suppress UndefinedClass
- */
-function apbct_rc__update()
-{
-    global $wp_version;
-
-    // Check download_source if set
-    if ( Get::get('download_source') ) {
-        switch ( Get::get('download_source') ) {
-            case 'cleantalk':
-                $download_url = 'https://download.cleantalk.org/antispam/wordpress/cleantalk-spam-protect._VERSION_.zip';
-                break;
-            case 'wordpress':
-                $download_url = 'https://downloads.wordpress.org/plugin/cleantalk-spam-protect._VERSION_.zip';
-                break;
-            case 'github':
-                $download_url = 'https://github.com/CleanTalk/wordpress-antispam/releases/download/_VERSION_/cleantalk-spam-protect._VERSION_.zip';
-                break;
-            default:
-                apbct_update__outputResult('CHECK_INPUT', false, array('error' => 'download_source is wrong'));
-                break;
-        }
-    }
-
-    // Check download_version if set
-    if ( Get::get('download_version') ) {
-        if ( ! preg_match('@^\d+\.\d+(\.\d+)?$@', Get::get('download_version')) ) {
-            apbct_update__outputResult(
-                'CHECK_INPUT',
-                false,
-                array('error' => 'Download version (' . Get::get('download_version') . ') is wrong')
-            );
-        }
-        $download_version = Get::get('download_version');
-    }
-
-    if ( isset($download_url, $download_version) ) {
-        $download_url = str_replace('_VERSION_', $download_version, $download_url);
-
-        if ( Helper::httpRequestGetResponseCode($download_url) !== 200 ) {
-            apbct_update__outputResult(
-                'CHECK_SOURCE',
-                false,
-                array('error' => 'Package is unavailable', 'package' => $download_url)
-            );
-        }
-
-        add_filter(
-            'site_transient_update_plugins',
-            function ($value, $_transient) use ($download_url) {
-                $value->response['cleantalk-spam-protect/cleantalk.php'] = (object)array(
-                    'package' => $download_url,
-                );
-
-                return $value;
-            },
-            1000,
-            2
-        );
-    }
-
-    //Upgrade params
-    $plugin               = 'cleantalk-spam-protect/cleantalk.php';
-    $plugin_slug          = 'cleantalk-spam-protect';
-    $title                = __('Update Plugin');
-    $nonce                = 'upgrade-plugin_' . $plugin;
-    $url                  = 'update.php?action=upgrade-plugin&plugin=' . urlencode($plugin);
-    $activate_for_network = false;
-    if ( APBCT_WPMS && is_main_site() && array_key_exists($plugin, get_site_option('active_sitewide_plugins')) ) {
-        $activate_for_network = true;
-    }
-
-    $prev_version = APBCT_VERSION;
-
-    require_once(ABSPATH . 'wp-admin/includes/plugin.php');
-    include_once(ABSPATH . 'wp-admin/includes/class-wp-upgrader.php');
-    include_once(ABSPATH . 'wp-admin/includes/file.php');
-    include_once(ABSPATH . 'wp-admin/includes/misc.php');
-
-    apbct_maintenance_mode__enable(30);
-
-    if ( version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0 ) {
-        $upgrader = new CleantalkUpgrader(new CleantalkUpgraderSkin(compact('title', 'nonce', 'url', 'plugin')));
-    } else {
-        $upgrader = new CleantalkUpgrader(
-            new CleantalkUpgraderSkinDeprecated(compact('title', 'nonce', 'url', 'plugin'))
-        );
-    }
-
-    $upgrader_result = $upgrader->upgrade($plugin);
-    if ( is_wp_error($upgrader_result) ) {
-        error_log('CleanTalk debug message:');
-        error_log(var_export($upgrader_result->get_error_message(), true));
-    }
-
-    apbct_maintenance_mode__disable();
-
-    apbct_update__outputResult(
-        'UPDATE',
-        $upgrader->apbct_result
-    );
-
-    if ( $upgrader->apbct_result === 'OK' ) {
-        $result = activate_plugins($plugin);
-
-        apbct_update__outputResult(
-            'PLUGIN_ACTIVATING',
-            is_wp_error($result) || $result === false ? 'FAIL' : 'OK',
-            array('wp_error' => is_wp_error($result) ? $result->get_error_message() : '')
-        );
-
-        $httpResponseCode = Helper::httpRequestGetResponseCode(get_option('home'));
-
-        if ( $httpResponseCode != 200 ) {
-            // Rollback
-            apbct_maintenance_mode__enable(30);
-
-            $rollback = version_compare(PHP_VERSION, '5.6.0') >= 0 && version_compare($wp_version, '5.3') >= 0
-                ? new CleantalkUpgrader(new CleantalkUpgraderSkin(compact('title', 'nonce', 'url', 'plugin')))
-                : new CleantalkUpgrader(
-                    new CleantalkUpgraderSkinDeprecated(compact('title', 'nonce', 'url', 'plugin'))
-                );
-            $rollback->rollback($plugin);
-
-            apbct_maintenance_mode__disable();
-
-            apbct_update__outputResult(
-                'CHECK_RESPONSE',
-                'FAIL',
-                array(
-                    'error'           => 'BAD_HTTP_CODE',
-                    'http_code'       => $httpResponseCode,
-                    'output'          => htmlspecialchars(
-                        substr(Helper::httpRequestGetContent(get_option('home')), 0, 900)
-                    ),
-                    'rollback_result' => $rollback->apbct_result,
-                )
-            );
-        }
-
-        apbct_update__outputResult(
-            'CHECK_RESPONSE',
-            'OK'
-        );
-    }
-
-    die('FUNCTION IS COMPLETE. OK.');
 }
 
 /**
@@ -2093,7 +2052,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['key_is_ok']        = true;
                         update_option('spbc_data', $data);
 
-                        // Set key
+                        // Set Access key
                         $settings             = get_option('spbc_settings', array());
                         $settings['spbc_key'] = $key;
                         update_option('spbc_settings', $settings);
@@ -2117,7 +2076,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
 }
 
 /**
- * Putting Wordpress to maintenance mode.
+ * Putting WordPress to maintenance mode.
  * For given duration in seconds
  *
  * @param $duration
@@ -2238,9 +2197,6 @@ function apbct__hook__wp_logout__delete_trial_notice_cookie()
 
 /**
  * Store URLs
- *
- * @throws JsonException
- * @ToDo need to be refactored psalm notices about InvalidArrayOffset
  */
 function apbct_store__urls()
 {
@@ -2248,7 +2204,6 @@ function apbct_store__urls()
 
     if (
         $apbct->data['cookies_type'] === 'none' || // Do not set cookies if option is disabled (for Varnish cache).
-        ! empty($apbct->flags__cookies_setuped) || // Cookies already set
         ! empty($apbct->headers_sent)              // Headers sent
     ) {
         return false;
@@ -2262,12 +2217,12 @@ function apbct_store__urls()
         $site_url    = parse_url(get_option('home'), PHP_URL_HOST);
 
         // Get already stored URLs
-        $urls = Cookie::get('apbct_urls', array(), 'array');
-        /** @psalm-suppress InvalidArrayOffset */
+        $urls = Cookie::get('apbct_urls');
+        $urls = $urls === '' ? [] : json_decode($urls, true);
+
         $urls[$current_url][] = time();
 
         // Rotating. Saving only latest 10
-        /** @psalm-suppress InvalidArrayOffset */
         $urls[$current_url] = count($urls[$current_url]) > 5 ? array_slice(
             $urls[$current_url],
             1,
@@ -2276,7 +2231,7 @@ function apbct_store__urls()
         $urls               = count($urls) > 5 ? array_slice($urls, 1, 5) : $urls;
 
         // Saving
-        Cookie::set('apbct_urls', json_encode($urls), time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
+        Cookie::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), time() + 86400 * 3, '/', $site_url, null, true, 'Lax');
 
         // REFERER
         // Get current referer
@@ -2339,7 +2294,7 @@ function apbct_cookie()
     $domain = '';
 
     // Submit time
-    if ( empty($_POST['ct_multipage_form']) ) { // Do not start/reset page timer if it is multi page form (Gravity forms))
+    if ( empty(Post::get('ct_multipage_form')) ) { // Do not start/reset page timer if it is multi page form (Gravity forms))
         $apbct_timestamp = time();
         Cookie::set('apbct_timestamp', (string)$apbct_timestamp, 0, '/', $domain, null, true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
@@ -2376,7 +2331,7 @@ function apbct_cookie()
     // Cookies test
     $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
     if ( $apbct->data['cookies_type'] === 'native' ) {
-        Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
+        Cookie::set('apbct_cookies_test', json_encode($cookie_test_value), 0, '/', $domain, null, true);
     }
 
     $apbct->flags__cookies_setuped = true;
@@ -2398,8 +2353,8 @@ function apbct_cookies_test()
         return 1;
     }
 
-    if ( isset($_COOKIE['apbct_cookies_test']) ) {
-        $cookie_test = json_decode(urldecode($_COOKIE['apbct_cookies_test']), true);
+    if ( Cookie::get('apbct_cookies_test') ) {
+        $cookie_test = json_decode(urldecode(Cookie::get('apbct_cookies_test')), true);
 
         if ( ! is_array($cookie_test) ) {
             return 0;
@@ -2407,7 +2362,7 @@ function apbct_cookies_test()
 
         $check_string = $apbct->api_key;
         foreach ( $cookie_test['cookies_names'] as $cookie_name ) {
-            $check_string .= isset($_COOKIE[$cookie_name]) ? $_COOKIE[$cookie_name] : '';
+            $check_string .= Cookie::get($cookie_name);
         }
 
         if ( $cookie_test['check_value'] == md5($check_string) ) {
@@ -2493,7 +2448,7 @@ function ct_mail_send_connection_report()
 {
     global $apbct;
 
-    if ( ($apbct->settings['misc__send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || ! empty($_GET['ct_send_connection_report']) ) {
+    if ( ($apbct->settings['misc__send_connection_reports'] == 1 && $apbct->connection_reports['negative'] > 0) || ! empty(Get::get('ct_send_connection_report')) ) {
         $to      = "welcome@cleantalk.org";
         $subject = "Connection report for " . apbct_get_server_variable('HTTP_HOST');
         $message = '
@@ -2755,7 +2710,7 @@ function apbct_test_connection()
 
     foreach ( $url_to_test as $url ) {
         $start  = microtime(true);
-        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetContent($url);
+        $result = \Cleantalk\ApbctWP\Helper::httpRequestGetResponseCode($url);
 
         $out[$url] = array(
             'result'    => ! empty($result['error']) ? $result['error'] : 'OK',

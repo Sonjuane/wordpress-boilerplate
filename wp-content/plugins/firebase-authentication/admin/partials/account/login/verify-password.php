@@ -4,6 +4,7 @@ function mo_firebase_auth_verify_password_ui() {
 		?>
 		<form name="f" method="post" action="">
 			<input type="hidden" name="option" value="mo_firebase_authentication_verify_customer" />
+			<?php wp_nonce_field('mo_fb_login_form', 'mo_fb_login_form_nonce'); ?>
 			<div class="mo_firebase_auth_card" style="width:100%">
 				<!-- <div id="toggle1" class="mo_panel_toggle"> -->
 					<h3>Login with miniOrange</h3>
@@ -16,7 +17,7 @@ function mo_firebase_auth_verify_password_ui() {
 						<td><strong><font color="#FF0000">*</font>Email:</strong></td>
 						<td><input class="mo_table_textbox3" type="email" name="email"
 							required placeholder="person@example.com"
-							value="<?php echo get_option('mo_firebase_authentication_admin_email');?>" /></td>
+							value="<?php echo esc_attr(get_option('mo_firebase_authentication_admin_email'));?>" /></td>
 					</tr>
 					<tr>
 						<td><strong><font color="#FF0000">*</font>Password:</strong></td>
@@ -45,6 +46,7 @@ function mo_firebase_auth_verify_password_ui() {
 					
 		<form id="mo_firebase_authentication_change_email_form" method="post" action="">
 			<input type="hidden" name="option" value="mo_firebase_authentication_change_email" />
+			<?php wp_nonce_field('mo_firebase_authentication_change_email_form', 'mo_firebase_authentication_change_email_form_nonce'); ?>
 		</form>
 
 		<!-- <form name="f" method="post" action="" id="mo_firebase_authentication_forgotpassword_form">

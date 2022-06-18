@@ -3,8 +3,8 @@ Contributors: WebFactory
 Tags: coming soon page, under construction mode, under construction, under construction page, coming soon, maintenance mode, maintenance page, launch page, coming soon mode, maintenance mode page, offline page, maintenance, landing page
 Requires at least: 4.0
 Requires PHP: 5.2
-Tested up to: 5.8
-Stable tag: 3.92
+Tested up to: 5.9
+Stable tag: 3.93
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,7 @@ A simple, no-nonsense under construction plugin for all those situations when yo
 
 Thanks to our partnership with <a href="https://wordpress.org/plugins/weglot/">Weglot</a>, UCP is fully multilanguage ready and you can instantly translate your under construction page to 100+ languages with one click.
 
-If you're having problems with SSL or HTTPS try our free <a href="https://wordpress.org/plugins/wp-force-ssl/">WP Force SSL</a> plugin. It's a great plugin to enable SSL and fix SSL problems.
+**If you're having problems with SSL or HTTPS try our free <a href="https://wordpress.org/plugins/wp-force-ssl/">WP Force SSL</a> plugin. It's a great plugin to enable SSL and fix SSL issues.**
 
 **Options**
 
@@ -134,6 +134,10 @@ Or if needed, upload manually;
 
 
 == Changelog ==
+
+= 3.93 =
+* 2022/04/13
+* Fix for escaping HTML that shouldn't be escaped
 
 = 3.92 =
 * 2022/01/13

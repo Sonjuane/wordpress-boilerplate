@@ -3,7 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 /**
- * Antispam by CleanTalk plugin
+ * Anti-Spam by CleanTalk plugin
  *
  * Class that extends the WP Core Plugin_Upgrader.
  *
@@ -178,6 +178,13 @@ class CleantalkUpgrader extends \Plugin_Upgrader
         return $result;
     }
 
+    /**
+     * @param $plugin
+     * @param $args
+     *
+     * @return array|bool|string|\WP_Error
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function rollback($plugin, $args = array())
     {
         $defaults    = array(

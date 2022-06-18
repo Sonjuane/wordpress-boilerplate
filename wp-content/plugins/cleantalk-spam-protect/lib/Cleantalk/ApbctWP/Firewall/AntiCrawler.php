@@ -2,8 +2,10 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Variables\Get;
 use Cleantalk\Variables\Server;
 
 /**
@@ -93,7 +95,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
                                 // Cast result to int
                                 $ua_id       = preg_replace('/[^\d]*/', '', $entry[0]);
-                                $ua_template = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::dbPrepareParam(
+                                $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam(
                                     $entry[1]
                                 ) : 0;
                                 $ua_status   = isset($entry[2]) ? $entry[2] : 0;
@@ -152,7 +154,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     // Cast result to int
                     // @ToDo check the output $entry
                     $ua_id = preg_replace('/[^\d]*/', '', $entry[0]);
-                    $ua_template = isset($entry[1]) && apbct_is_regexp($entry[1]) ? Helper::dbPrepareParam($entry[1]) : 0;
+                    $ua_template = isset($entry[1]) && Validate::isRegexp($entry[1]) ? Helper::dbPrepareParam($entry[1]) : 0;
                     $ua_status = isset($entry[2]) ? $entry[2] : 0;
 
                     $values[] = '(' . $ua_id . ',' . $ua_template . ',' . $ua_status . ')';
@@ -454,7 +456,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                         3
                     ) . '<br>'
                     . __('Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect'),
-                '{CLEANTALK_TITLE}'                => __('Antispam by CleanTalk', 'cleantalk-spam-protect'),
+                '{CLEANTALK_TITLE}'                => __('Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
                 '{REMOTE_ADDRESS}'                 => $result['ip'],
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
@@ -468,7 +470,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
             }
 
-            if ( isset($_GET['debug']) ) {
+            if ( Get::get('debug') ) {
                 $debug = '<h1>Headers</h1>'
                          . str_replace("\n", "<br>", print_r(\apache_request_headers(), true))
                          . '<h1>$_SERVER</h1>'
@@ -497,11 +499,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => esc_url(get_rest_url()),
-            '_apbct_ajax_url'                      => APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/Ajax.php',
             'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'sfw__random_get'                      => $apbct->settings['sfw__random_get'] === '1' ||
-                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists())
+                                                      ($apbct->settings['sfw__random_get'] === '-1' && apbct_is_cache_plugins_exists()),
+            'cookiePrefix'                         => apbct__get_cookie_prefix(),
         );
 
         $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
